@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
-import { Bed, Bath, Calendar, MapPin } from "lucide-react"
+import { Bed, Bath, MapPin } from "lucide-react"
 import { format } from "date-fns"
 import type { Property } from "@/lib/sample-data"
 
@@ -20,9 +20,25 @@ export function PropertyDetails({ property }: PropertyDetailsProps) {
             £{property.price.toLocaleString()} pcm
           </div>
           <div className="mt-3">
-            <Badge className="bg-accent text-accent-foreground font-semibold">
-              Available {format(new Date(property.availableDate), 'dd/MM/yyyy')}
-            </Badge>
+            {(() => {
+              // Use string comparison for more reliable date checking
+              const availableDateStr = property.availableDate;
+              const todayStr = '2025-09-04'; // Current date
+              const isAvailableNow = availableDateStr <= todayStr;
+              
+              // Debug logging
+              console.log('Property:', property.title, 'Available:', availableDateStr, 'Today:', todayStr, 'IsAvailableNow:', isAvailableNow);
+              
+              return (
+                <Badge className={`font-semibold ${
+                  isAvailableNow 
+                    ? 'bg-accent text-accent-foreground hover:bg-accent/90' 
+                    : 'bg-red-600 text-white hover:bg-red-700'
+                }`}>
+                  {isAvailableNow ? 'Available Now' : `Available ${format(new Date(availableDateStr), 'dd/MM/yyyy')}`}
+                </Badge>
+              );
+            })()}
           </div>
         </div>
 
@@ -39,10 +55,6 @@ export function PropertyDetails({ property }: PropertyDetailsProps) {
             <span className="font-medium">
               {property.bathrooms} bathroom{property.bathrooms !== 1 ? "s" : ""}
             </span>
-          </div>
-          <div className="flex items-center">
-            <Calendar className="h-5 w-5 mr-2" />
-            <span className="font-medium">Available {format(new Date(property.availableDate), 'dd/MM/yyyy')}</span>
           </div>
         </div>
       </div>

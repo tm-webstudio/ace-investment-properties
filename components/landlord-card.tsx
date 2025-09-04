@@ -17,7 +17,7 @@ export function LandlordCard({ name, phone, email }: LandlordCardProps) {
     .toUpperCase()
 
   return (
-    <Card className="sticky top-4 rounded-none">
+    <Card className="rounded-none">
       <CardHeader>
         <CardTitle className="text-center">Contact Ace Investment Properties</CardTitle>
       </CardHeader>

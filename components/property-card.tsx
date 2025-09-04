@@ -26,9 +26,22 @@ export function PropertyCard({ property }: PropertyCardProps) {
             className="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-300"
           />
           <div className="absolute top-4 left-4">
-            <Badge className="bg-accent text-accent-foreground font-semibold shadow-lg">
-              Available {format(new Date(property.availableDate), 'dd/MM/yyyy')}
-            </Badge>
+            {(() => {
+              // Use string comparison for more reliable date checking
+              const availableDateStr = property.availableDate;
+              const todayStr = '2025-09-04'; // Current date
+              const isAvailableNow = availableDateStr <= todayStr;
+              
+              return (
+                <Badge className={`font-semibold shadow-lg ${
+                  isAvailableNow 
+                    ? 'bg-accent text-accent-foreground hover:bg-accent/90' 
+                    : 'bg-red-600 text-white hover:bg-red-700'
+                }`}>
+                  {isAvailableNow ? 'Available Now' : `Available ${format(new Date(availableDateStr), 'dd/MM/yyyy')}`}
+                </Badge>
+              );
+            })()}
           </div>
           <Button
             size="icon"
