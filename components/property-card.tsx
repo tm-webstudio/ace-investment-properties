@@ -56,11 +56,11 @@ export function PropertyCard({ property }: PropertyCardProps) {
 
         <CardContent className="px-6 pb-5 pr-5 pl-5">
           <div className="space-y-3">
-            <div>
-              <h3 className="font-serif text-xl font-semibold text-card-foreground mb-2 line-clamp-1">
+            <div className="mb-1.5">
+              <h3 className="font-serif text-xl font-semibold text-card-foreground mb-1.5 line-clamp-1">
                 {property.title}
               </h3>
-              <div className="text-lg font-semibold text-accent mb-2">
+              <div className="text-lg font-semibold text-accent">
                 £{property.price.toLocaleString()} pcm
               </div>
             </div>

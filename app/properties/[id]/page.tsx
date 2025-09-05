@@ -66,7 +66,7 @@ export default function PropertyPage({ params }: PropertyPageProps) {
           {/* Property Gallery */}
           <PropertyGallery images={property.images} title={property.title} />
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-8">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-4 md:mt-8">
             {/* Main Content */}
             <div className="lg:col-span-2 space-y-8">
               <PropertyDetails property={property} />

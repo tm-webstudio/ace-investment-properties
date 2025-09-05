@@ -63,15 +63,15 @@ export function Footer() {
             <div className="space-y-2">
               <div className="flex items-center space-x-2">
                 <Phone className="h-4 w-4" />
-                <span className="text-primary-foreground/80">(555) 123-4567</span>
+                <span className="text-primary-foreground/80">+44 7831 542818</span>
               </div>
               <div className="flex items-center space-x-2">
-                <Mail className="h-4 w-4" />
-                <span className="text-primary-foreground/80">info@aceproperties.com</span>
+                <Mail className="h-4 w-4 flex-shrink-0" />
+                <span className="text-primary-foreground/80">abdul@aceinvestmentproperties.com</span>
               </div>
-              <div className="flex items-center space-x-2">
-                <MapPin className="h-4 w-4" />
-                <span className="text-primary-foreground/80">123 Main St, City, State 12345</span>
+              <div className="flex items-start space-x-2">
+                <MapPin className="h-4 w-4 flex-shrink-0 mt-0.5" />
+                <span className="text-primary-foreground/80">24 Bridge House Quay, Canary Wharf, United Kingdom, E14 9QW</span>
               </div>
             </div>
           </div>

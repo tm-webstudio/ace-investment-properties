@@ -15,8 +15,8 @@ export function PropertyDetails({ property }: PropertyDetailsProps) {
       {/* Header */}
       <div className="space-y-4">
         <div>
-          <h1 className="font-serif text-3xl md:text-4xl font-bold text-foreground">{property.title}</h1>
-          <div className="text-2xl font-semibold text-accent mt-2">
+          <h1 className="font-serif text-2xl md:text-4xl font-bold text-foreground">{property.title}</h1>
+          <div className="text-xl md:text-2xl font-semibold text-accent mt-2">
             £{property.price.toLocaleString()} pcm
           </div>
           <div className="mt-3">
@@ -76,7 +76,7 @@ export function PropertyDetails({ property }: PropertyDetailsProps) {
         </CardHeader>
         <CardContent>
           <div className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
               <div className="space-y-4">
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Property Type</span>
