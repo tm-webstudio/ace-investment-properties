@@ -31,158 +31,166 @@ export function Navigation() {
               </button>
 
               {isMegaMenuOpen && (
-                <div className="absolute top-[calc(100%+1rem)] left-1/2 transform -translate-x-1/2 w-screen max-w-4xl bg-background text-foreground shadow-2xl border border-border/20 z-[60]">
-                  <div className="p-8">
-                    <div className="grid grid-cols-4 gap-8">
-                      {/* London Column */}
-                      <div className="space-y-4">
-                        <h3 className="font-serif font-bold text-lg text-primary border-b border-border pb-2">
-                          London
-                        </h3>
-                        <div className="space-y-2">
-                          <Link
-                            href="/properties?location=north-london"
-                            className="block text-sm hover:text-primary transition-colors py-1"
-                          >
-                            North London
-                          </Link>
-                          <Link
-                            href="/properties?location=east-london"
-                            className="block text-sm hover:text-primary transition-colors py-1"
-                          >
-                            East London
-                          </Link>
-                          <Link
-                            href="/properties?location=south-london"
-                            className="block text-sm hover:text-primary transition-colors py-1"
-                          >
-                            South London
-                          </Link>
-                          <Link
-                            href="/properties?location=west-london"
-                            className="block text-sm hover:text-primary transition-colors py-1"
-                          >
-                            West London
-                          </Link>
-                          <Link
-                            href="/properties?location=central-london"
-                            className="block text-sm hover:text-primary transition-colors py-1"
-                          >
-                            Central London
-                          </Link>
+                <>
+                  {/* Invisible bridge to prevent hover gap */}
+                  <div className="absolute top-full left-0 right-0 h-[0.75rem] z-[59]" />
+                  <div 
+                    className="absolute top-[calc(100%+0.75rem)] left-1/2 transform -translate-x-1/2 w-screen max-w-4xl bg-white text-gray-900 shadow-2xl border border-gray-200 z-[60]"
+                    onMouseEnter={() => setIsMegaMenuOpen(true)}
+                    onMouseLeave={() => setIsMegaMenuOpen(false)}
+                  >
+                    <div className="p-8">
+                      <div className="grid grid-cols-4 gap-8">
+                        {/* London Column */}
+                        <div className="space-y-4">
+                          <h3 className="font-serif font-bold text-lg text-primary border-b border-gray-300 pb-2">
+                            London
+                          </h3>
+                          <div className="space-y-2">
+                            <Link
+                              href="/properties?location=north-london"
+                              className="block text-sm hover:text-primary hover:bg-primary/10 transition-colors py-1 px-2 rounded"
+                            >
+                              North London
+                            </Link>
+                            <Link
+                              href="/properties?location=east-london"
+                              className="block text-sm hover:text-primary hover:bg-primary/10 transition-colors py-1 px-2 rounded"
+                            >
+                              East London
+                            </Link>
+                            <Link
+                              href="/properties?location=south-london"
+                              className="block text-sm hover:text-primary hover:bg-primary/10 transition-colors py-1 px-2 rounded"
+                            >
+                              South London
+                            </Link>
+                            <Link
+                              href="/properties?location=west-london"
+                              className="block text-sm hover:text-primary hover:bg-primary/10 transition-colors py-1 px-2 rounded"
+                            >
+                              West London
+                            </Link>
+                            <Link
+                              href="/properties?location=central-london"
+                              className="block text-sm hover:text-primary hover:bg-primary/10 transition-colors py-1 px-2 rounded"
+                            >
+                              Central London
+                            </Link>
+                          </div>
+                        </div>
+
+                        {/* Midlands Column */}
+                        <div className="space-y-4">
+                          <h3 className="font-serif font-bold text-lg text-primary border-b border-gray-300 pb-2">
+                            Midlands
+                          </h3>
+                          <div className="space-y-2">
+                            <Link
+                              href="/properties?location=birmingham"
+                              className="block text-sm hover:text-primary hover:bg-primary/10 transition-colors py-1 px-2 rounded"
+                            >
+                              Birmingham
+                            </Link>
+                            <Link
+                              href="/properties?location=coventry"
+                              className="block text-sm hover:text-primary hover:bg-primary/10 transition-colors py-1 px-2 rounded"
+                            >
+                              Coventry
+                            </Link>
+                            <Link
+                              href="/properties?location=leicester"
+                              className="block text-sm hover:text-primary hover:bg-primary/10 transition-colors py-1 px-2 rounded"
+                            >
+                              Leicester
+                            </Link>
+                            <Link
+                              href="/properties?location=nottingham"
+                              className="block text-sm hover:text-primary hover:bg-primary/10 transition-colors py-1 px-2 rounded"
+                            >
+                              Nottingham
+                            </Link>
+                          </div>
+                        </div>
+
+                        {/* North England Column */}
+                        <div className="space-y-4">
+                          <h3 className="font-serif font-bold text-lg text-primary border-b border-gray-300 pb-2">
+                            North England
+                          </h3>
+                          <div className="space-y-2">
+                            <Link
+                              href="/properties?location=manchester"
+                              className="block text-sm hover:text-primary hover:bg-primary/10 transition-colors py-1 px-2 rounded"
+                            >
+                              Manchester
+                            </Link>
+                            <Link
+                              href="/properties?location=liverpool"
+                              className="block text-sm hover:text-primary hover:bg-primary/10 transition-colors py-1 px-2 rounded"
+                            >
+                              Liverpool
+                            </Link>
+                            <Link
+                              href="/properties?location=leeds"
+                              className="block text-sm hover:text-primary hover:bg-primary/10 transition-colors py-1 px-2 rounded"
+                            >
+                              Leeds
+                            </Link>
+                            <Link
+                              href="/properties?location=newcastle"
+                              className="block text-sm hover:text-primary hover:bg-primary/10 transition-colors py-1 px-2 rounded"
+                            >
+                              Newcastle
+                            </Link>
+                          </div>
+                        </div>
+
+                        {/* South England Column */}
+                        <div className="space-y-4">
+                          <h3 className="font-serif font-bold text-lg text-primary border-b border-gray-300 pb-2">
+                            South England
+                          </h3>
+                          <div className="space-y-2">
+                            <Link
+                              href="/properties?location=brighton"
+                              className="block text-sm hover:text-primary hover:bg-primary/10 transition-colors py-1 px-2 rounded"
+                            >
+                              Brighton
+                            </Link>
+                            <Link
+                              href="/properties?location=bristol"
+                              className="block text-sm hover:text-primary hover:bg-primary/10 transition-colors py-1 px-2 rounded"
+                            >
+                              Bristol
+                            </Link>
+                            <Link
+                              href="/properties?location=oxford"
+                              className="block text-sm hover:text-primary hover:bg-primary/10 transition-colors py-1 px-2 rounded"
+                            >
+                              Oxford
+                            </Link>
+                            <Link
+                              href="/properties?location=cambridge"
+                              className="block text-sm hover:text-primary hover:bg-primary/10 transition-colors py-1 px-2 rounded"
+                            >
+                              Cambridge
+                            </Link>
+                          </div>
                         </div>
                       </div>
 
-                      {/* Midlands Column */}
-                      <div className="space-y-4">
-                        <h3 className="font-serif font-bold text-lg text-primary border-b border-border pb-2">
-                          Midlands
-                        </h3>
-                        <div className="space-y-2">
-                          <Link
-                            href="/properties?location=birmingham"
-                            className="block text-sm hover:text-primary transition-colors py-1"
-                          >
-                            Birmingham
-                          </Link>
-                          <Link
-                            href="/properties?location=coventry"
-                            className="block text-sm hover:text-primary transition-colors py-1"
-                          >
-                            Coventry
-                          </Link>
-                          <Link
-                            href="/properties?location=leicester"
-                            className="block text-sm hover:text-primary transition-colors py-1"
-                          >
-                            Leicester
-                          </Link>
-                          <Link
-                            href="/properties?location=nottingham"
-                            className="block text-sm hover:text-primary transition-colors py-1"
-                          >
-                            Nottingham
-                          </Link>
-                        </div>
+                      <div className="mt-8 pt-6 border-t border-border">
+                        <Link
+                          href="/properties"
+                          className="inline-flex items-center px-6 py-3 bg-primary text-primary-foreground hover:bg-primary/90 transition-colors font-medium"
+                        >
+                          View All Properties
+                        </Link>
                       </div>
-
-                      {/* North England Column */}
-                      <div className="space-y-4">
-                        <h3 className="font-serif font-bold text-lg text-primary border-b border-border pb-2">
-                          North England
-                        </h3>
-                        <div className="space-y-2">
-                          <Link
-                            href="/properties?location=manchester"
-                            className="block text-sm hover:text-primary transition-colors py-1"
-                          >
-                            Manchester
-                          </Link>
-                          <Link
-                            href="/properties?location=liverpool"
-                            className="block text-sm hover:text-primary transition-colors py-1"
-                          >
-                            Liverpool
-                          </Link>
-                          <Link
-                            href="/properties?location=leeds"
-                            className="block text-sm hover:text-primary transition-colors py-1"
-                          >
-                            Leeds
-                          </Link>
-                          <Link
-                            href="/properties?location=newcastle"
-                            className="block text-sm hover:text-primary transition-colors py-1"
-                          >
-                            Newcastle
-                          </Link>
-                        </div>
-                      </div>
-
-                      {/* South England Column */}
-                      <div className="space-y-4">
-                        <h3 className="font-serif font-bold text-lg text-primary border-b border-border pb-2">
-                          South England
-                        </h3>
-                        <div className="space-y-2">
-                          <Link
-                            href="/properties?location=brighton"
-                            className="block text-sm hover:text-primary transition-colors py-1"
-                          >
-                            Brighton
-                          </Link>
-                          <Link
-                            href="/properties?location=bristol"
-                            className="block text-sm hover:text-primary transition-colors py-1"
-                          >
-                            Bristol
-                          </Link>
-                          <Link
-                            href="/properties?location=oxford"
-                            className="block text-sm hover:text-primary transition-colors py-1"
-                          >
-                            Oxford
-                          </Link>
-                          <Link
-                            href="/properties?location=cambridge"
-                            className="block text-sm hover:text-primary transition-colors py-1"
-                          >
-                            Cambridge
-                          </Link>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="mt-8 pt-6 border-t border-border">
-                      <Link
-                        href="/properties"
-                        className="inline-flex items-center px-6 py-3 bg-primary text-primary-foreground hover:bg-primary/90 transition-colors font-medium"
-                      >
-                        View All Properties
-                      </Link>
                     </div>
                   </div>
-                </div>
+                </>
               )}
             </div>
 
