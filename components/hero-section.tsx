@@ -25,7 +25,7 @@ export function HeroSection() {
             <Link href="/properties">
               <Button
                 size="lg"
-                className="bg-accent hover:bg-accent/90 text-accent-foreground px-8 text-lg font-semibold shadow-lg hover:shadow-xl transition-all rounded-none py-6"
+                className="bg-accent hover:bg-accent/90 text-accent-foreground px-8 text-base font-semibold shadow-lg hover:shadow-xl transition-all rounded-none py-6"
               >
                 Find Properties
               </Button>

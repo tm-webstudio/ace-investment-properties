@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Menu, X, ChevronDown } from "lucide-react"
@@ -9,6 +9,20 @@ export function Navigation() {
   const [isOpen, setIsOpen] = useState(false)
   const [isMegaMenuOpen, setIsMegaMenuOpen] = useState(false)
   const [isMobileDropdownOpen, setIsMobileDropdownOpen] = useState(false)
+
+  // Prevent body scroll when mobile menu is open
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = 'unset'
+    }
+
+    // Cleanup on unmount
+    return () => {
+      document.body.style.overflow = 'unset'
+    }
+  }, [isOpen])
 
   return (
     <nav className="sticky top-0 z-50 bg-primary text-primary-foreground shadow-lg">
@@ -237,7 +251,7 @@ export function Navigation() {
       >
         <div className="flex flex-col h-full">
           {/* Menu header */}
-          <div className="flex items-center justify-between p-6 border-b border-primary-foreground/20">
+          <div className="flex items-center justify-between pl-6 pr-4 py-6 border-b border-primary-foreground/20">
             <span className="font-serif font-bold text-lg text-primary-foreground">Menu</span>
             <Button
               variant="ghost"
@@ -254,109 +268,117 @@ export function Navigation() {
             <div className="space-y-4">
               <button
                 onClick={() => setIsMobileDropdownOpen(!isMobileDropdownOpen)}
-                className="flex items-center justify-between w-full text-lg font-medium text-primary-foreground hover:text-accent transition-colors py-2"
+                className="flex items-center justify-between w-full font-medium text-primary-foreground hover:text-accent transition-colors py-2 mb-3"
+                style={{ fontSize: '17px' }}
               >
                 <span>Browse Properties</span>
                 <ChevronDown className={`h-4 w-4 transition-transform ${isMobileDropdownOpen ? "rotate-180" : ""}`} />
               </button>
 
               {isMobileDropdownOpen && (
-                <div className="space-y-3 pl-4 animate-in slide-in-from-top-2 duration-200">
-                  <div className="text-sm font-medium text-primary-foreground/80">London</div>
-                  <div className="space-y-2 pl-2">
-                    <Link
-                      href="/properties?location=north-london"
-                      className="block text-sm text-primary-foreground hover:text-accent transition-colors py-1"
-                      onClick={() => setIsOpen(false)}
-                    >
-                      North London
-                    </Link>
-                    <Link
-                      href="/properties?location=east-london"
-                      className="block text-sm text-primary-foreground hover:text-accent transition-colors py-1"
-                      onClick={() => setIsOpen(false)}
-                    >
-                      East London
-                    </Link>
-                    <Link
-                      href="/properties?location=south-london"
-                      className="block text-sm text-primary-foreground hover:text-accent transition-colors py-1"
-                      onClick={() => setIsOpen(false)}
-                    >
-                      South London
-                    </Link>
-                    <Link
-                      href="/properties?location=west-london"
-                      className="block text-sm text-primary-foreground hover:text-accent transition-colors py-1"
-                      onClick={() => setIsOpen(false)}
-                    >
-                      West London
-                    </Link>
-                    <Link
-                      href="/properties?location=central-london"
-                      className="block text-sm text-primary-foreground hover:text-accent transition-colors py-1"
-                      onClick={() => setIsOpen(false)}
-                    >
-                      Central London
-                    </Link>
+                <div className="space-y-4 px-2 animate-in slide-in-from-top-2 duration-200">
+                  {/* London Region */}
+                  <div className="space-y-2">
+                    <div className="font-medium text-primary-foreground text-sm py-1">London</div>
+                    <div className="space-y-1 pl-3">
+                      <Link
+                        href="/properties?location=north-london"
+                        className="block text-sm text-primary-foreground/80 hover:text-accent transition-colors py-1"
+                        onClick={() => setIsOpen(false)}
+                      >
+                        North London
+                      </Link>
+                      <Link
+                        href="/properties?location=east-london"
+                        className="block text-sm text-primary-foreground/80 hover:text-accent transition-colors py-1"
+                        onClick={() => setIsOpen(false)}
+                      >
+                        East London
+                      </Link>
+                      <Link
+                        href="/properties?location=south-london"
+                        className="block text-sm text-primary-foreground/80 hover:text-accent transition-colors py-1"
+                        onClick={() => setIsOpen(false)}
+                      >
+                        South London
+                      </Link>
+                      <Link
+                        href="/properties?location=west-london"
+                        className="block text-sm text-primary-foreground/80 hover:text-accent transition-colors py-1"
+                        onClick={() => setIsOpen(false)}
+                      >
+                        West London
+                      </Link>
+                      <Link
+                        href="/properties?location=central-london"
+                        className="block text-sm text-primary-foreground/80 hover:text-accent transition-colors py-1"
+                        onClick={() => setIsOpen(false)}
+                      >
+                        Central London
+                      </Link>
+                    </div>
                   </div>
 
-                  <div className="text-sm font-medium text-primary-foreground/80 pt-2">Midlands</div>
-                  <div className="space-y-2 pl-2">
-                    <Link
-                      href="/properties?location=birmingham"
-                      className="block text-sm text-primary-foreground hover:text-accent transition-colors py-1"
-                      onClick={() => setIsOpen(false)}
-                    >
-                      Birmingham
-                    </Link>
-                    <Link
-                      href="/properties?location=coventry"
-                      className="block text-sm text-primary-foreground hover:text-accent transition-colors py-1"
-                      onClick={() => setIsOpen(false)}
-                    >
-                      Coventry
-                    </Link>
-                    <Link
-                      href="/properties?location=leicester"
-                      className="block text-sm text-primary-foreground hover:text-accent transition-colors py-1"
-                      onClick={() => setIsOpen(false)}
-                    >
-                      Leicester
-                    </Link>
+                  {/* Midlands Region */}
+                  <div className="space-y-2">
+                    <div className="font-medium text-primary-foreground text-sm py-1">Midlands</div>
+                    <div className="space-y-1 pl-3">
+                      <Link
+                        href="/properties?location=birmingham"
+                        className="block text-sm text-primary-foreground/80 hover:text-accent transition-colors py-1"
+                        onClick={() => setIsOpen(false)}
+                      >
+                        Birmingham
+                      </Link>
+                      <Link
+                        href="/properties?location=coventry"
+                        className="block text-sm text-primary-foreground/80 hover:text-accent transition-colors py-1"
+                        onClick={() => setIsOpen(false)}
+                      >
+                        Coventry
+                      </Link>
+                      <Link
+                        href="/properties?location=leicester"
+                        className="block text-sm text-primary-foreground/80 hover:text-accent transition-colors py-1"
+                        onClick={() => setIsOpen(false)}
+                      >
+                        Leicester
+                      </Link>
+                    </div>
                   </div>
 
-                  <div className="text-sm font-medium text-primary-foreground/80 pt-2">North England</div>
-                  <div className="space-y-2 pl-2">
-                    <Link
-                      href="/properties?location=manchester"
-                      className="block text-sm text-primary-foreground hover:text-accent transition-colors py-1"
-                      onClick={() => setIsOpen(false)}
-                    >
-                      Manchester
-                    </Link>
-                    <Link
-                      href="/properties?location=liverpool"
-                      className="block text-sm text-primary-foreground hover:text-accent transition-colors py-1"
-                      onClick={() => setIsOpen(false)}
-                    >
-                      Liverpool
-                    </Link>
-                    <Link
-                      href="/properties?location=leeds"
-                      className="block text-sm text-primary-foreground hover:text-accent transition-colors py-1"
-                      onClick={() => setIsOpen(false)}
-                    >
-                      Leeds
-                    </Link>
+                  {/* North England Region */}
+                  <div className="space-y-2">
+                    <div className="font-medium text-primary-foreground text-sm py-1">North England</div>
+                    <div className="space-y-1 pl-3">
+                      <Link
+                        href="/properties?location=manchester"
+                        className="block text-sm text-primary-foreground/80 hover:text-accent transition-colors py-1"
+                        onClick={() => setIsOpen(false)}
+                      >
+                        Manchester
+                      </Link>
+                      <Link
+                        href="/properties?location=liverpool"
+                        className="block text-sm text-primary-foreground/80 hover:text-accent transition-colors py-1"
+                        onClick={() => setIsOpen(false)}
+                      >
+                        Liverpool
+                      </Link>
+                      <Link
+                        href="/properties?location=leeds"
+                        className="block text-sm text-primary-foreground/80 hover:text-accent transition-colors py-1"
+                        onClick={() => setIsOpen(false)}
+                      >
+                        Leeds
+                      </Link>
+                    </div>
                   </div>
 
-                  <Link
-                    href="/properties"
-                    className="block text-sm font-medium text-accent py-2 border-t border-primary-foreground/20 mt-4 pt-4"
-                    onClick={() => setIsOpen(false)}
-                  >
-                    View All Properties
+                  <Link href="/properties" onClick={() => setIsOpen(false)}>
+                    <Button className="w-full bg-white text-primary hover:bg-gray-100 mt-3">
+                      View All Properties
+                    </Button>
                   </Link>
                 </div>
               )}
@@ -364,8 +386,9 @@ export function Navigation() {
 
             <Link
               href="/landlord"
-              className="block text-lg text-primary-foreground hover:text-accent transition-colors py-3"
+              className="block text-primary-foreground hover:text-accent transition-colors py-2"
               onClick={() => setIsOpen(false)}
+              style={{ fontSize: '17px' }}
             >
               For Landlords
             </Link>
@@ -375,7 +398,7 @@ export function Navigation() {
             <Link href="/auth/signin">
               <Button
                 variant="ghost"
-                className="w-full text-primary-foreground hover:bg-white hover:text-primary text-base justify-center border-white border rounded-none py-5 transition-all duration-300 ease-in-out"
+                className="w-full text-primary-foreground hover:bg-white hover:text-primary text-sm justify-center border-white border rounded-none py-3 transition-all duration-300 ease-in-out mb-3"
                 onClick={() => setIsOpen(false)}
               >
                 Sign In
@@ -383,7 +406,7 @@ export function Navigation() {
             </Link>
             <Link href="/landlord/add-property">
               <Button
-                className="w-full bg-accent hover:bg-accent/80 border-accent border text-accent-foreground py-6 rounded-none text-base transition-all duration-300 ease-in-out"
+                className="w-full bg-accent hover:bg-accent/80 border-accent border text-accent-foreground py-3 rounded-none text-sm transition-all duration-300 ease-in-out"
                 onClick={() => setIsOpen(false)}
               >
                 List Your Property
