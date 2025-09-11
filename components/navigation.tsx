@@ -200,14 +200,16 @@ export function Navigation() {
           </div>
 
           <div className="hidden md:flex items-center space-x-4">
-            <Button
-              variant="ghost"
-              className="text-primary-foreground hover:bg-primary/20 border-white border rounded-none"
-            >
-              Sign In
-            </Button>
+            <Link href="/auth/signin">
+              <Button
+                variant="ghost"
+                className="text-primary-foreground hover:bg-white hover:text-primary border-white border rounded-none transition-all duration-300 ease-in-out"
+              >
+                Sign In
+              </Button>
+            </Link>
             <Link href="/landlord/add-property">
-              <Button className="bg-accent hover:bg-accent/90 text-accent-foreground rounded-none">
+              <Button className="bg-accent hover:bg-accent/80 border-accent border text-accent-foreground rounded-none transition-all duration-300 ease-in-out">
                 List Your Property
               </Button>
             </Link>
@@ -370,16 +372,18 @@ export function Navigation() {
           </div>
 
           <div className="flex-shrink-0 px-6 pb-8 space-y-4 border-t border-primary-foreground/20 pt-6 gap-0">
-            <Button
-              variant="ghost"
-              className="w-full text-primary-foreground hover:bg-primary/20 text-base justify-center border-white border rounded-none py-5"
-              onClick={() => setIsOpen(false)}
-            >
-              Sign In
-            </Button>
+            <Link href="/auth/signin">
+              <Button
+                variant="ghost"
+                className="w-full text-primary-foreground hover:bg-white hover:text-primary text-base justify-center border-white border rounded-none py-5 transition-all duration-300 ease-in-out"
+                onClick={() => setIsOpen(false)}
+              >
+                Sign In
+              </Button>
+            </Link>
             <Link href="/landlord/add-property">
               <Button
-                className="w-full bg-accent hover:bg-accent/90 text-accent-foreground py-6 rounded-none text-base"
+                className="w-full bg-accent hover:bg-accent/80 border-accent border text-accent-foreground py-6 rounded-none text-base transition-all duration-300 ease-in-out"
                 onClick={() => setIsOpen(false)}
               >
                 List Your Property
