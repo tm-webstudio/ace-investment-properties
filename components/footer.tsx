@@ -32,6 +32,9 @@ export function Footer() {
               <Link href="/investor/dashboard" className="block hover:text-accent transition-colors">
                 Investor Dashboard
               </Link>
+              <Link href="/admin/dashboard" className="block hover:text-accent transition-colors">
+                Admin Dashboard
+              </Link>
               <Link href="/about" className="block hover:text-accent transition-colors">
                 About Us
               </Link>

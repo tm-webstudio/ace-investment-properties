@@ -79,6 +79,23 @@ export interface Notification {
   createdAt: string
 }
 
+export interface Admin {
+  id: string
+  name: string
+  email: string
+  role: "super_admin" | "admin" | "moderator"
+  permissions: string[]
+}
+
+export interface PendingProperty {
+  id: string
+  propertyData: Omit<Property, 'id'>
+  submittedBy: string
+  submittedDate: string
+  status: "pending" | "approved" | "rejected"
+  reviewNotes?: string
+}
+
 export const sampleProperties: Property[] = [
   {
     id: "1",
@@ -862,4 +879,102 @@ export const sampleLandlords: Landlord[] = [
     activeListings: 2,
     pendingApplications: 7,
   },
+]
+
+export const sampleAdmins: Admin[] = [
+  {
+    id: "admin1",
+    name: "Sarah Mitchell",
+    email: "sarah.admin@aceproperties.co.uk",
+    role: "super_admin",
+    permissions: ["manage_properties", "manage_users", "view_analytics", "manage_viewings", "system_settings"]
+  },
+  {
+    id: "admin2",
+    name: "James Thompson",
+    email: "james.admin@aceproperties.co.uk",
+    role: "admin",
+    permissions: ["manage_properties", "manage_viewings", "view_analytics"]
+  }
+]
+
+export const samplePendingProperties: PendingProperty[] = [
+  {
+    id: "pending1",
+    propertyData: {
+      title: "Modern Studio Apartment in Canary Wharf",
+      price: 1850,
+      deposit: 1850,
+      address: "25 Discovery Dock East, E14 9YZ",
+      city: "London",
+      state: "Greater London",
+      bedrooms: 1,
+      bathrooms: 1,
+      propertyType: "Studio",
+      description: "Contemporary studio with floor-to-ceiling windows and stunning river views.",
+      amenities: ["Gym", "Concierge", "Balcony"],
+      images: ["/pending-studio.png"],
+      availableDate: "2025-10-01",
+      landlordId: "landlord1",
+      landlordName: "John Smith",
+      landlordPhone: "020 7123 4567",
+      landlordEmail: "john@aceproperties.co.uk",
+      featured: false
+    },
+    submittedBy: "landlord1",
+    submittedDate: "2025-09-10",
+    status: "pending"
+  },
+  {
+    id: "pending2",
+    propertyData: {
+      title: "Victorian Terrace in Clapham",
+      price: 3200,
+      deposit: 3200,
+      address: "12 Clapham Common South Side, SW4 7AB",
+      city: "London",
+      state: "Greater London",
+      bedrooms: 3,
+      bathrooms: 2,
+      propertyType: "3BR+",
+      description: "Beautiful Victorian house with period features and modern amenities.",
+      amenities: ["Garden", "Parking", "Period features"],
+      images: ["/pending-victorian.png"],
+      availableDate: "2025-11-15",
+      landlordId: "landlord2",
+      landlordName: "Emma Williams",
+      landlordPhone: "020 7234 5678",
+      landlordEmail: "emma@aceproperties.co.uk",
+      featured: false
+    },
+    submittedBy: "landlord2",
+    submittedDate: "2025-09-08",
+    status: "pending"
+  },
+  {
+    id: "pending3",
+    propertyData: {
+      title: "Luxury Penthouse in Shoreditch",
+      price: 4500,
+      deposit: 4500,
+      address: "88 Commercial Street, E1 6LY",
+      city: "London",
+      state: "Greater London",
+      bedrooms: 2,
+      bathrooms: 2,
+      propertyType: "2BR",
+      description: "Stunning penthouse with private terrace and city views.",
+      amenities: ["Terrace", "Gym", "Concierge", "Parking"],
+      images: ["/pending-penthouse.png"],
+      availableDate: "2025-12-01",
+      landlordId: "landlord3",
+      landlordName: "Oliver Davies",
+      landlordPhone: "020 7345 6789",
+      landlordEmail: "oliver@aceproperties.co.uk",
+      featured: false
+    },
+    submittedBy: "landlord3",
+    submittedDate: "2025-09-09",
+    status: "pending"
+  }
 ]
