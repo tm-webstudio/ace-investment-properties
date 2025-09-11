@@ -23,7 +23,7 @@ export function PropertyCard({ property }: PropertyCardProps) {
             alt={property.title}
             width={400}
             height={250}
-            className="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-300"
+            className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
           />
           <div className="absolute top-4 left-4">
             {(() => {
@@ -54,13 +54,13 @@ export function PropertyCard({ property }: PropertyCardProps) {
           <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
         </div>
 
-        <CardContent className="px-6 pb-5 pr-5 pl-5">
-          <div className="space-y-3">
+        <CardContent className="px-5 pb-4 pr-4 pl-4">
+          <div className="space-y-2.5">
             <div className="mb-1.5">
-              <h3 className="font-serif text-xl font-semibold text-card-foreground mb-1.5 line-clamp-1">
+              <h3 className="font-serif text-lg font-semibold text-card-foreground mb-1 line-clamp-1">
                 {property.title}
               </h3>
-              <div className="text-lg font-semibold text-accent">
+              <div className="text-base font-semibold text-accent">
                 £{property.price.toLocaleString()} pcm
               </div>
             </div>

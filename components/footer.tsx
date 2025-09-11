@@ -29,6 +29,9 @@ export function Footer() {
               <Link href="/landlord/dashboard" className="block hover:text-accent transition-colors">
                 Landlord Dashboard
               </Link>
+              <Link href="/investor/dashboard" className="block hover:text-accent transition-colors">
+                Investor Dashboard
+              </Link>
               <Link href="/about" className="block hover:text-accent transition-colors">
                 About Us
               </Link>

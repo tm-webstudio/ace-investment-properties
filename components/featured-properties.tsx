@@ -48,7 +48,7 @@ export function FeaturedProperties() {
   const scrollLeft = () => {
     if (scrollRef.current) {
       const cardWidth = scrollRef.current.children[0]?.clientWidth || 0
-      const gap = 16 // gap-4 = 1rem = 16px
+      const gap = 12 // gap-3 = 0.75rem = 12px
       scrollRef.current.scrollBy({ left: -(cardWidth + gap), behavior: 'smooth' })
     }
   }
@@ -56,7 +56,7 @@ export function FeaturedProperties() {
   const scrollRight = () => {
     if (scrollRef.current) {
       const cardWidth = scrollRef.current.children[0]?.clientWidth || 0
-      const gap = 16 // gap-4 = 1rem = 16px
+      const gap = 12 // gap-3 = 0.75rem = 12px
       scrollRef.current.scrollBy({ left: cardWidth + gap, behavior: 'smooth' })
     }
   }
@@ -64,7 +64,7 @@ export function FeaturedProperties() {
   const kentScrollLeft = () => {
     if (kentScrollRef.current) {
       const cardWidth = kentScrollRef.current.children[0]?.clientWidth || 0
-      const gap = 16 // gap-4 = 1rem = 16px
+      const gap = 12 // gap-3 = 0.75rem = 12px
       kentScrollRef.current.scrollBy({ left: -(cardWidth + gap), behavior: 'smooth' })
     }
   }
@@ -72,7 +72,7 @@ export function FeaturedProperties() {
   const kentScrollRight = () => {
     if (kentScrollRef.current) {
       const cardWidth = kentScrollRef.current.children[0]?.clientWidth || 0
-      const gap = 16 // gap-4 = 1rem = 16px
+      const gap = 12 // gap-3 = 0.75rem = 12px
       kentScrollRef.current.scrollBy({ left: cardWidth + gap, behavior: 'smooth' })
     }
   }
@@ -80,7 +80,7 @@ export function FeaturedProperties() {
   const midlandsScrollLeft = () => {
     if (midlandsScrollRef.current) {
       const cardWidth = midlandsScrollRef.current.children[0]?.clientWidth || 0
-      const gap = 16 // gap-4 = 1rem = 16px
+      const gap = 12 // gap-3 = 0.75rem = 12px
       midlandsScrollRef.current.scrollBy({ left: -(cardWidth + gap), behavior: 'smooth' })
     }
   }
@@ -88,7 +88,7 @@ export function FeaturedProperties() {
   const midlandsScrollRight = () => {
     if (midlandsScrollRef.current) {
       const cardWidth = midlandsScrollRef.current.children[0]?.clientWidth || 0
-      const gap = 16 // gap-4 = 1rem = 16px
+      const gap = 12 // gap-3 = 0.75rem = 12px
       midlandsScrollRef.current.scrollBy({ left: cardWidth + gap, behavior: 'smooth' })
     }
   }
@@ -148,7 +148,7 @@ export function FeaturedProperties() {
         <div className="relative mb-12">
           <div 
             ref={scrollRef}
-            className="flex overflow-x-auto gap-4 pb-4 scroll-smooth"
+            className="flex overflow-x-auto gap-3 pb-4 scroll-smooth"
             style={{
               scrollbarWidth: 'none',
               msOverflowStyle: 'none',
@@ -158,7 +158,7 @@ export function FeaturedProperties() {
             {featuredProperties.map((property) => (
               <div 
                 key={property.id} 
-                className="flex-none w-4/5 sm:w-1/2 lg:w-[30.77%]" 
+                className="flex-none w-4/5 sm:w-1/2 lg:w-[23.5%]" 
                 style={{ scrollSnapAlign: 'start' }}
               >
                 <PropertyCard property={property} />
@@ -213,7 +213,7 @@ export function FeaturedProperties() {
         <div className="relative mb-12">
           <div 
             ref={kentScrollRef}
-            className="flex overflow-x-auto gap-4 pb-4 scroll-smooth"
+            className="flex overflow-x-auto gap-3 pb-4 scroll-smooth"
             style={{
               scrollbarWidth: 'none',
               msOverflowStyle: 'none',
@@ -223,7 +223,7 @@ export function FeaturedProperties() {
             {featuredKentProperties.map((property) => (
               <div 
                 key={property.id} 
-                className="flex-none w-4/5 sm:w-1/2 lg:w-[30.77%]" 
+                className="flex-none w-4/5 sm:w-1/2 lg:w-[23.5%]" 
                 style={{ scrollSnapAlign: 'start' }}
               >
                 <PropertyCard property={property} />
@@ -278,7 +278,7 @@ export function FeaturedProperties() {
         <div className="relative mb-12">
           <div 
             ref={midlandsScrollRef}
-            className="flex overflow-x-auto gap-4 pb-4 scroll-smooth"
+            className="flex overflow-x-auto gap-3 pb-4 scroll-smooth"
             style={{
               scrollbarWidth: 'none',
               msOverflowStyle: 'none',
@@ -288,7 +288,7 @@ export function FeaturedProperties() {
             {featuredMidlandsProperties.map((property) => (
               <div 
                 key={property.id} 
-                className="flex-none w-4/5 sm:w-1/2 lg:w-[30.77%]" 
+                className="flex-none w-4/5 sm:w-1/2 lg:w-[23.5%]" 
                 style={{ scrollSnapAlign: 'start' }}
               >
                 <PropertyCard property={property} />

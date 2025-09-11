@@ -171,7 +171,7 @@ export function DashboardOverview({ landlord }: DashboardOverviewProps) {
           <CardTitle>Quick Actions</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <Link href="/landlord/add-property">
               <Button className="w-full h-20 flex flex-col items-center justify-center bg-accent hover:bg-accent/90 text-accent-foreground">
                 <Plus className="h-6 w-6 mb-2" />
@@ -194,6 +194,15 @@ export function DashboardOverview({ landlord }: DashboardOverviewProps) {
               >
                 <MessageSquare className="h-6 w-6 mb-2" />
                 View Messages
+              </Button>
+            </Link>
+            <Link href="/investor/dashboard">
+              <Button
+                variant="outline"
+                className="w-full h-20 flex flex-col items-center justify-center bg-transparent"
+              >
+                <TrendingUp className="h-6 w-6 mb-2" />
+                Investor Dashboard
               </Button>
             </Link>
           </div>

@@ -70,14 +70,13 @@ export default function PropertiesPage() {
             </p>
           </div>
 
-          <div className="flex flex-col lg:flex-row gap-6">
-            {/* Filters Sidebar */}
-            <div className="lg:w-80 flex-shrink-0">
-              <PropertyFilters onFilterChange={handleFilterChange} />
-            </div>
+          {/* Filters Bar */}
+          <div className="mb-6">
+            <PropertyFilters onFilterChange={handleFilterChange} />
+          </div>
 
-            {/* Main Content */}
-            <div className="flex-1">
+          {/* Main Content */}
+          <div>
               {/* Controls */}
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
                 <p className="text-muted-foreground">
@@ -120,8 +119,8 @@ export default function PropertiesPage() {
 
               {/* Properties Grid */}
               <div
-                className={`grid gap-4 ${
-                  viewMode === "grid" ? "grid-cols-1 md:grid-cols-2 xl:grid-cols-3" : "grid-cols-1"
+                className={`grid gap-3 ${
+                  viewMode === "grid" ? "grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4" : "grid-cols-1"
                 }`}
               >
                 {sortedProperties.map((property) => (
@@ -136,7 +135,6 @@ export default function PropertiesPage() {
                   </p>
                 </div>
               )}
-            </div>
           </div>
         </div>
       </main>
