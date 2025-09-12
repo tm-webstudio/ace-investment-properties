@@ -19,26 +19,62 @@ export default function SignUpPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
-  const [accountType, setAccountType] = useState<"tenant" | "landlord">("tenant")
+  const [accountType, setAccountType] = useState<"investor" | "landlord" | "admin">("investor")
+  const [error, setError] = useState("")
+  const [success, setSuccess] = useState("")
   const router = useRouter()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
+    setError("")
+    setSuccess("")
     
     // Basic validation
     if (formData.password !== formData.confirmPassword) {
-      alert("Passwords don't match!")
+      setError("Passwords don't match!")
+      setIsLoading(false)
+      return
+    }
+
+    if (formData.password.length < 8) {
+      setError("Password must be at least 8 characters long")
       setIsLoading(false)
       return
     }
     
-    // Simulate API call
-    setTimeout(() => {
+    try {
+      const response = await fetch('http://localhost:3003/api/auth/signup', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: formData.email,
+          password: formData.password,
+          first_name: formData.firstName,
+          last_name: formData.lastName,
+          user_type: accountType
+        }),
+      })
+
+      const data = await response.json()
+
+      if (data.success) {
+        setSuccess("Account created successfully! Please check your email for verification.")
+        // Optionally redirect after successful signup
+        setTimeout(() => {
+          router.push('/auth/signin?message=Account created successfully')
+        }, 2000)
+      } else {
+        setError(data.error?.message || 'Failed to create account')
+      }
+    } catch (error) {
+      console.error('Signup error:', error)
+      setError('Network error. Please check if the backend server is running.')
+    } finally {
       setIsLoading(false)
-      // In a real app, you would handle registration here
-      console.log("Sign up attempt:", { ...formData, accountType })
-    }, 1000)
+    }
   }
 
   const handleInputChange = (field: string, value: string) => {
@@ -79,17 +115,17 @@ export default function SignUpPage() {
             <Label className="block text-sm font-medium text-gray-700 mb-3">
               I am a:
             </Label>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-3 gap-2">
               <button
                 type="button"
-                onClick={() => setAccountType("tenant")}
+                onClick={() => setAccountType("investor")}
                 className={`p-3 border-2 rounded-lg text-sm font-medium transition-colors ${
-                  accountType === "tenant"
+                  accountType === "investor"
                     ? "border-primary bg-primary/10 text-primary"
                     : "border-gray-300 hover:border-gray-400"
                 }`}
               >
-                Tenant
+                Investor
               </button>
               <button
                 type="button"
@@ -102,8 +138,33 @@ export default function SignUpPage() {
               >
                 Landlord
               </button>
+              <button
+                type="button"
+                onClick={() => setAccountType("admin")}
+                className={`p-3 border-2 rounded-lg text-sm font-medium transition-colors ${
+                  accountType === "admin"
+                    ? "border-primary bg-primary/10 text-primary"
+                    : "border-gray-300 hover:border-gray-400"
+                }`}
+              >
+                Admin
+              </button>
             </div>
           </div>
+
+          {/* Error Message */}
+          {error && (
+            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md">
+              <p className="text-sm text-red-700">{error}</p>
+            </div>
+          )}
+
+          {/* Success Message */}
+          {success && (
+            <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-md">
+              <p className="text-sm text-green-700">{success}</p>
+            </div>
+          )}
 
           <form className="space-y-6" onSubmit={handleSubmit}>
             <div className="grid grid-cols-2 gap-4">
@@ -173,6 +234,7 @@ export default function SignUpPage() {
                   type={showPassword ? "text" : "password"}
                   autoComplete="new-password"
                   required
+                  minLength={8}
                   value={formData.password}
                   onChange={(e) => handleInputChange("password", e.target.value)}
                   className="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary pr-10"
@@ -189,6 +251,9 @@ export default function SignUpPage() {
                   )}
                 </button>
               </div>
+              <p className="mt-1 text-xs text-gray-500">
+                Password must be at least 8 characters long
+              </p>
             </div>
 
             <div>

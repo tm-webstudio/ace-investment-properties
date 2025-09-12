@@ -4,6 +4,7 @@ import { Inter, Playfair_Display } from "next/font/google"
 import "./globals.css"
 import { ErrorBoundary } from "@/components/error-boundary"
 import { ToastProvider } from "@/components/toast-provider"
+import { AuthProvider } from "@/contexts/auth-context"
 
 const inter = Inter({
   subsets: ["latin"],
@@ -31,10 +32,12 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${inter.variable} ${playfair.variable} antialiased`}>
       <body className="font-sans">
-        <ErrorBoundary>
-          {children}
-          <ToastProvider />
-        </ErrorBoundary>
+        <AuthProvider>
+          <ErrorBoundary>
+            {children}
+            <ToastProvider />
+          </ErrorBoundary>
+        </AuthProvider>
       </body>
     </html>
   )

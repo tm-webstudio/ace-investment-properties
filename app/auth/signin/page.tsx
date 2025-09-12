@@ -7,24 +7,51 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Eye, EyeOff, X } from "lucide-react"
+import { supabase } from "@/lib/supabase"
 
 export default function SignInPage() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState("")
   const router = useRouter()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
+    setError("")
     
-    // Simulate API call
-    setTimeout(() => {
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      })
+
+      if (error) {
+        setError(error.message)
+      } else if (data.user) {
+        // Sign in successful, redirect to correct dashboard based on user type
+        const userType = data.user.user_metadata?.user_type || 'investor'
+        
+        switch (userType) {
+          case 'admin':
+            router.push("/admin/dashboard")
+            break
+          case 'landlord':
+            router.push("/landlord/dashboard")
+            break
+          case 'investor':
+          default:
+            router.push("/investor/dashboard")
+            break
+        }
+      }
+    } catch (err) {
+      setError("An unexpected error occurred. Please try again.")
+    } finally {
       setIsLoading(false)
-      // In a real app, you would handle authentication here
-      console.log("Sign in attempt:", { email, password })
-    }, 1000)
+    }
   }
 
   return (
@@ -56,6 +83,11 @@ export default function SignInPage() {
 
       <div className="mt-8 mx-auto w-full max-w-md">
         <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
+          {error && (
+            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md">
+              <p className="text-sm text-red-600">{error}</p>
+            </div>
+          )}
           <form className="space-y-6" onSubmit={handleSubmit}>
             <div>
               <Label htmlFor="email" className="block text-sm font-medium text-gray-700">

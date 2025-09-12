@@ -4,11 +4,14 @@ import { useState, useEffect } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Menu, X, ChevronDown } from "lucide-react"
+import { useAuth } from "@/contexts/auth-context"
+import { UserDropdown } from "@/components/user-dropdown"
 
 export function Navigation() {
   const [isOpen, setIsOpen] = useState(false)
   const [isMegaMenuOpen, setIsMegaMenuOpen] = useState(false)
   const [isMobileDropdownOpen, setIsMobileDropdownOpen] = useState(false)
+  const { user, loading, signOut } = useAuth()
 
   // Prevent body scroll when mobile menu is open
   useEffect(() => {
@@ -214,19 +217,36 @@ export function Navigation() {
           </div>
 
           <div className="hidden md:flex items-center space-x-4">
-            <Link href="/auth/signin">
-              <Button
-                variant="ghost"
-                className="text-primary-foreground hover:bg-white hover:text-primary border-white border rounded-none transition-all duration-300 ease-in-out"
-              >
-                Sign In
-              </Button>
-            </Link>
-            <Link href="/landlord/add-property">
-              <Button className="bg-accent hover:bg-accent/80 border-accent border text-accent-foreground rounded-none transition-all duration-300 ease-in-out">
-                List Your Property
-              </Button>
-            </Link>
+            {!loading && (
+              <>
+                {user ? (
+                  <>
+                    <UserDropdown />
+                    <Link href="/landlord/add-property">
+                      <Button className="bg-accent hover:bg-accent/80 border-accent border text-accent-foreground rounded-none transition-all duration-300 ease-in-out">
+                        List Your Property
+                      </Button>
+                    </Link>
+                  </>
+                ) : (
+                  <>
+                    <Link href="/auth/signin">
+                      <Button
+                        variant="ghost"
+                        className="text-primary-foreground hover:bg-white hover:text-primary border-white border rounded-none transition-all duration-300 ease-in-out"
+                      >
+                        Sign In
+                      </Button>
+                    </Link>
+                    <Link href="/landlord/add-property">
+                      <Button className="bg-accent hover:bg-accent/80 border-accent border text-accent-foreground rounded-none transition-all duration-300 ease-in-out">
+                        List Your Property
+                      </Button>
+                    </Link>
+                  </>
+                )}
+              </>
+            )}
           </div>
 
           {/* Mobile menu button */}
@@ -395,23 +415,60 @@ export function Navigation() {
           </div>
 
           <div className="flex-shrink-0 px-6 pb-8 space-y-4 border-t border-primary-foreground/20 pt-6 gap-0">
-            <Link href="/auth/signin">
-              <Button
-                variant="ghost"
-                className="w-full text-primary-foreground hover:bg-white hover:text-primary text-sm justify-center border-white border rounded-none py-3 transition-all duration-300 ease-in-out mb-3"
-                onClick={() => setIsOpen(false)}
-              >
-                Sign In
-              </Button>
-            </Link>
-            <Link href="/landlord/add-property">
-              <Button
-                className="w-full bg-accent hover:bg-accent/80 border-accent border text-accent-foreground py-3 rounded-none text-sm transition-all duration-300 ease-in-out"
-                onClick={() => setIsOpen(false)}
-              >
-                List Your Property
-              </Button>
-            </Link>
+            {user ? (
+              <>
+                <div className="text-primary-foreground text-sm mb-3">
+                  Welcome, {user.user_metadata?.first_name || user.email?.split("@")[0] || "User"}
+                </div>
+                <Link href={user.user_metadata?.user_type === 'admin' ? '/admin/dashboard' : user.user_metadata?.user_type === 'landlord' ? '/landlord/dashboard' : '/investor/dashboard'}>
+                  <Button
+                    variant="ghost"
+                    className="w-full text-primary-foreground hover:bg-white hover:text-primary text-sm justify-center border-white border rounded-none py-3 transition-all duration-300 ease-in-out mb-3"
+                    onClick={() => setIsOpen(false)}
+                  >
+                    Dashboard
+                  </Button>
+                </Link>
+                <Link href="/landlord/add-property">
+                  <Button
+                    className="w-full bg-accent hover:bg-accent/80 border-accent border text-accent-foreground py-3 rounded-none text-sm transition-all duration-300 ease-in-out mb-3"
+                    onClick={() => setIsOpen(false)}
+                  >
+                    List Your Property
+                  </Button>
+                </Link>
+                <Button
+                  variant="ghost"
+                  className="w-full text-primary-foreground hover:bg-red-50 hover:text-red-600 text-sm justify-center border-red-300 border rounded-none py-3 transition-all duration-300 ease-in-out"
+                  onClick={() => {
+                    signOut()
+                    setIsOpen(false)
+                  }}
+                >
+                  Sign Out
+                </Button>
+              </>
+            ) : (
+              <>
+                <Link href="/auth/signin">
+                  <Button
+                    variant="ghost"
+                    className="w-full text-primary-foreground hover:bg-white hover:text-primary text-sm justify-center border-white border rounded-none py-3 transition-all duration-300 ease-in-out mb-3"
+                    onClick={() => setIsOpen(false)}
+                  >
+                    Sign In
+                  </Button>
+                </Link>
+                <Link href="/landlord/add-property">
+                  <Button
+                    className="w-full bg-accent hover:bg-accent/80 border-accent border text-accent-foreground py-3 rounded-none text-sm transition-all duration-300 ease-in-out"
+                    onClick={() => setIsOpen(false)}
+                  >
+                    List Your Property
+                  </Button>
+                </Link>
+              </>
+            )}
           </div>
         </div>
       </div>

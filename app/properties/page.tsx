@@ -8,12 +8,13 @@ import { PropertyCard } from "@/components/property-card"
 import { sampleProperties } from "@/lib/sample-data"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Button } from "@/components/ui/button"
-import { Grid, List } from "lucide-react"
+import { Grid, List, Filter, ChevronDown } from "lucide-react"
 
 export default function PropertiesPage() {
   const [filteredProperties, setFilteredProperties] = useState(sampleProperties)
   const [sortBy, setSortBy] = useState("date")
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid")
+  const [showFilters, setShowFilters] = useState(false)
 
   const handleFilterChange = (filters: any) => {
     let filtered = sampleProperties
@@ -70,8 +71,21 @@ export default function PropertiesPage() {
             </p>
           </div>
 
+          {/* Mobile Filter Toggle */}
+          <div className="mb-6 md:hidden">
+            <Button
+              variant="outline"
+              onClick={() => setShowFilters(!showFilters)}
+              className="flex items-center gap-2 w-full justify-center"
+            >
+              <Filter className="h-4 w-4" />
+              Filters
+              <ChevronDown className={`h-4 w-4 transition-transform ${showFilters ? 'rotate-180' : ''}`} />
+            </Button>
+          </div>
+
           {/* Filters Bar */}
-          <div className="mb-6">
+          <div className={`mb-6 ${showFilters ? 'block' : 'hidden'} md:block`}>
             <PropertyFilters onFilterChange={handleFilterChange} />
           </div>
 
