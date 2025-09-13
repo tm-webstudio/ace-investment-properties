@@ -21,7 +21,7 @@ interface PropertyFormData {
   address: string
   city: string
   state: string
-  zipCode: string
+  postcode: string
   monthlyRent: string
   securityDeposit: string
   availableDate: string
@@ -48,7 +48,7 @@ export function AddPropertyForm() {
     address: "",
     city: "",
     state: "",
-    zipCode: "",
+    postcode: "",
     monthlyRent: "",
     securityDeposit: "",
     availableDate: "",
@@ -130,15 +130,15 @@ export function AddPropertyForm() {
       case 1:
         return (
           formData.propertyType &&
-          formData.address &&
-          formData.city &&
-          formData.state &&
+          formData.bedrooms &&
+          formData.bathrooms &&
+          formData.description &&
           formData.monthlyRent &&
           formData.securityDeposit &&
           formData.availableDate
         )
       case 2:
-        return formData.bedrooms && formData.bathrooms && formData.description
+        return formData.address && formData.city && formData.postcode
       case 3:
         return formData.photos.length > 0
       case 4:
@@ -152,7 +152,7 @@ export function AddPropertyForm() {
     <div className="space-y-6">
       {/* Progress Bar */}
       <Card>
-        <CardContent className="p-6">
+        <CardContent className="px-6">
           <div className="space-y-4">
             <div className="flex justify-between text-sm text-muted-foreground">
               <span>
@@ -163,7 +163,7 @@ export function AddPropertyForm() {
             <Progress value={progress} className="h-2" />
             <div className="flex justify-between text-xs text-muted-foreground">
               <span>Basic Info</span>
-              <span>Details</span>
+              <span>Address</span>
               <span>Photos</span>
               <span>Review</span>
             </div>
@@ -183,8 +183,8 @@ export function AddPropertyForm() {
             )}
             {currentStep === 2 && (
               <>
-                <FileText className="h-5 w-5" />
-                Property Details
+                <Home className="h-5 w-5" />
+                Property Address
               </>
             )}
             {currentStep === 3 && (
@@ -225,35 +225,33 @@ export function AddPropertyForm() {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="md:col-span-2">
-                  <Label htmlFor="address">Street Address *</Label>
-                  <Input
-                    id="address"
-                    value={formData.address}
-                    onChange={(e) => handleInputChange("address", e.target.value)}
-                    placeholder="123 Main Street"
-                  />
-                </div>
                 <div>
-                  <Label htmlFor="city">City *</Label>
-                  <Input
-                    id="city"
-                    value={formData.city}
-                    onChange={(e) => handleInputChange("city", e.target.value)}
-                    placeholder="San Francisco"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="state">State *</Label>
-                  <Select value={formData.state} onValueChange={(value) => handleInputChange("state", value)}>
+                  <Label htmlFor="bedrooms">Bedrooms *</Label>
+                  <Select value={formData.bedrooms} onValueChange={(value) => handleInputChange("bedrooms", value)}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select state" />
+                      <SelectValue placeholder="Select" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="CA">California</SelectItem>
-                      <SelectItem value="NY">New York</SelectItem>
-                      <SelectItem value="TX">Texas</SelectItem>
-                      <SelectItem value="FL">Florida</SelectItem>
+                      <SelectItem value="0">Studio</SelectItem>
+                      <SelectItem value="1">1 Bedroom</SelectItem>
+                      <SelectItem value="2">2 Bedrooms</SelectItem>
+                      <SelectItem value="3">3 Bedrooms</SelectItem>
+                      <SelectItem value="4">4+ Bedrooms</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label htmlFor="bathrooms">Bathrooms *</Label>
+                  <Select value={formData.bathrooms} onValueChange={(value) => handleInputChange("bathrooms", value)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="1">1 Bathroom</SelectItem>
+                      <SelectItem value="1.5">1.5 Bathrooms</SelectItem>
+                      <SelectItem value="2">2 Bathrooms</SelectItem>
+                      <SelectItem value="2.5">2.5 Bathrooms</SelectItem>
+                      <SelectItem value="3">3+ Bathrooms</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -290,44 +288,6 @@ export function AddPropertyForm() {
                   />
                 </div>
               </div>
-            </div>
-          )}
-
-          {/* Step 2: Property Details */}
-          {currentStep === 2 && (
-            <div className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="bedrooms">Bedrooms *</Label>
-                  <Select value={formData.bedrooms} onValueChange={(value) => handleInputChange("bedrooms", value)}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="0">Studio</SelectItem>
-                      <SelectItem value="1">1 Bedroom</SelectItem>
-                      <SelectItem value="2">2 Bedrooms</SelectItem>
-                      <SelectItem value="3">3 Bedrooms</SelectItem>
-                      <SelectItem value="4">4+ Bedrooms</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label htmlFor="bathrooms">Bathrooms *</Label>
-                  <Select value={formData.bathrooms} onValueChange={(value) => handleInputChange("bathrooms", value)}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="1">1 Bathroom</SelectItem>
-                      <SelectItem value="1.5">1.5 Bathrooms</SelectItem>
-                      <SelectItem value="2">2 Bathrooms</SelectItem>
-                      <SelectItem value="2.5">2.5 Bathrooms</SelectItem>
-                      <SelectItem value="3">3+ Bathrooms</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
 
               <div>
                 <Label htmlFor="description">Property Description *</Label>
@@ -344,18 +304,88 @@ export function AddPropertyForm() {
                 <Label>Amenities</Label>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mt-2">
                   {amenityOptions.map((amenity) => (
-                    <div key={amenity} className="flex items-center space-x-2">
+                    <div key={amenity} className="flex items-center space-x-2 p-2 rounded-md hover:bg-muted/50 transition-colors">
                       <Checkbox
                         id={amenity}
                         checked={formData.amenities.includes(amenity)}
                         onCheckedChange={(checked) => handleAmenityChange(amenity, checked as boolean)}
+                        className="border-2 border-muted-foreground data-[state=checked]:bg-primary data-[state=checked]:border-primary"
                       />
-                      <Label htmlFor={amenity} className="text-sm font-normal cursor-pointer">
+                      <Label htmlFor={amenity} className="text-sm font-normal cursor-pointer flex-1">
                         {amenity}
                       </Label>
                     </div>
                   ))}
                 </div>
+              </div>
+            </div>
+          )}
+
+          {/* Step 2: Property Address */}
+          {currentStep === 2 && (
+            <div className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="md:col-span-2">
+                  <Label htmlFor="address">Property Address *</Label>
+                  <Input
+                    id="address"
+                    value={formData.address}
+                    onChange={(e) => handleInputChange("address", e.target.value)}
+                    placeholder="123 High Street, Apartment 4B"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="city">City/Town *</Label>
+                  <Input
+                    id="city"
+                    value={formData.city}
+                    onChange={(e) => handleInputChange("city", e.target.value)}
+                    placeholder="London"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="state">County</Label>
+                  <Select value={formData.state} onValueChange={(value) => handleInputChange("state", value)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select county" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Greater London">Greater London</SelectItem>
+                      <SelectItem value="West Midlands">West Midlands</SelectItem>
+                      <SelectItem value="Greater Manchester">Greater Manchester</SelectItem>
+                      <SelectItem value="West Yorkshire">West Yorkshire</SelectItem>
+                      <SelectItem value="Merseyside">Merseyside</SelectItem>
+                      <SelectItem value="South Yorkshire">South Yorkshire</SelectItem>
+                      <SelectItem value="Tyne and Wear">Tyne and Wear</SelectItem>
+                      <SelectItem value="Essex">Essex</SelectItem>
+                      <SelectItem value="Kent">Kent</SelectItem>
+                      <SelectItem value="Hampshire">Hampshire</SelectItem>
+                      <SelectItem value="Surrey">Surrey</SelectItem>
+                      <SelectItem value="Hertfordshire">Hertfordshire</SelectItem>
+                      <SelectItem value="Berkshire">Berkshire</SelectItem>
+                      <SelectItem value="Buckinghamshire">Buckinghamshire</SelectItem>
+                      <SelectItem value="East Sussex">East Sussex</SelectItem>
+                      <SelectItem value="West Sussex">West Sussex</SelectItem>
+                      <SelectItem value="Oxfordshire">Oxfordshire</SelectItem>
+                      <SelectItem value="Cambridgeshire">Cambridgeshire</SelectItem>
+                      <SelectItem value="Suffolk">Suffolk</SelectItem>
+                      <SelectItem value="Norfolk">Norfolk</SelectItem>
+                      <SelectItem value="Bedfordshire">Bedfordshire</SelectItem>
+                      <SelectItem value="Other">Other</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div>
+                <Label htmlFor="postcode">Postcode *</Label>
+                <Input
+                  id="postcode"
+                  value={formData.postcode}
+                  onChange={(e) => handleInputChange("postcode", e.target.value)}
+                  placeholder="SW1A 1AA"
+                  className="uppercase"
+                />
               </div>
             </div>
           )}
@@ -437,7 +467,7 @@ export function AddPropertyForm() {
                       <strong>Property Type:</strong> {formData.propertyType}
                     </div>
                     <div>
-                      <strong>Address:</strong> {formData.address}, {formData.city}, {formData.state}
+                      <strong>Address:</strong> {formData.address}, {formData.city}, {formData.postcode}
                     </div>
                     <div>
                       <strong>Monthly Rent:</strong> £{Number.parseInt(formData.monthlyRent || "0").toLocaleString()}
