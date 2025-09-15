@@ -2,7 +2,8 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { supabase } from '@/lib/supabase'
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -13,6 +14,7 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Progress } from "@/components/ui/progress"
 import { Badge } from "@/components/ui/badge"
 import { ChevronLeft, ChevronRight, Upload, X, Home, FileText, Camera, CheckCircle } from "lucide-react"
+import { ImageReorder } from './image-reorder'
 import { useRouter } from "next/navigation"
 
 interface PropertyFormData {
@@ -33,8 +35,13 @@ interface PropertyFormData {
   amenities: string[]
 
   // Photos
-  photos: File[]
+  photos: (File | string)[]
   primaryPhotoIndex: number
+
+  // Contact (optional)
+  contactName?: string
+  contactEmail?: string
+  contactPhone?: string
 
   // Terms
   agreeToTerms: boolean
@@ -43,6 +50,9 @@ interface PropertyFormData {
 export function AddPropertyForm() {
   const router = useRouter()
   const [currentStep, setCurrentStep] = useState(1)
+  const [sessionId, setSessionId] = useState<string | null>(null)
+  const [draftId, setDraftId] = useState<string | null>(null)
+  const [isLoading, setIsLoading] = useState(false)
   const [formData, setFormData] = useState<PropertyFormData>({
     propertyType: "",
     address: "",
@@ -58,6 +68,9 @@ export function AddPropertyForm() {
     amenities: [],
     photos: [],
     primaryPhotoIndex: 0,
+    contactName: "",
+    contactEmail: "",
+    contactPhone: "",
     agreeToTerms: false,
   })
 
@@ -94,12 +107,178 @@ export function AddPropertyForm() {
     handleInputChange("amenities", newAmenities)
   }
 
-  const handlePhotoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const [uploadingImages, setUploadingImages] = useState(false)
+  const [uploadProgress, setUploadProgress] = useState<{ [key: string]: number }>({})
+  const [isDragOver, setIsDragOver] = useState(false)
+  const [userToken, setUserToken] = useState<string | null>(null)
+
+  // Get current user session on component mount
+  useEffect(() => {
+    const getSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (session?.access_token) {
+        setUserToken(session.access_token)
+      }
+    }
+    getSession()
+    
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUserToken(session?.access_token || null)
+    })
+    
+    return () => subscription.unsubscribe()
+  }, [])
+
+  const handlePhotoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(event.target.files || [])
-    handleInputChange("photos", [...formData.photos, ...files])
+    if (files.length === 0) return
+
+    // Validate files first
+    const maxFiles = 10
+    const maxSize = 10 * 1024 * 1024 // 10MB
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp']
+
+    const validFiles = files.filter(file => {
+      if (!allowedTypes.includes(file.type)) {
+        alert(`File ${file.name} is not a valid image type. Allowed: JPEG, PNG, WebP`)
+        return false
+      }
+      if (file.size > maxSize) {
+        alert(`File ${file.name} is too large. Maximum size: 10MB`)
+        return false
+      }
+      return true
+    })
+
+    if (formData.photos.length + validFiles.length > maxFiles) {
+      alert(`Too many images. Maximum ${maxFiles} images allowed.`)
+      return
+    }
+
+    if (validFiles.length === 0) return
+
+    setUploadingImages(true)
+    setUploadProgress({})
+
+    try {
+      // Create FormData for upload
+      const uploadFormData = new FormData()
+      validFiles.forEach(file => {
+        uploadFormData.append('images', file)
+      })
+      
+      if (sessionId) {
+        uploadFormData.append('sessionId', sessionId)
+      }
+      if (draftId) {
+        uploadFormData.append('draftId', draftId)
+      }
+
+      // Upload images to API  
+      const uploadOptions: RequestInit = {
+        method: 'POST',
+        body: uploadFormData
+      }
+      
+      if (userToken) {
+        uploadOptions.headers = {
+          'Authorization': `Bearer ${userToken}`
+        }
+      }
+      
+      const response = await fetch('/api/properties/images/upload', uploadOptions)
+      const result = await response.json()
+
+      if (result.success) {
+        // Full success case
+        const imageUrls = result.images.map((img: any) => img.url)
+        handleInputChange("photos", [...formData.photos, ...imageUrls])
+        alert(`Successfully uploaded ${result.count} image(s)`)
+      } else if (response.status === 207) {
+        // Partial success case (207 Multi-Status)
+        if (result.images && result.images.length > 0) {
+          const imageUrls = result.images.map((img: any) => img.url)
+          handleInputChange("photos", [...formData.photos, ...imageUrls])
+        }
+        if (result.successful && result.failed) {
+          alert(`Uploaded ${result.successful} image(s). ${result.failed} failed: ${result.errors?.join(', ')}`)
+        } else {
+          alert(`Some images uploaded successfully`)
+        }
+      } else {
+        // Full failure case
+        throw new Error(result.error || 'Upload failed')
+      }
+    } catch (error: any) {
+      console.error('Error uploading images:', error)
+      alert('Failed to upload images: ' + error.message)
+    } finally {
+      setUploadingImages(false)
+      setUploadProgress({})
+      // Clear the input
+      event.target.value = ''
+    }
   }
 
-  const removePhoto = (index: number) => {
+  // Drag and drop handlers
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault()
+    setIsDragOver(true)
+  }
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault()
+    setIsDragOver(false)
+  }
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault()
+    setIsDragOver(false)
+    
+    const files = Array.from(e.dataTransfer.files)
+    if (files.length === 0) return
+    
+    // Create a fake event to reuse existing upload logic
+    const fakeEvent = {
+      target: { files, value: '' }
+    } as any
+    
+    handlePhotoUpload(fakeEvent)
+  }
+
+  const removePhoto = async (index: number) => {
+    const photoToRemove = formData.photos[index]
+    
+    // If it's a URL (uploaded image), delete from storage
+    if (typeof photoToRemove === 'string' && photoToRemove.startsWith('http')) {
+      try {
+        const deleteHeaders: { [key: string]: string } = { 'Content-Type': 'application/json' }
+        if (userToken) {
+          deleteHeaders.Authorization = `Bearer ${userToken}`
+        }
+
+        const response = await fetch('/api/properties/images/delete', {
+          method: 'DELETE',
+          headers: deleteHeaders,
+          body: JSON.stringify({
+            imageUrls: [photoToRemove],
+            sessionId,
+            draftId
+          })
+        })
+
+        const result = await response.json()
+        if (!result.success) {
+          console.error('Failed to delete image from storage:', result.error)
+          // Continue with local removal even if storage deletion fails
+        }
+      } catch (error) {
+        console.error('Error deleting image:', error)
+        // Continue with local removal even if storage deletion fails
+      }
+    }
+
     const newPhotos = formData.photos.filter((_, i) => i !== index)
     handleInputChange("photos", newPhotos)
     if (formData.primaryPhotoIndex >= newPhotos.length) {
@@ -107,9 +286,106 @@ export function AddPropertyForm() {
     }
   }
 
-  const nextStep = () => {
+  // Save draft to API
+  const saveDraft = async (step: number, stepData: any) => {
+    try {
+      setIsLoading(true)
+      
+      // Debug logging
+      console.log(`Saving step ${step} with data:`, JSON.stringify(stepData, null, 2))
+      
+      const headers: { [key: string]: string } = { 'Content-Type': 'application/json' }
+      if (userToken) {
+        headers.Authorization = `Bearer ${userToken}`
+      }
+      
+      const response = await fetch('/api/properties/draft', {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          stepData,
+          step,
+          ...(sessionId ? { sessionId } : {})
+        })
+      })
+
+      const result = await response.json()
+      
+      if (result.success) {
+        if (!sessionId) {
+          setSessionId(result.sessionId)
+        }
+        if (!draftId) {
+          setDraftId(result.draft.id)
+        }
+        console.log(`Step ${step} saved successfully`)
+        return true
+      } else {
+        console.error('Failed to save draft:', result.error)
+        if (result.details) {
+          console.error('Validation details:', JSON.stringify(result.details, null, 2))
+          console.error('Step data that failed:', JSON.stringify(stepData, null, 2))
+        }
+        alert(`Failed to save step ${step}: ${result.error}${result.details ? '\nSee console for details' : ''}`)
+        return false
+      }
+    } catch (error) {
+      console.error('Error saving draft:', error)
+      return false
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  // Get current step data based on step number
+  const getCurrentStepData = (step: number) => {
+    switch (step) {
+      case 1:
+        return {
+          propertyType: formData.propertyType || '',
+          bedrooms: formData.bedrooms || '',
+          bathrooms: formData.bathrooms || '',
+          monthlyRent: formData.monthlyRent || '',
+          securityDeposit: formData.securityDeposit || '',
+          availableDate: formData.availableDate || '',
+          description: formData.description || '',
+          amenities: formData.amenities || []
+        }
+      case 2:
+        return {
+          address: formData.address || '',
+          city: formData.city || '',
+          state: formData.state || '',
+          postcode: formData.postcode || ''
+        }
+      case 3:
+        return {
+          photos: formData.photos.map(photo => 
+            typeof photo === 'string' ? photo : URL.createObjectURL(photo)
+          )
+        }
+      case 4:
+        return {
+          contactName: formData.contactName || '',
+          contactEmail: formData.contactEmail || '',
+          contactPhone: formData.contactPhone || ''
+        }
+      default:
+        return {}
+    }
+  }
+
+  const nextStep = async () => {
     if (currentStep < totalSteps) {
-      setCurrentStep(currentStep + 1)
+      // Save current step before moving to next
+      const stepData = getCurrentStepData(currentStep)
+      const saved = await saveDraft(currentStep, stepData)
+      
+      if (saved) {
+        setCurrentStep(currentStep + 1)
+      } else {
+        alert('Failed to save progress. Please try again.')
+      }
     }
   }
 
@@ -119,10 +395,56 @@ export function AddPropertyForm() {
     }
   }
 
-  const handleSubmit = () => {
-    // In a real app, this would submit to an API
-    console.log("Property submitted:", formData)
-    router.push("/landlord/properties")
+  const handleSubmit = async () => {
+    try {
+      setIsLoading(true)
+      
+      // First save the final step (step 4) as draft
+      const step4Data = getCurrentStepData(4)
+      await saveDraft(4, step4Data)
+      
+      // Then attempt to publish
+      const publishHeaders: { [key: string]: string } = { 'Content-Type': 'application/json' }
+      if (userToken) {
+        publishHeaders.Authorization = `Bearer ${userToken}`
+      }
+      
+      const response = await fetch('/api/properties/publish', {
+        method: 'POST',
+        headers: publishHeaders,
+        body: JSON.stringify({
+          ...(sessionId ? { sessionId } : {}),
+          ...(draftId ? { draftId } : {}),
+          contactInfo: {
+            contactName: formData.contactName || '',
+            contactEmail: formData.contactEmail || '',
+            contactPhone: formData.contactPhone || ''
+          }
+        })
+      })
+
+      const result = await response.json()
+      
+      if (result.success) {
+        alert('Property published successfully!')
+        router.push("/landlord/properties")
+      } else if (result.requiresSignup) {
+        alert(`${result.message}\n\nYour property draft has been saved. Please sign up to continue.`)
+        // Optionally redirect to signup with draft ID
+        router.push(`/auth/signup?draftId=${result.draftId}`)
+      } else if (result.requiresConversion) {
+        alert(`${result.message}\n\nWould you like to convert your account to a landlord account?`)
+        // Optionally redirect to conversion
+        router.push('/auth/convert-to-landlord')
+      } else {
+        alert('Failed to publish property: ' + result.error)
+      }
+    } catch (error) {
+      console.error('Error publishing property:', error)
+      alert('An error occurred while publishing. Your draft has been saved.')
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   const isStepValid = () => {
@@ -393,65 +715,65 @@ export function AddPropertyForm() {
           {/* Step 3: Photos */}
           {currentStep === 3 && (
             <div className="space-y-6">
-              <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-8 text-center">
-                <Upload className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                <h3 className="text-lg font-semibold mb-2">Upload Property Photos</h3>
+              <div 
+                className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
+                  isDragOver 
+                    ? 'border-accent bg-accent/10' 
+                    : 'border-muted-foreground/25 hover:border-accent/50'
+                }`}
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
+              >
+                <Upload className={`h-12 w-12 mx-auto mb-4 transition-colors ${
+                  isDragOver ? 'text-accent' : 'text-muted-foreground'
+                }`} />
+                <h3 className="text-lg font-semibold mb-2">
+                  {isDragOver ? 'Drop Photos Here' : 'Upload Property Photos'}
+                </h3>
                 <p className="text-muted-foreground mb-4">
-                  Add high-quality photos to showcase your property. The first photo will be the main listing image.
+                  {isDragOver 
+                    ? 'Release to upload your images' 
+                    : 'Drag and drop images here, or click to browse. Maximum 10 images, 10MB each. Supported formats: JPEG, PNG, WebP.'
+                  }
                 </p>
                 <input
                   type="file"
                   multiple
-                  accept="image/*"
+                  accept="image/jpeg,image/jpg,image/png,image/webp"
                   onChange={handlePhotoUpload}
                   className="hidden"
                   id="photo-upload"
+                  disabled={uploadingImages || formData.photos.length >= 10}
                 />
                 <Label htmlFor="photo-upload">
-                  <Button className="bg-accent hover:bg-accent/90 text-accent-foreground" asChild>
-                    <span>Choose Photos</span>
+                  <Button 
+                    className="bg-accent hover:bg-accent/90 text-accent-foreground" 
+                    asChild
+                    disabled={uploadingImages || formData.photos.length >= 10}
+                  >
+                    <span>
+                      {uploadingImages ? 'Uploading...' : formData.photos.length >= 10 ? 'Maximum reached' : 'Choose Photos'}
+                    </span>
                   </Button>
                 </Label>
+                {uploadingImages && (
+                  <div className="mt-4">
+                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-accent mx-auto"></div>
+                    <p className="text-sm text-muted-foreground mt-2">Uploading images...</p>
+                  </div>
+                )}
               </div>
 
               {formData.photos.length > 0 && (
-                <div>
-                  <h4 className="font-semibold mb-4">Uploaded Photos ({formData.photos.length})</h4>
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                    {formData.photos.map((photo, index) => (
-                      <div key={index} className="relative group">
-                        <div className="aspect-video bg-muted rounded-lg overflow-hidden">
-                          <img
-                            src={URL.createObjectURL(photo) || "/placeholder.svg"}
-                            alt={`Property photo ${index + 1}`}
-                            className="w-full h-full object-cover"
-                          />
-                        </div>
-                        <Button
-                          size="icon"
-                          variant="destructive"
-                          className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
-                          onClick={() => removePhoto(index)}
-                        >
-                          <X className="h-4 w-4" />
-                        </Button>
-                        {index === formData.primaryPhotoIndex && (
-                          <Badge className="absolute bottom-2 left-2 bg-accent text-accent-foreground">Primary</Badge>
-                        )}
-                        {index !== formData.primaryPhotoIndex && (
-                          <Button
-                            size="sm"
-                            variant="secondary"
-                            className="absolute bottom-2 left-2 opacity-0 group-hover:opacity-100 transition-opacity"
-                            onClick={() => handleInputChange("primaryPhotoIndex", index)}
-                          >
-                            Set as Primary
-                          </Button>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </div>
+                <ImageReorder
+                  images={formData.photos}
+                  primaryImageIndex={formData.primaryPhotoIndex}
+                  onImagesReorder={(newImages) => handleInputChange("photos", newImages)}
+                  onPrimaryImageChange={(index) => handleInputChange("primaryPhotoIndex", index)}
+                  onImageRemove={removePhoto}
+                  disabled={uploadingImages}
+                />
               )}
             </div>
           )}
@@ -498,13 +820,14 @@ export function AddPropertyForm() {
               </div>
 
               <div className="space-y-4">
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center space-x-2 p-4 rounded-md border border-muted-foreground/20 hover:bg-muted/50 transition-colors">
                   <Checkbox
                     id="terms"
                     checked={formData.agreeToTerms}
                     onCheckedChange={(checked) => handleInputChange("agreeToTerms", checked as boolean)}
+                    className="border-2 border-muted-foreground data-[state=checked]:bg-primary data-[state=checked]:border-primary"
                   />
-                  <Label htmlFor="terms" className="text-sm">
+                  <Label htmlFor="terms" className="text-sm font-normal cursor-pointer flex-1">
                     I agree to the terms and conditions and confirm that all information provided is accurate
                   </Label>
                 </div>
@@ -524,19 +847,19 @@ export function AddPropertyForm() {
         {currentStep < totalSteps ? (
           <Button
             onClick={nextStep}
-            disabled={!isStepValid()}
+            disabled={!isStepValid() || isLoading}
             className="bg-primary hover:bg-primary/90 text-primary-foreground"
           >
-            Next
+            {isLoading ? 'Saving...' : 'Next'}
             <ChevronRight className="ml-2 h-4 w-4" />
           </Button>
         ) : (
           <Button
             onClick={handleSubmit}
-            disabled={!isStepValid()}
+            disabled={!isStepValid() || isLoading}
             className="bg-accent hover:bg-accent/90 text-accent-foreground"
           >
-            Publish Property
+            {isLoading ? 'Publishing...' : 'Publish Property'}
           </Button>
         )}
       </div>

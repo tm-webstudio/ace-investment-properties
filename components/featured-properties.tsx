@@ -1,14 +1,33 @@
 "use client"
 
-import { sampleProperties, kentProperties, midlandsProperties } from "@/lib/sample-data"
+import { kentProperties, midlandsProperties } from "@/lib/sample-data"
 import { PropertyCard } from "@/components/property-card"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import { useRef, useState, useEffect } from "react"
 
+interface Property {
+  id: string
+  title: string
+  price: number
+  deposit: number
+  address: string
+  city: string
+  county: string
+  bedrooms: number
+  bathrooms: number
+  propertyType: string
+  description: string
+  amenities: string[]
+  images: string[]
+  availableDate: string
+  featured: boolean
+}
+
 export function FeaturedProperties() {
-  const featuredProperties = sampleProperties.filter((property) => property.featured).slice(0, 6)
+  const [featuredProperties, setFeaturedProperties] = useState<Property[]>([])
+  const [loading, setLoading] = useState(true)
   const featuredKentProperties = kentProperties.filter((property) => property.featured).slice(0, 6)
   const featuredMidlandsProperties = midlandsProperties.filter((property) => property.featured).slice(0, 6)
   const scrollRef = useRef<HTMLDivElement>(null)
@@ -44,6 +63,29 @@ export function FeaturedProperties() {
       setMidlandsCanScrollRight(scrollLeft < scrollWidth - clientWidth - 1)
     }
   }
+
+  // Fetch real properties from database
+  useEffect(() => {
+    const fetchProperties = async () => {
+      try {
+        setLoading(true)
+        const response = await fetch('/api/properties/featured')
+        const data = await response.json()
+        
+        if (data.success) {
+          setFeaturedProperties(data.properties.slice(0, 6)) // Limit to 6 for carousel
+        }
+      } catch (error) {
+        console.error('Error fetching featured properties:', error)
+        // Fallback to empty array if API fails
+        setFeaturedProperties([])
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchProperties()
+  }, [])
 
   const scrollLeft = () => {
     if (scrollRef.current) {
@@ -155,15 +197,49 @@ export function FeaturedProperties() {
               scrollSnapType: 'x mandatory'
             }}
           >
-            {featuredProperties.map((property) => (
-              <div 
-                key={property.id} 
-                className="flex-none w-4/5 sm:w-1/2 lg:w-[23.5%]" 
-                style={{ scrollSnapAlign: 'start' }}
-              >
-                <PropertyCard property={property} />
+            {loading ? (
+              // Loading skeleton
+              [...Array(4)].map((_, i) => (
+                <div 
+                  key={i} 
+                  className="flex-none w-4/5 sm:w-1/2 lg:w-[23.5%]"
+                  style={{ scrollSnapAlign: 'start' }}
+                >
+                  <div className="border rounded-none overflow-hidden">
+                    <div className="h-48 bg-gray-300 animate-pulse"></div>
+                    <div className="p-4 space-y-3">
+                      <div className="space-y-2">
+                        <div className="h-5 bg-gray-200 rounded w-3/4 animate-pulse"></div>
+                        <div className="h-4 bg-gray-200 rounded w-1/2 animate-pulse"></div>
+                      </div>
+                      <div className="flex gap-4">
+                        <div className="h-4 bg-gray-200 rounded w-16 animate-pulse"></div>
+                        <div className="h-4 bg-gray-200 rounded w-16 animate-pulse"></div>
+                      </div>
+                      <div className="flex gap-2">
+                        <div className="h-6 bg-gray-200 rounded w-20 animate-pulse"></div>
+                        <div className="h-6 bg-gray-200 rounded w-16 animate-pulse"></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))
+            ) : featuredProperties.length > 0 ? (
+              featuredProperties.map((property) => (
+                <div 
+                  key={property.id} 
+                  className="flex-none w-4/5 sm:w-1/2 lg:w-[23.5%]" 
+                  style={{ scrollSnapAlign: 'start' }}
+                >
+                  <PropertyCard property={property} />
+                </div>
+              ))
+            ) : (
+              // No properties message
+              <div className="flex-none w-full text-center py-12">
+                <p className="text-muted-foreground">No properties available at the moment.</p>
               </div>
-            ))}
+            )}
           </div>
           
           <style jsx>{`
@@ -172,7 +248,7 @@ export function FeaturedProperties() {
             }
           `}</style>
           
-          {canScrollLeft && (
+          {!loading && canScrollLeft && (
             <button
               onClick={scrollLeft}
               className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 bg-white shadow-lg p-2 hover:bg-gray-50 transition-colors z-10"
@@ -182,7 +258,7 @@ export function FeaturedProperties() {
             </button>
           )}
           
-          {canScrollRight && (
+          {!loading && canScrollRight && (
             <button
               onClick={scrollRight}
               className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 bg-white shadow-lg p-2 hover:bg-gray-50 transition-colors z-10"

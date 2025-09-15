@@ -1,12 +1,22 @@
 "use client"
 
-import { useState } from "react"
+import { usePathname } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Home, Plus, FileText, User, BarChart3 } from "lucide-react"
 
 export function DashboardNavigation() {
-  const [activeTab, setActiveTab] = useState("dashboard")
+  const pathname = usePathname()
+  
+  // Determine active tab based on current pathname
+  const getActiveTab = () => {
+    if (pathname.includes('/landlord/properties')) return 'properties'
+    if (pathname.includes('/landlord/applications')) return 'applications'
+    if (pathname.includes('/landlord/profile')) return 'profile'
+    return 'dashboard' // default for /landlord/dashboard or /landlord
+  }
+  
+  const activeTab = getActiveTab()
 
   const navItems = [
     { id: "dashboard", label: "Dashboard", icon: BarChart3, href: "/landlord/dashboard" },
@@ -24,7 +34,6 @@ export function DashboardNavigation() {
               <Button
                 variant={activeTab === item.id ? "default" : "ghost"}
                 className="flex items-center gap-2"
-                onClick={() => setActiveTab(item.id)}
               >
                 <item.icon className="h-4 w-4" />
                 {item.label}

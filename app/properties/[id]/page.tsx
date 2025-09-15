@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, use } from "react"
+import { useState, use, useEffect } from "react"
 import { notFound } from "next/navigation"
 import { Navigation } from "@/components/navigation"
 import { Footer } from "@/components/footer"
@@ -17,7 +17,6 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Checkbox } from "@/components/ui/checkbox"
 import { FileUp, KeyRound as Pound, User, Phone } from "lucide-react"
-import { sampleProperties } from "@/lib/sample-data"
 
 interface PropertyPageProps {
   params: Promise<{
@@ -28,6 +27,9 @@ interface PropertyPageProps {
 export default function PropertyPage({ params }: PropertyPageProps) {
   const { id } = use(params)
   const [isOpen, setIsOpen] = useState(false)
+  const [property, setProperty] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -41,8 +43,37 @@ export default function PropertyPage({ params }: PropertyPageProps) {
     additionalInfo: "",
     agreeToTerms: false,
   })
-  
-  const property = sampleProperties.find((p) => p.id === id)
+
+  useEffect(() => {
+    async function fetchProperty() {
+      try {
+        setLoading(true)
+        const response = await fetch(`/api/properties/${id}`)
+        
+        if (!response.ok) {
+          if (response.status === 404) {
+            notFound()
+          }
+          throw new Error('Failed to fetch property')
+        }
+        
+        const data = await response.json()
+        if (data.success && data.property) {
+          // API already formats the data correctly
+          setProperty(data.property)
+        } else {
+          setError('Property not found')
+        }
+      } catch (err) {
+        console.error('Error fetching property:', err)
+        setError('Failed to load property')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchProperty()
+  }, [id])
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -54,7 +85,38 @@ export default function PropertyPage({ params }: PropertyPageProps) {
     setFormData((prev) => ({ ...prev, [field]: value }))
   }
 
-  if (!property) {
+  if (loading) {
+    return (
+      <div className="min-h-screen flex flex-col">
+        <Navigation />
+        <main className="flex-1 bg-background">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pt-[22px]">
+            <div className="animate-pulse space-y-8">
+              <div className="h-64 bg-gray-300 rounded-lg"></div>
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div className="lg:col-span-2 space-y-4">
+                  <div className="h-6 bg-gray-300 rounded w-3/4"></div>
+                  <div className="h-4 bg-gray-300 rounded w-1/2"></div>
+                  <div className="space-y-2">
+                    <div className="h-4 bg-gray-300 rounded"></div>
+                    <div className="h-4 bg-gray-300 rounded"></div>
+                    <div className="h-4 bg-gray-300 rounded w-5/6"></div>
+                  </div>
+                </div>
+                <div className="space-y-6">
+                  <div className="h-32 bg-gray-300 rounded"></div>
+                  <div className="h-24 bg-gray-300 rounded"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    )
+  }
+
+  if (error || !property) {
     notFound()
   }
 

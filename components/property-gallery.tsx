@@ -107,32 +107,48 @@ export function PropertyGallery({ images, title }: PropertyGalleryProps) {
 
         {/* Thumbnail Grid */}
         <div className="flex flex-col gap-4">
-          {images.slice(1, 4).map((image, index) => (
-            <div
-              key={index}
-              className="relative flex-1 cursor-pointer group"
-              onClick={() => {
-                setCurrentImage(index + 1)
-                setIsLightboxOpen(true)
-              }}
-            >
-              <Image
-                src={image || "/placeholder.svg"}
-                alt={`${title} - Image ${index + 2}`}
-                fill
-                className="object-cover"
-              />
-              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
-              {index === 2 && images.length > 4 && (
-                <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
-                  <div className="text-white text-center">
-                    <Grid3X3 className="h-8 w-8 mx-auto mb-2" />
-                    <span className="text-lg font-semibold">+{images.length - 4} more</span>
+          {Array.from({ length: 2 }, (_, index) => {
+            const imageIndex = index + 1;
+            const image = images[imageIndex];
+            const hasImage = Boolean(image);
+            
+            return (
+              <div
+                key={index}
+                className={`relative flex-1 ${hasImage ? 'cursor-pointer group' : ''}`}
+                onClick={() => {
+                  if (hasImage) {
+                    setCurrentImage(imageIndex)
+                    setIsLightboxOpen(true)
+                  }
+                }}
+              >
+                <Image
+                  src={image || "/placeholder.svg"}
+                  alt={hasImage ? `${title} - Image ${imageIndex + 1}` : "No image available"}
+                  fill
+                  className={`object-cover ${!hasImage ? 'opacity-30' : ''}`}
+                />
+                {!hasImage && (
+                  <div className="absolute inset-0 bg-gray-100 flex items-center justify-center">
+                    <div className="text-gray-400 text-center">
+                      <div className="w-8 h-8 mx-auto mb-2 bg-gray-300 rounded"></div>
+                      <span className="text-xs">No Image</span>
+                    </div>
                   </div>
-                </div>
-              )}
-            </div>
-          ))}
+                )}
+                {hasImage && <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />}
+                {index === 1 && images.length > 3 && (
+                  <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+                    <div className="text-white text-center">
+                      <Grid3X3 className="h-8 w-8 mx-auto mb-2" />
+                      <span className="text-lg font-semibold">+{images.length - 3} more</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
       </div>
 
