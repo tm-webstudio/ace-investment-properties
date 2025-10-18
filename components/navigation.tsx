@@ -33,7 +33,7 @@ export function Navigation() {
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <Link href="/" className="flex items-center space-x-2">
-            <span className="font-serif font-bold text-xl">Ace Investment Properties</span>
+            <span className="font-sans font-black text-lg tracking-wide uppercase">ACE INVESTMENT PROPERTIES</span>
           </Link>
 
           <div className="hidden md:flex items-center space-x-8">

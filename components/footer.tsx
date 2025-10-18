@@ -9,7 +9,7 @@ export function Footer() {
           {/* Company Info */}
           <div className="space-y-4">
             <div>
-              <span className="font-serif font-bold text-lg">Ace Investment Properties</span>
+              <span className="font-sans font-black text-base tracking-wide uppercase">ACE INVESTMENT PROPERTIES</span>
             </div>
             <p className="text-primary-foreground/80">
               Your trusted partner in finding the perfect rental property or managing your investment portfolio.
