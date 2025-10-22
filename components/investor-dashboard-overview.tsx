@@ -2,6 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { PropertyCard } from "@/components/property-card"
 import { TrendingUp, Heart, Calendar, Bell, Search, BarChart3, Home, Eye, Clock } from "lucide-react"
 import Link from "next/link"
 import type { Investor } from "@/lib/sample-data"
@@ -67,57 +68,6 @@ export function InvestorDashboardOverview({ investor }: InvestorDashboardOvervie
 
   return (
     <div className="space-y-8">
-      {/* Overview Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Saved Properties</CardTitle>
-            <Heart className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{investor.savedProperties.length}</div>
-            <p className="text-xs text-muted-foreground">Properties of interest</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Scheduled Viewings</CardTitle>
-            <Calendar className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{investor.scheduledViewings}</div>
-            <p className="text-xs text-muted-foreground">Upcoming appointments</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Portfolio Value</CardTitle>
-            <BarChart3 className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">£{investor.portfolioValue.toLocaleString()}</div>
-            <p className="text-xs text-muted-foreground">
-              <span className="text-green-600 flex items-center">
-                <TrendingUp className="h-3 w-3 mr-1" />
-                +5.2% this quarter
-              </span>
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Monthly ROI</CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{investor.monthlyROI}%</div>
-            <p className="text-xs text-muted-foreground">Average return on investment</p>
-          </CardContent>
-        </Card>
-      </div>
 
       {/* Saved Properties */}
       <Card>
@@ -130,43 +80,28 @@ export function InvestorDashboardOverview({ investor }: InvestorDashboardOvervie
           </Link>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Property</TableHead>
-                <TableHead>Location</TableHead>
-                <TableHead>Price</TableHead>
-                <TableHead>Type</TableHead>
-                <TableHead>Saved Date</TableHead>
-                <TableHead>Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
+          {savedPropertiesWithDetails.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               {savedPropertiesWithDetails.map((item) => (
-                <TableRow key={item.id}>
-                  <TableCell className="font-medium">{item.property?.title}</TableCell>
-                  <TableCell>{item.property?.city}</TableCell>
-                  <TableCell>£{item.property?.price.toLocaleString()}</TableCell>
-                  <TableCell>
-                    <Badge variant="secondary">{item.property?.propertyType}</Badge>
-                  </TableCell>
-                  <TableCell>{new Date(item.savedDate).toLocaleDateString('en-GB')}</TableCell>
-                  <TableCell>
-                    <div className="flex gap-2">
-                      <Link href={`/properties/${item.propertyId}`}>
-                        <Button variant="ghost" size="sm">
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                      </Link>
-                      <Button variant="ghost" size="sm">
-                        <Calendar className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
+                <PropertyCard 
+                  key={item.id} 
+                  property={item.property!} 
+                  variant="default" 
+                />
               ))}
-            </TableBody>
-          </Table>
+            </div>
+          ) : (
+            <div className="text-center py-8 text-muted-foreground">
+              <Heart className="h-12 w-12 mx-auto mb-4 opacity-50" />
+              <p className="text-lg font-medium mb-2">No saved properties yet</p>
+              <p className="mb-4">Start exploring and save properties you're interested in</p>
+              <Link href="/properties">
+                <Button className="bg-accent hover:bg-accent/90 text-accent-foreground">
+                  Browse Properties
+                </Button>
+              </Link>
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -242,40 +177,6 @@ export function InvestorDashboardOverview({ investor }: InvestorDashboardOvervie
         </Card>
       </div>
 
-      {/* Quick Actions */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Quick Actions</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Link href="/properties">
-              <Button className="w-full h-20 flex flex-col items-center justify-center bg-accent hover:bg-accent/90 text-accent-foreground">
-                <Search className="h-6 w-6 mb-2" />
-                Search Properties
-              </Button>
-            </Link>
-            <Link href="/investor/saved-properties">
-              <Button
-                variant="outline"
-                className="w-full h-20 flex flex-col items-center justify-center bg-transparent"
-              >
-                <Heart className="h-6 w-6 mb-2" />
-                Saved Properties
-              </Button>
-            </Link>
-            <Link href="/investor/viewings">
-              <Button
-                variant="outline"
-                className="w-full h-20 flex flex-col items-center justify-center bg-transparent"
-              >
-                <Calendar className="h-6 w-6 mb-2" />
-                Manage Viewings
-              </Button>
-            </Link>
-          </div>
-        </CardContent>
-      </Card>
     </div>
   )
 }

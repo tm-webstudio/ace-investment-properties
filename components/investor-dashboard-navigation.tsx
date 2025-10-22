@@ -3,27 +3,26 @@
 import { usePathname } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { Home, Plus, FileText, User, BarChart3, Edit3 } from "lucide-react"
+import { User, BarChart3, Search } from "lucide-react"
 
-interface DashboardNavigationProps {
+interface InvestorDashboardNavigationProps {
   customButton?: React.ReactNode
 }
 
-export function DashboardNavigation({ customButton }: DashboardNavigationProps) {
+export function InvestorDashboardNavigation({ customButton }: InvestorDashboardNavigationProps) {
   const pathname = usePathname()
   
   // Determine active tab based on current pathname
   const getActiveTab = () => {
-    if (pathname.includes('/landlord/properties')) return 'properties'
-    if (pathname.includes('/landlord/profile')) return 'profile'
-    return 'dashboard' // default for /landlord/dashboard or /landlord
+    if (pathname.includes('/investor/profile')) return 'profile'
+    return 'dashboard' // default for /investor/dashboard or /investor
   }
   
   const activeTab = getActiveTab()
 
   const navItems = [
-    { id: "dashboard", label: "Dashboard", icon: BarChart3, href: "/landlord/dashboard" },
-    { id: "profile", label: "Profile", icon: User, href: "/landlord/profile" },
+    { id: "dashboard", label: "Dashboard", icon: BarChart3, href: "/investor/dashboard" },
+    { id: "profile", label: "Profile", icon: User, href: "/investor/profile" },
   ]
 
   return (
@@ -44,10 +43,10 @@ export function DashboardNavigation({ customButton }: DashboardNavigationProps) 
         </nav>
 
         {customButton || (
-          <Link href="/landlord/add-property">
+          <Link href="/properties">
             <Button className="bg-accent hover:bg-accent/90 text-accent-foreground">
-              <Plus className="mr-2 h-4 w-4" />
-              Add New Property
+              <Search className="mr-2 h-4 w-4" />
+              Browse Properties
             </Button>
           </Link>
         )}

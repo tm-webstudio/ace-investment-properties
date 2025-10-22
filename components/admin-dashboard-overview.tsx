@@ -2,6 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { PropertyCard } from "@/components/property-card"
 import { Settings, Eye, CheckCircle, XCircle, Clock, Calendar, Home, Users, BarChart3, Plus, Shield } from "lucide-react"
 import Link from "next/link"
 import type { Admin } from "@/lib/sample-data"
@@ -176,6 +177,29 @@ export function AdminDashboardOverview({ admin }: AdminDashboardOverviewProps) {
         </CardContent>
       </Card>
 
+      {/* Recent Properties */}
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle>Recent Properties</CardTitle>
+          <Link href="/admin/properties">
+            <Button variant="outline" size="sm" className="bg-transparent">
+              View All
+            </Button>
+          </Link>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {sampleProperties.slice(0, 4).map((property) => (
+              <PropertyCard 
+                key={property.id} 
+                property={property} 
+                variant="default" 
+              />
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Recent Viewings */}
         <Card>
@@ -234,49 +258,6 @@ export function AdminDashboardOverview({ admin }: AdminDashboardOverviewProps) {
         </Card>
       </div>
 
-      {/* Quick Actions */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Quick Actions</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <Link href="/admin/properties">
-              <Button className="w-full h-20 flex flex-col items-center justify-center bg-accent hover:bg-accent/90 text-accent-foreground">
-                <Home className="h-6 w-6 mb-2" />
-                Manage Properties
-              </Button>
-            </Link>
-            <Link href="/admin/viewings">
-              <Button
-                variant="outline"
-                className="w-full h-20 flex flex-col items-center justify-center bg-transparent"
-              >
-                <Calendar className="h-6 w-6 mb-2" />
-                Manage Viewings
-              </Button>
-            </Link>
-            <Link href="/admin/users">
-              <Button
-                variant="outline"
-                className="w-full h-20 flex flex-col items-center justify-center bg-transparent"
-              >
-                <Users className="h-6 w-6 mb-2" />
-                Manage Users
-              </Button>
-            </Link>
-            <Link href="/admin/analytics">
-              <Button
-                variant="outline"
-                className="w-full h-20 flex flex-col items-center justify-center bg-transparent"
-              >
-                <BarChart3 className="h-6 w-6 mb-2" />
-                View Analytics
-              </Button>
-            </Link>
-          </div>
-        </CardContent>
-      </Card>
     </div>
   )
 }

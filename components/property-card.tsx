@@ -1,5 +1,6 @@
 "use client"
 
+import { useState } from "react"
 import Image from "next/image"
 import Link from "next/link"
 import { Card, CardContent } from "@/components/ui/card"
@@ -8,17 +9,67 @@ import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Bed, Bath, Heart, MoreVertical, Edit, Eye, Trash2, Users } from "lucide-react"
 import { format } from "date-fns"
+import { supabase } from "@/lib/supabase"
 import type { Property } from "@/lib/sample-data"
 
 interface PropertyCardProps {
   property: Property
   variant?: 'default' | 'landlord' // 'default' shows heart, 'landlord' shows dropdown
+  onPropertyDeleted?: () => void // Callback for when property is deleted
 }
 
-export function PropertyCard({ property, variant = 'default' }: PropertyCardProps) {
-  const handleCardClick = () => {
-    if (variant === 'landlord') {
+export function PropertyCard({ property, variant = 'default', onPropertyDeleted }: PropertyCardProps) {
+  const [isDeleting, setIsDeleting] = useState(false)
+
+  const handleCardClick = (e: React.MouseEvent) => {
+    // Only navigate if clicking on non-interactive elements
+    if (variant === 'landlord' && !(e.target as HTMLElement).closest('[data-dropdown-trigger]')) {
       window.location.href = `/properties/${property.id}`
+    }
+  }
+
+  const handleDeleteProperty = async () => {
+    if (!confirm('Are you sure you want to delete this property? This action cannot be undone.')) {
+      return
+    }
+
+    setIsDeleting(true)
+    
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      
+      if (!session?.access_token) {
+        alert('Please log in to delete properties')
+        return
+      }
+
+      const response = await fetch(`/api/landlord/properties/${property.id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`
+        }
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to delete property')
+      }
+
+      if (data.success) {
+        // Call the callback to refresh the property list
+        if (onPropertyDeleted) {
+          onPropertyDeleted()
+        }
+        alert('Property deleted successfully')
+      } else {
+        throw new Error(data.error || 'Failed to delete property')
+      }
+    } catch (error: any) {
+      console.error('Error deleting property:', error)
+      alert(`Error deleting property: ${error.message}`)
+    } finally {
+      setIsDeleting(false)
     }
   }
   if (variant === 'landlord') {
@@ -57,6 +108,7 @@ export function PropertyCard({ property, variant = 'default' }: PropertyCardProp
                   size="icon" 
                   variant="ghost" 
                   className="bg-white/95 hover:bg-white shadow-lg border border-gray-200/50 transition-all duration-200 hover:shadow-xl data-[state=open]:bg-white data-[state=open]:shadow-xl"
+                  data-dropdown-trigger
                   onClick={(e) => {
                     e.stopPropagation()
                   }}
@@ -68,6 +120,7 @@ export function PropertyCard({ property, variant = 'default' }: PropertyCardProp
                 align="end" 
                 className="z-50 min-w-[180px] animate-in fade-in-0 zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95"
                 sideOffset={8}
+                data-dropdown-trigger
               >
                 <DropdownMenuItem asChild>
                   <Link href={`/properties/${property.id}`} className="cursor-pointer transition-colors duration-150">
@@ -75,17 +128,26 @@ export function PropertyCard({ property, variant = 'default' }: PropertyCardProp
                     View Listing
                   </Link>
                 </DropdownMenuItem>
-                <DropdownMenuItem className="cursor-pointer transition-colors duration-150">
-                  <Edit className="mr-2 h-4 w-4" />
-                  Edit Property
+                <DropdownMenuItem asChild>
+                  <Link href={`/landlord/properties/${property.id}/edit`} className="cursor-pointer transition-colors duration-150">
+                    <Edit className="mr-2 h-4 w-4" />
+                    Edit Property
+                  </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem className="cursor-pointer transition-colors duration-150">
                   <Users className="mr-2 h-4 w-4" />
                   View Applications
                 </DropdownMenuItem>
-                <DropdownMenuItem className="text-red-600 cursor-pointer transition-colors duration-150 focus:text-red-700 focus:bg-red-50">
+                <DropdownMenuItem 
+                  className="text-red-600 cursor-pointer transition-colors duration-150 focus:text-red-700 focus:bg-red-50"
+                  onClick={(e) => {
+                    e.preventDefault()
+                    handleDeleteProperty()
+                  }}
+                  disabled={isDeleting}
+                >
                   <Trash2 className="mr-2 h-4 w-4" />
-                  Delete Listing
+                  {isDeleting ? 'Deleting...' : 'Delete Listing'}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>

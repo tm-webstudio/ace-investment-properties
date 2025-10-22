@@ -2,6 +2,7 @@
 
 import { Navigation } from "@/components/navigation"
 import { Footer } from "@/components/footer"
+import { InvestorDashboardNavigation } from "@/components/investor-dashboard-navigation"
 import { InvestorDashboardOverview } from "@/components/investor-dashboard-overview"
 import { sampleInvestors } from "@/lib/sample-data"
 
@@ -21,6 +22,7 @@ export default function InvestorDashboard() {
             <p className="text-muted-foreground text-lg">Track your property investments and opportunities</p>
           </div>
 
+          <InvestorDashboardNavigation />
           <InvestorDashboardOverview investor={currentInvestor} />
         </div>
       </main>

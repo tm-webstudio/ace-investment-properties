@@ -63,6 +63,12 @@ export async function POST(request: NextRequest) {
     
     if (existingDraft) {
       // Update existing draft
+      // If user is now authenticated but draft has session_id, claim the draft
+      if (req.user && existingDraft.session_id && !existingDraft.user_id) {
+        updateData.user_id = req.user.id
+        updateData.session_id = null // Clear session_id since it's now owned by user
+      }
+      
       const { data, error } = await supabase
         .from('property_drafts')
         .update(updateData)

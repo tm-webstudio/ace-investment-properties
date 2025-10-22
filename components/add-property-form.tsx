@@ -13,13 +13,18 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox"
 import { Progress } from "@/components/ui/progress"
 import { Badge } from "@/components/ui/badge"
-import { ChevronLeft, ChevronRight, Upload, X, Home, FileText, Camera, CheckCircle } from "lucide-react"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { ChevronLeft, ChevronRight, Upload, X, Home, FileText, Camera, CheckCircle, MapPin, Bed, Bath, PoundSterling, AlertCircle, Loader2 } from "lucide-react"
 import { ImageReorder } from './image-reorder'
 import { useRouter } from "next/navigation"
+import Image from "next/image"
 
 interface PropertyFormData {
   // Basic Info
   propertyType: string
+  propertyLicence?: string
+  propertyCondition: string
   address: string
   city: string
   state: string
@@ -55,6 +60,8 @@ export function AddPropertyForm() {
   const [isLoading, setIsLoading] = useState(false)
   const [formData, setFormData] = useState<PropertyFormData>({
     propertyType: "",
+    propertyLicence: "",
+    propertyCondition: "",
     address: "",
     city: "",
     state: "",
@@ -111,13 +118,44 @@ export function AddPropertyForm() {
   const [uploadProgress, setUploadProgress] = useState<{ [key: string]: number }>({})
   const [isDragOver, setIsDragOver] = useState(false)
   const [userToken, setUserToken] = useState<string | null>(null)
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null)
+  const [authTab, setAuthTab] = useState('signup')
+  const [authLoading, setAuthLoading] = useState(false)
+  const [pendingPropertyToken, setPendingPropertyToken] = useState<string | null>(null)
+
+  // Auth form states
+  const [signupForm, setSignupForm] = useState({
+    email: '',
+    password: '',
+    confirmPassword: '',
+    firstName: '',
+    lastName: '',
+    phone: '',
+    acceptedTerms: false
+  })
+
+  const [loginForm, setLoginForm] = useState({
+    email: '',
+    password: ''
+  })
+
+  const [authErrors, setAuthErrors] = useState<Record<string, string>>({})
 
   // Get current user session on component mount
   useEffect(() => {
+    // Generate session ID for tracking anonymous users
+    if (!sessionId) {
+      const newSessionId = crypto.randomUUID()
+      setSessionId(newSessionId)
+    }
+
     const getSession = async () => {
       const { data: { session } } = await supabase.auth.getSession()
       if (session?.access_token) {
         setUserToken(session.access_token)
+        setIsLoggedIn(true)
+      } else {
+        setIsLoggedIn(false)
       }
     }
     getSession()
@@ -125,6 +163,7 @@ export function AddPropertyForm() {
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setUserToken(session?.access_token || null)
+      setIsLoggedIn(!!session?.access_token)
     })
     
     return () => subscription.unsubscribe()
@@ -315,10 +354,9 @@ export function AddPropertyForm() {
         if (!sessionId) {
           setSessionId(result.sessionId)
         }
-        if (!draftId) {
-          setDraftId(result.draft.id)
-        }
-        console.log(`Step ${step} saved successfully`)
+        // Always update draftId to ensure we have the correct reference
+        setDraftId(result.draft.id)
+        console.log(`Step ${step} saved successfully, draftId: ${result.draft.id}`)
         return true
       } else {
         console.error('Failed to save draft:', result.error)
@@ -343,6 +381,7 @@ export function AddPropertyForm() {
       case 1:
         return {
           propertyType: formData.propertyType || '',
+          propertyLicence: formData.propertyLicence || '',
           bedrooms: formData.bedrooms || '',
           bathrooms: formData.bathrooms || '',
           monthlyRent: formData.monthlyRent || '',
@@ -395,39 +434,198 @@ export function AddPropertyForm() {
     }
   }
 
+  const validateSignupForm = () => {
+    const errors: Record<string, string> = {}
+
+    if (!signupForm.email) errors.email = 'Email is required'
+    else if (!/\S+@\S+\.\S+/.test(signupForm.email)) errors.email = 'Invalid email format'
+
+    if (!signupForm.password) errors.password = 'Password is required'
+    else if (signupForm.password.length < 6) errors.password = 'Password must be at least 6 characters'
+
+    if (!signupForm.confirmPassword) errors.confirmPassword = 'Please confirm your password'
+    else if (signupForm.password !== signupForm.confirmPassword) errors.confirmPassword = 'Passwords do not match'
+
+    if (!signupForm.firstName) errors.firstName = 'First name is required'
+    if (!signupForm.lastName) errors.lastName = 'Last name is required'
+    if (!signupForm.acceptedTerms) errors.acceptedTerms = 'You must accept the terms and conditions'
+
+    setAuthErrors(errors)
+    return Object.keys(errors).length === 0
+  }
+
+  const validateLoginForm = () => {
+    const errors: Record<string, string> = {}
+
+    if (!loginForm.email) errors.email = 'Email is required'
+    if (!loginForm.password) errors.password = 'Password is required'
+
+    setAuthErrors(errors)
+    return Object.keys(errors).length === 0
+  }
+
+  const handleSignup = async (e: React.FormEvent) => {
+    e.preventDefault()
+    
+    if (!validateSignupForm()) return
+
+    setAuthLoading(true)
+    setAuthErrors({})
+
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email: signupForm.email,
+        password: signupForm.password,
+        options: {
+          data: {
+            first_name: signupForm.firstName,
+            last_name: signupForm.lastName,
+            phone: signupForm.phone,
+            user_type: 'landlord'
+          }
+        }
+      })
+
+      if (error) throw error
+
+      if (data.user) {
+        // Create user profile
+        const { error: profileError } = await supabase
+          .from('user_profiles')
+          .insert({
+            user_id: data.user.id,
+            first_name: signupForm.firstName,
+            last_name: signupForm.lastName,
+            email: signupForm.email,
+            phone: signupForm.phone,
+            user_type: 'landlord',
+            terms_accepted: true,
+            terms_accepted_at: new Date().toISOString()
+          })
+
+        if (profileError) {
+          console.error('Profile creation error:', profileError)
+        }
+
+        setIsLoggedIn(true)
+        alert('Account created successfully! You can now publish your property.')
+      }
+
+    } catch (error: any) {
+      setAuthErrors({ general: error.message })
+    } finally {
+      setAuthLoading(false)
+    }
+  }
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault()
+
+    if (!validateLoginForm()) return
+
+    setAuthLoading(true)
+    setAuthErrors({})
+
+    try {
+      const { error } = await supabase.auth.signInWithPassword({
+        email: loginForm.email,
+        password: loginForm.password
+      })
+
+      if (error) throw error
+
+      setIsLoggedIn(true)
+      alert('Logged in successfully! You can now publish your property.')
+
+    } catch (error: any) {
+      setAuthErrors({ general: error.message })
+    } finally {
+      setAuthLoading(false)
+    }
+  }
+
   const handleSubmit = async () => {
     try {
       setIsLoading(true)
       
-      // First save the final step (step 4) as draft
-      const step4Data = getCurrentStepData(4)
-      await saveDraft(4, step4Data)
+      // Validate that all required fields are filled before proceeding
+      const requiredFields = [
+        { field: 'propertyType', label: 'Property Type' },
+        { field: 'bedrooms', label: 'Bedrooms' },
+        { field: 'bathrooms', label: 'Bathrooms' },
+        { field: 'monthlyRent', label: 'Monthly Rent' },
+        { field: 'securityDeposit', label: 'Security Deposit' },
+        { field: 'availableDate', label: 'Available Date' },
+        { field: 'description', label: 'Description' },
+        { field: 'address', label: 'Address' },
+        { field: 'city', label: 'City' },
+        { field: 'postcode', label: 'Postcode' }
+      ]
+      
+      const missingFields = requiredFields.filter(req => !formData[req.field as keyof typeof formData])
+      
+      if (missingFields.length > 0) {
+        alert(`Please fill in the following required fields: ${missingFields.map(f => f.label).join(', ')}`)
+        return
+      }
+      
+      if (formData.photos.length === 0) {
+        alert('Please add at least one photo of your property.')
+        return
+      }
+      
+      // Ensure all steps are saved before publishing
+      console.log('Saving all steps before publishing...')
+      
+      // Save each step sequentially
+      for (let step = 1; step <= 4; step++) {
+        const stepData = getCurrentStepData(step)
+        console.log(`Saving step ${step}:`, stepData)
+        const saved = await saveDraft(step, stepData)
+        if (!saved) {
+          alert(`Failed to save step ${step}. Please check all required fields and try again.`)
+          return
+        }
+      }
+      
+      console.log('All steps saved successfully. Proceeding with publish...')
       
       // Then attempt to publish
+      console.log('Publishing with:', { sessionId, draftId, userToken: !!userToken })
+      
       const publishHeaders: { [key: string]: string } = { 'Content-Type': 'application/json' }
       if (userToken) {
         publishHeaders.Authorization = `Bearer ${userToken}`
       }
       
+      const publishPayload = {
+        ...(sessionId ? { sessionId } : {}),
+        ...(draftId ? { draftId } : {}),
+        contactInfo: {
+          contactName: formData.contactName || '',
+          contactEmail: formData.contactEmail || '',
+          contactPhone: formData.contactPhone || ''
+        }
+      }
+      
+      console.log('Publish payload:', publishPayload)
+      
       const response = await fetch('/api/properties/publish', {
         method: 'POST',
         headers: publishHeaders,
-        body: JSON.stringify({
-          ...(sessionId ? { sessionId } : {}),
-          ...(draftId ? { draftId } : {}),
-          contactInfo: {
-            contactName: formData.contactName || '',
-            contactEmail: formData.contactEmail || '',
-            contactPhone: formData.contactPhone || ''
-          }
-        })
+        body: JSON.stringify(publishPayload)
       })
 
       const result = await response.json()
       
       if (result.success) {
         alert('Property published successfully!')
-        router.push("/landlord/properties")
+        router.push("/landlord")
+      } else if (result.status === 'signup_required') {
+        // Store the pending property token for later use in authentication
+        setPendingPropertyToken(result.pendingPropertyToken)
+        // The authentication section is already visible on this page for non-logged-in users
+        alert('Please create an account or sign in to publish your property. Your property has been saved and will be published after authentication.')
       } else if (result.requiresSignup) {
         alert(`${result.message}\n\nYour property draft has been saved. Please sign up to continue.`)
         // Optionally redirect to signup with draft ID
@@ -499,25 +697,25 @@ export function AddPropertyForm() {
           <CardTitle className="flex items-center gap-2">
             {currentStep === 1 && (
               <>
-                <Home className="h-5 w-5" />
+                <Home className="h-5 w-5 text-accent" />
                 Basic Information
               </>
             )}
             {currentStep === 2 && (
               <>
-                <Home className="h-5 w-5" />
+                <Home className="h-5 w-5 text-accent" />
                 Property Address
               </>
             )}
             {currentStep === 3 && (
               <>
-                <Camera className="h-5 w-5" />
+                <Camera className="h-5 w-5 text-accent" />
                 Photos
               </>
             )}
             {currentStep === 4 && (
               <>
-                <CheckCircle className="h-5 w-5" />
+                <CheckCircle className="h-5 w-5 text-accent" />
                 Review & Publish
               </>
             )}
@@ -527,26 +725,46 @@ export function AddPropertyForm() {
           {/* Step 1: Basic Information */}
           {currentStep === 1 && (
             <div className="space-y-6">
-              <div>
-                <Label htmlFor="propertyType">Property Type *</Label>
-                <Select
-                  value={formData.propertyType}
-                  onValueChange={(value) => handleInputChange("propertyType", value)}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select property type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Studio">Studio</SelectItem>
-                    <SelectItem value="1BR">1 Bedroom</SelectItem>
-                    <SelectItem value="2BR">2 Bedroom</SelectItem>
-                    <SelectItem value="3BR+">3+ Bedroom</SelectItem>
-                    <SelectItem value="House">House</SelectItem>
-                  </SelectContent>
-                </Select>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <Label htmlFor="propertyType">Property Type *</Label>
+                  <Select
+                    value={formData.propertyType}
+                    onValueChange={(value) => handleInputChange("propertyType", value)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select property type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Studio">Studio</SelectItem>
+                      <SelectItem value="House">House</SelectItem>
+                      <SelectItem value="Flat">Flat</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label htmlFor="propertyLicence">Property Licence</Label>
+                  <Select
+                    value={formData.propertyLicence || ""}
+                    onValueChange={(value) => handleInputChange("propertyLicence", value)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select licence type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">No Licence Required</SelectItem>
+                      <SelectItem value="hmo">HMO Licence</SelectItem>
+                      <SelectItem value="c2">C2 Licence</SelectItem>
+                      <SelectItem value="selective">Selective Licence</SelectItem>
+                      <SelectItem value="additional">Additional Licence</SelectItem>
+                      <SelectItem value="other">Other</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div></div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
                   <Label htmlFor="bedrooms">Bedrooms *</Label>
                   <Select value={formData.bedrooms} onValueChange={(value) => handleInputChange("bedrooms", value)}>
@@ -574,6 +792,24 @@ export function AddPropertyForm() {
                       <SelectItem value="2">2 Bathrooms</SelectItem>
                       <SelectItem value="2.5">2.5 Bathrooms</SelectItem>
                       <SelectItem value="3">3+ Bathrooms</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label htmlFor="propertyCondition">Property Condition</Label>
+                  <Select
+                    value={formData.propertyCondition || ""}
+                    onValueChange={(value) => handleInputChange("propertyCondition", value)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select condition" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="excellent">Excellent</SelectItem>
+                      <SelectItem value="newly-renovated">Newly Renovated</SelectItem>
+                      <SelectItem value="good">Good</SelectItem>
+                      <SelectItem value="fair">Fair</SelectItem>
+                      <SelectItem value="needs-work">Needs Work</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -633,7 +869,7 @@ export function AddPropertyForm() {
                         onCheckedChange={(checked) => handleAmenityChange(amenity, checked as boolean)}
                         className="border-2 border-muted-foreground data-[state=checked]:bg-primary data-[state=checked]:border-primary"
                       />
-                      <Label htmlFor={amenity} className="text-sm font-normal cursor-pointer flex-1">
+                      <Label htmlFor={amenity} className="text-sm font-normal cursor-pointer flex-1 mb-0">
                         {amenity}
                       </Label>
                     </div>
@@ -715,6 +951,17 @@ export function AddPropertyForm() {
           {/* Step 3: Photos */}
           {currentStep === 3 && (
             <div className="space-y-6">
+              {formData.photos.length > 0 && (
+                <ImageReorder
+                  images={formData.photos}
+                  primaryImageIndex={formData.primaryPhotoIndex}
+                  onImagesReorder={(newImages) => handleInputChange("photos", newImages)}
+                  onPrimaryImageChange={(index) => handleInputChange("primaryPhotoIndex", index)}
+                  onImageRemove={removePhoto}
+                  disabled={uploadingImages}
+                />
+              )}
+
               <div 
                 className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
                   isDragOver 
@@ -746,17 +993,19 @@ export function AddPropertyForm() {
                   id="photo-upload"
                   disabled={uploadingImages || formData.photos.length >= 10}
                 />
-                <Label htmlFor="photo-upload">
-                  <Button 
-                    className="bg-accent hover:bg-accent/90 text-accent-foreground" 
-                    asChild
-                    disabled={uploadingImages || formData.photos.length >= 10}
-                  >
-                    <span>
-                      {uploadingImages ? 'Uploading...' : formData.photos.length >= 10 ? 'Maximum reached' : 'Choose Photos'}
-                    </span>
-                  </Button>
-                </Label>
+                <div className="flex justify-center">
+                  <Label htmlFor="photo-upload">
+                    <Button 
+                      className="bg-accent hover:bg-accent/90 text-accent-foreground" 
+                      asChild
+                      disabled={uploadingImages || formData.photos.length >= 10}
+                    >
+                      <span>
+                        {uploadingImages ? 'Uploading...' : formData.photos.length >= 10 ? 'Maximum reached' : 'Choose Photos'}
+                      </span>
+                    </Button>
+                  </Label>
+                </div>
                 {uploadingImages && (
                   <div className="mt-4">
                     <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-accent mx-auto"></div>
@@ -764,60 +1013,261 @@ export function AddPropertyForm() {
                   </div>
                 )}
               </div>
-
-              {formData.photos.length > 0 && (
-                <ImageReorder
-                  images={formData.photos}
-                  primaryImageIndex={formData.primaryPhotoIndex}
-                  onImagesReorder={(newImages) => handleInputChange("photos", newImages)}
-                  onPrimaryImageChange={(index) => handleInputChange("primaryPhotoIndex", index)}
-                  onImageRemove={removePhoto}
-                  disabled={uploadingImages}
-                />
-              )}
             </div>
           )}
 
           {/* Step 4: Review & Publish */}
           {currentStep === 4 && (
             <div className="space-y-6">
-              <div className="bg-muted/30 rounded-lg p-6">
-                <h3 className="font-serif text-xl font-semibold mb-4">Property Summary</h3>
+              <div className="rounded-lg p-6 border">
+                <h3 className="text-xl font-semibold mb-6">Property Summary</h3>
+                
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-3">
-                    <div>
-                      <strong>Property Type:</strong> {formData.propertyType}
-                    </div>
-                    <div>
-                      <strong>Address:</strong> {formData.address}, {formData.city}, {formData.postcode}
-                    </div>
-                    <div>
-                      <strong>Monthly Rent:</strong> £{Number.parseInt(formData.monthlyRent || "0").toLocaleString()}
-                    </div>
-                    <div>
-                      <strong>Security Deposit:</strong> £
-                      {Number.parseInt(formData.securityDeposit || "0").toLocaleString()}
-                    </div>
-                    <div>
-                      <strong>Available Date:</strong> {new Date(formData.availableDate).toLocaleDateString()}
-                    </div>
+                  <div>
+                    {formData.photos.length > 0 && (
+                      <div className="aspect-video relative rounded-lg overflow-hidden mb-4">
+                        <Image
+                          src={typeof formData.photos[formData.primaryPhotoIndex] === 'string' 
+                            ? formData.photos[formData.primaryPhotoIndex] as string
+                            : URL.createObjectURL(formData.photos[formData.primaryPhotoIndex] as File)}
+                          alt={`${formData.propertyType} in ${formData.city}`}
+                          fill
+                          className="object-cover"
+                        />
+                      </div>
+                    )}
                   </div>
-                  <div className="space-y-3">
+                  <div className="space-y-4">
                     <div>
-                      <strong>Bedrooms:</strong> {formData.bedrooms}
+                      <h3 className="text-xl font-semibold">{formData.propertyType} in {formData.city}</h3>
+                      <div className="flex items-center text-muted-foreground mt-1">
+                        <MapPin className="h-4 w-4 mr-1" />
+                        <span className="text-sm">{formData.address}, {formData.city}, {formData.postcode}</span>
+                      </div>
                     </div>
-                    <div>
-                      <strong>Bathrooms:</strong> {formData.bathrooms}
+                    
+                    <div className="flex items-center space-x-4">
+                      <Badge variant="secondary">{formData.propertyType}</Badge>
+                      <div className="flex items-center">
+                        <Bed className="h-4 w-4 mr-1" />
+                        <span className="text-sm">{formData.bedrooms} bed</span>
+                      </div>
+                      <div className="flex items-center">
+                        <Bath className="h-4 w-4 mr-1" />
+                        <span className="text-sm">{formData.bathrooms} bath</span>
+                      </div>
                     </div>
-                    <div>
-                      <strong>Photos:</strong> {formData.photos.length} uploaded
+
+                    <div className="flex items-center text-lg font-semibold text-accent">
+                      <PoundSterling className="h-5 w-5 mr-1" />
+                      £{Number.parseInt(formData.monthlyRent || "0").toLocaleString()} pcm
                     </div>
-                    <div>
-                      <strong>Amenities:</strong> {formData.amenities.length} selected
+
+                    <div className="space-y-2 text-sm">
+                      <div><strong>Security Deposit:</strong> £{Number.parseInt(formData.securityDeposit || "0").toLocaleString()}</div>
+                      <div><strong>Available Date:</strong> {new Date(formData.availableDate).toLocaleDateString()}</div>
+                      {formData.propertyLicence && (
+                        <div><strong>Property Licence:</strong> {formData.propertyLicence}</div>
+                      )}
+                      {formData.propertyCondition && (
+                        <div><strong>Condition:</strong> {formData.propertyCondition}</div>
+                      )}
+                      <div><strong>Amenities:</strong> {formData.amenities.length} selected</div>
                     </div>
+
+                    {formData.description && (
+                      <div className="mt-4">
+                        <strong className="text-sm">Description:</strong>
+                        <p className="mt-1 text-sm text-muted-foreground line-clamp-3">{formData.description}</p>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
+
+              {/* Auth Section - Show only if user is not logged in */}
+              {isLoggedIn === false && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Create Your Account to Publish</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <Tabs value={authTab} onValueChange={setAuthTab}>
+                      <TabsList className="grid w-full grid-cols-2">
+                        <TabsTrigger value="signup">Create Account</TabsTrigger>
+                        <TabsTrigger value="login">Already Have Account?</TabsTrigger>
+                      </TabsList>
+
+                      <TabsContent value="signup" className="space-y-4">
+                        <form onSubmit={handleSignup} className="space-y-4">
+                          {authErrors.general && (
+                            <Alert variant="destructive">
+                              <AlertCircle className="h-4 w-4" />
+                              <AlertDescription>{authErrors.general}</AlertDescription>
+                            </Alert>
+                          )}
+
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                              <Label htmlFor="firstName">First Name *</Label>
+                              <Input
+                                id="firstName"
+                                value={signupForm.firstName}
+                                onChange={(e) => setSignupForm(prev => ({ ...prev, firstName: e.target.value }))}
+                                className={authErrors.firstName ? 'border-red-500' : ''}
+                              />
+                              {authErrors.firstName && (
+                                <p className="text-sm text-red-500 mt-1">{authErrors.firstName}</p>
+                              )}
+                            </div>
+                            <div>
+                              <Label htmlFor="lastName">Last Name *</Label>
+                              <Input
+                                id="lastName"
+                                value={signupForm.lastName}
+                                onChange={(e) => setSignupForm(prev => ({ ...prev, lastName: e.target.value }))}
+                                className={authErrors.lastName ? 'border-red-500' : ''}
+                              />
+                              {authErrors.lastName && (
+                                <p className="text-sm text-red-500 mt-1">{authErrors.lastName}</p>
+                              )}
+                            </div>
+                          </div>
+
+                          <div>
+                            <Label htmlFor="signupEmail">Email *</Label>
+                            <Input
+                              id="signupEmail"
+                              type="email"
+                              value={signupForm.email}
+                              onChange={(e) => setSignupForm(prev => ({ ...prev, email: e.target.value }))}
+                              className={authErrors.email ? 'border-red-500' : ''}
+                            />
+                            {authErrors.email && (
+                              <p className="text-sm text-red-500 mt-1">{authErrors.email}</p>
+                            )}
+                          </div>
+
+                          <div>
+                            <Label htmlFor="signupPhone">Phone Number</Label>
+                            <Input
+                              id="signupPhone"
+                              type="tel"
+                              value={signupForm.phone}
+                              onChange={(e) => setSignupForm(prev => ({ ...prev, phone: e.target.value }))}
+                            />
+                          </div>
+
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                              <Label htmlFor="signupPassword">Password *</Label>
+                              <Input
+                                id="signupPassword"
+                                type="password"
+                                value={signupForm.password}
+                                onChange={(e) => setSignupForm(prev => ({ ...prev, password: e.target.value }))}
+                                className={authErrors.password ? 'border-red-500' : ''}
+                              />
+                              {authErrors.password && (
+                                <p className="text-sm text-red-500 mt-1">{authErrors.password}</p>
+                              )}
+                            </div>
+                            <div>
+                              <Label htmlFor="confirmPassword">Confirm Password *</Label>
+                              <Input
+                                id="confirmPassword"
+                                type="password"
+                                value={signupForm.confirmPassword}
+                                onChange={(e) => setSignupForm(prev => ({ ...prev, confirmPassword: e.target.value }))}
+                                className={authErrors.confirmPassword ? 'border-red-500' : ''}
+                              />
+                              {authErrors.confirmPassword && (
+                                <p className="text-sm text-red-500 mt-1">{authErrors.confirmPassword}</p>
+                              )}
+                            </div>
+                          </div>
+
+                          <div className="flex items-center space-x-2">
+                            <Checkbox
+                              id="terms"
+                              checked={signupForm.acceptedTerms}
+                              onCheckedChange={(checked) => setSignupForm(prev => ({ ...prev, acceptedTerms: checked as boolean }))}
+                              className={authErrors.acceptedTerms ? 'border-red-500' : ''}
+                            />
+                            <Label htmlFor="terms" className="text-sm">
+                              I agree to the Terms of Service and Privacy Policy as a landlord
+                            </Label>
+                          </div>
+                          {authErrors.acceptedTerms && (
+                            <p className="text-sm text-red-500">{authErrors.acceptedTerms}</p>
+                          )}
+
+                          <Button type="submit" className="w-full" disabled={authLoading}>
+                            {authLoading ? (
+                              <>
+                                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                Creating Account...
+                              </>
+                            ) : (
+                              'Create Account'
+                            )}
+                          </Button>
+                        </form>
+                      </TabsContent>
+
+                      <TabsContent value="login" className="space-y-4">
+                        <form onSubmit={handleLogin} className="space-y-4">
+                          {authErrors.general && (
+                            <Alert variant="destructive">
+                              <AlertCircle className="h-4 w-4" />
+                              <AlertDescription>{authErrors.general}</AlertDescription>
+                            </Alert>
+                          )}
+
+                          <div>
+                            <Label htmlFor="loginEmail">Email *</Label>
+                            <Input
+                              id="loginEmail"
+                              type="email"
+                              value={loginForm.email}
+                              onChange={(e) => setLoginForm(prev => ({ ...prev, email: e.target.value }))}
+                              className={authErrors.email ? 'border-red-500' : ''}
+                            />
+                            {authErrors.email && (
+                              <p className="text-sm text-red-500 mt-1">{authErrors.email}</p>
+                            )}
+                          </div>
+
+                          <div>
+                            <Label htmlFor="loginPassword">Password *</Label>
+                            <Input
+                              id="loginPassword"
+                              type="password"
+                              value={loginForm.password}
+                              onChange={(e) => setLoginForm(prev => ({ ...prev, password: e.target.value }))}
+                              className={authErrors.password ? 'border-red-500' : ''}
+                            />
+                            {authErrors.password && (
+                              <p className="text-sm text-red-500 mt-1">{authErrors.password}</p>
+                            )}
+                          </div>
+
+                          <Button type="submit" className="w-full" disabled={authLoading}>
+                            {authLoading ? (
+                              <>
+                                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                Logging In...
+                              </>
+                            ) : (
+                              'Login'
+                            )}
+                          </Button>
+                        </form>
+                      </TabsContent>
+                    </Tabs>
+                  </CardContent>
+                </Card>
+              )}
 
               <div className="space-y-4">
                 <div className="flex items-center space-x-2 p-4 rounded-md border border-muted-foreground/20 hover:bg-muted/50 transition-colors">

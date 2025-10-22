@@ -17,6 +17,8 @@ export async function POST(request: NextRequest) {
     
     const { draftId, sessionId, contactInfo } = body
     
+    console.log('Publish request:', { draftId, sessionId, hasUser: !!req.user })
+    
     if (!draftId && !sessionId) {
       return NextResponse.json(
         { error: 'Draft ID or session ID is required' },
@@ -25,21 +27,47 @@ export async function POST(request: NextRequest) {
     }
     
     // Fetch the draft
-    let query = supabase.from('property_drafts').select('*')
+    let draft = null
+    let draftError = null
     
     if (draftId) {
-      query = query.eq('id', draftId)
-    } else {
-      query = query.eq('session_id', sessionId)
+      // First try to find by draft ID
+      const result = await supabase
+        .from('property_drafts')
+        .select('*')
+        .eq('id', draftId)
+        .single()
+      draft = result.data
+      draftError = result.error
+    } else if (sessionId) {
+      // Try to find by session ID first
+      const result = await supabase
+        .from('property_drafts')
+        .select('*')
+        .eq('session_id', sessionId)
+        .single()
+      draft = result.data
+      draftError = result.error
     }
     
-    if (req.user) {
-      query = query.eq('user_id', req.user.id)
+    // If authenticated and no draft found yet, try to find by user_id
+    if (!draft && req.user) {
+      console.log('No draft found by draftId/sessionId, trying user_id:', req.user.id)
+      const result = await supabase
+        .from('property_drafts')
+        .select('*')
+        .eq('user_id', req.user.id)
+        .order('updated_at', { ascending: false })
+        .limit(1)
+        .maybeSingle()
+      draft = result.data
+      draftError = result.error
     }
     
-    const { data: draft, error: draftError } = await query.single()
+    console.log('Draft lookup result:', { draft: !!draft, draftError: draftError?.message })
     
     if (draftError || !draft) {
+      console.log('Draft not found:', { draftError, hasDraft: !!draft })
       return NextResponse.json(
         { error: 'Draft not found or access denied' },
         { status: 404 }
@@ -69,28 +97,69 @@ export async function POST(request: NextRequest) {
       }
     }
     
-    // Check if user is logged in and is a landlord
+    // Check authentication status
     if (!req.user) {
-      return NextResponse.json(
-        { 
-          error: 'Authentication required',
-          requiresSignup: true,
-          draftId: draft.id,
-          message: 'Please sign up or log in as a landlord to publish your property'
-        },
-        { status: 401 }
-      )
+      // Create pending property for non-authenticated users
+      const allPropertyData = {
+        propertyType: draft.step_1_data?.propertyType,
+        propertyLicence: draft.step_1_data?.propertyLicence,
+        propertyCondition: draft.step_1_data?.propertyCondition,
+        bedrooms: draft.step_1_data?.bedrooms,
+        bathrooms: draft.step_1_data?.bathrooms,
+        monthlyRent: draft.step_1_data?.monthlyRent,
+        securityDeposit: draft.step_1_data?.securityDeposit,
+        availableDate: draft.step_1_data?.availableDate,
+        description: draft.step_1_data?.description,
+        amenities: draft.step_1_data?.amenities || [],
+        address: draft.step_2_data?.address,
+        city: draft.step_2_data?.city,
+        state: draft.step_2_data?.state,
+        postcode: draft.step_2_data?.postcode,
+        photos: draft.step_3_data?.photos || [],
+        primaryPhotoIndex: draft.step_3_data?.primaryPhotoIndex || 0,
+        contactName: contactInfo?.contactName || draft.step_4_data?.contactName,
+        contactEmail: contactInfo?.contactEmail || draft.step_4_data?.contactEmail,
+        contactPhone: contactInfo?.contactPhone || draft.step_4_data?.contactPhone
+      }
+
+      // Create pending property
+      const { data: pendingProperty, error: pendingError } = await supabase
+        .from('pending_properties')
+        .insert({
+          draft_id: draft.id,
+          property_data: allPropertyData,
+          session_id: sessionId,
+          email_for_claim: contactInfo?.contactEmail,
+          status: 'pending'
+        })
+        .select()
+        .single()
+
+      if (pendingError) {
+        console.error('Error creating pending property:', pendingError)
+        return NextResponse.json(
+          { error: 'Failed to create pending property' },
+          { status: 500 }
+        )
+      }
+
+      return NextResponse.json({
+        status: 'signup_required',
+        pendingPropertyToken: pendingProperty.verification_token,
+        draftId: draft.id,
+        message: 'Please create an account or login to publish your property'
+      })
     }
     
     if (req.user.user_type !== 'landlord' && req.user.user_type !== 'admin') {
-      return NextResponse.json(
-        { 
-          error: 'Landlord access required',
-          requiresConversion: true,
-          message: 'Please convert your account to a landlord account to publish properties'
-        },
-        { status: 403 }
-      )
+      // Convert user to landlord and continue with publication
+      await supabase
+        .from('user_profiles')
+        .update({ user_type: 'landlord' })
+        .eq('user_id', req.user.id)
+      
+      // Update the user object for the rest of the request
+      req.user.user_type = 'landlord'
     }
     
     // Prepare property data

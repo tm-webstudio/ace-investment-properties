@@ -17,6 +17,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Checkbox } from "@/components/ui/checkbox"
 import { FileUp, KeyRound as Pound, User, Phone } from "lucide-react"
+import { sampleProperties } from "@/lib/sample-data"
 
 interface PropertyPageProps {
   params: Promise<{
@@ -48,6 +49,17 @@ export default function PropertyPage({ params }: PropertyPageProps) {
     async function fetchProperty() {
       try {
         setLoading(true)
+        
+        // First try to find property in sample data (for demo purposes)
+        const sampleProperty = sampleProperties.find(p => p.id === id)
+        
+        if (sampleProperty) {
+          setProperty(sampleProperty)
+          setLoading(false)
+          return
+        }
+        
+        // If not found in sample data, try API
         const response = await fetch(`/api/properties/${id}`)
         
         if (!response.ok) {
