@@ -166,6 +166,71 @@ export function DashboardOverview({ userId }: DashboardOverviewProps) {
   return (
     <div className="space-y-8">
 
+      {/* My Properties */}
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle>My Properties</CardTitle>
+          <Link href="/landlord/properties">
+            <Button variant="outline" size="sm" className="bg-transparent">
+              View All
+            </Button>
+          </Link>
+        </CardHeader>
+        <CardContent>
+          {loading ? (
+            <div className="flex items-center justify-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            </div>
+          ) : properties.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              {properties.slice(0, 4).map((property) => (
+                <PropertyCard 
+                  key={property.id} 
+                  property={{
+                    id: property.id.toString(),
+                    title: property.title,
+                    propertyType: property.property_type,
+                    bedrooms: property.bedrooms,
+                    bathrooms: property.bathrooms,
+                    price: property.monthly_rent / 100, // Convert from pence to pounds
+                    monthly_rent: property.monthly_rent / 100, // Also include this field
+                    monthlyRent: property.monthly_rent / 100, // Convert from pence to pounds
+                    deposit: property.security_deposit / 100, // Convert from pence to pounds
+                    availableDate: property.available_date,
+                    available_date: property.available_date, // Also include this field
+                    address: property.address,
+                    city: property.city,
+                    state: property.county,
+                    postcode: property.postcode,
+                    photos: property.photos,
+                    images: property.photos, // Also include this field for compatibility
+                    amenities: [], // Default empty array for amenities
+                    landlordId: property.landlord_id,
+                    landlordName: "You", // Since it's the current user
+                    landlordPhone: "",
+                    landlordEmail: ""
+                  }}
+                  variant="landlord"
+                  onPropertyDeleted={handlePropertyDeleted}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-8 text-muted-foreground">
+              <Home className="h-12 w-12 mx-auto mb-4 opacity-50" />
+              <p className="text-lg font-medium mb-2">No properties yet</p>
+              <p className="mb-4">Get started by adding your first property</p>
+              <Link href="/landlord/add-property">
+                <Button className="bg-accent hover:bg-accent/90 text-accent-foreground">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Property
+                </Button>
+              </Link>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Compliance & Documents */}
         <Card>
@@ -261,71 +326,6 @@ export function DashboardOverview({ userId }: DashboardOverviewProps) {
           </CardContent>
         </Card>
       </div>
-
-      {/* My Properties */}
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>My Properties</CardTitle>
-          <Link href="/landlord/properties">
-            <Button variant="outline" size="sm" className="bg-transparent">
-              View All
-            </Button>
-          </Link>
-        </CardHeader>
-        <CardContent>
-          {loading ? (
-            <div className="flex items-center justify-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-            </div>
-          ) : properties.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              {properties.slice(0, 4).map((property) => (
-                <PropertyCard 
-                  key={property.id} 
-                  property={{
-                    id: property.id.toString(),
-                    title: property.title,
-                    propertyType: property.property_type,
-                    bedrooms: property.bedrooms,
-                    bathrooms: property.bathrooms,
-                    price: property.monthly_rent / 100, // Convert from pence to pounds
-                    monthly_rent: property.monthly_rent / 100, // Also include this field
-                    monthlyRent: property.monthly_rent / 100, // Convert from pence to pounds
-                    deposit: property.security_deposit / 100, // Convert from pence to pounds
-                    availableDate: property.available_date,
-                    available_date: property.available_date, // Also include this field
-                    address: property.address,
-                    city: property.city,
-                    state: property.county,
-                    postcode: property.postcode,
-                    photos: property.photos,
-                    images: property.photos, // Also include this field for compatibility
-                    amenities: [], // Default empty array for amenities
-                    landlordId: property.landlord_id,
-                    landlordName: "You", // Since it's the current user
-                    landlordPhone: "",
-                    landlordEmail: ""
-                  }}
-                  variant="landlord"
-                  onPropertyDeleted={handlePropertyDeleted}
-                />
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-8 text-muted-foreground">
-              <Home className="h-12 w-12 mx-auto mb-4 opacity-50" />
-              <p className="text-lg font-medium mb-2">No properties yet</p>
-              <p className="mb-4">Get started by adding your first property</p>
-              <Link href="/landlord/add-property">
-                <Button className="bg-accent hover:bg-accent/90 text-accent-foreground">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Property
-                </Button>
-              </Link>
-            </div>
-          )}
-        </CardContent>
-      </Card>
 
     </div>
   )
