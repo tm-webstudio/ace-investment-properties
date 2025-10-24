@@ -1,20 +1,29 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 
-// Create admin client for database operations
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false
-    }
-  }
-)
+// Create admin client for database operations (only if env vars are available)
+const supabaseAdmin = process.env.SUPABASE_SERVICE_ROLE_KEY 
+  ? createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false
+        }
+      }
+    )
+  : null
 
 export async function POST(request: NextRequest) {
   try {
+    // Check if admin client is available
+    if (!supabaseAdmin) {
+      return NextResponse.json({ 
+        error: 'Service temporarily unavailable' 
+      }, { status: 503 })
+    }
+
     console.log('Create pending property endpoint called')
     
     const body = await request.json()
