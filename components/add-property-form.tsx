@@ -50,6 +50,7 @@ interface PropertyFormData {
 
   // Terms
   agreeToTerms: boolean
+  confirmPropertyAccuracy: boolean
 }
 
 export function AddPropertyForm() {
@@ -79,6 +80,7 @@ export function AddPropertyForm() {
     contactEmail: "",
     contactPhone: "",
     agreeToTerms: false,
+    confirmPropertyAccuracy: false,
   })
 
   const totalSteps = 4
@@ -140,6 +142,7 @@ export function AddPropertyForm() {
   })
 
   const [authErrors, setAuthErrors] = useState<Record<string, string>>({})
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({})
 
   // Get current user session on component mount
   useEffect(() => {
@@ -178,21 +181,29 @@ export function AddPropertyForm() {
     const maxSize = 10 * 1024 * 1024 // 10MB
     const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp']
 
+    const errors: string[] = []
+    
     const validFiles = files.filter(file => {
       if (!allowedTypes.includes(file.type)) {
-        alert(`File ${file.name} is not a valid image type. Allowed: JPEG, PNG, WebP`)
+        errors.push(`${file.name} is not a valid image type`)
         return false
       }
       if (file.size > maxSize) {
-        alert(`File ${file.name} is too large. Maximum size: 10MB`)
+        errors.push(`${file.name} is too large (max 10MB)`)
         return false
       }
       return true
     })
 
     if (formData.photos.length + validFiles.length > maxFiles) {
-      alert(`Too many images. Maximum ${maxFiles} images allowed.`)
+      errors.push(`Too many images. Maximum ${maxFiles} allowed`)
+    }
+
+    if (errors.length > 0) {
+      setFormErrors(prev => ({ ...prev, photos: errors.join(', ') }))
       return
+    } else {
+      setFormErrors(prev => ({ ...prev, photos: '' }))
     }
 
     if (validFiles.length === 0) return
@@ -233,7 +244,6 @@ export function AddPropertyForm() {
         // Full success case
         const imageUrls = result.images.map((img: any) => img.url)
         handleInputChange("photos", [...formData.photos, ...imageUrls])
-        alert(`Successfully uploaded ${result.count} image(s)`)
       } else if (response.status === 207) {
         // Partial success case (207 Multi-Status)
         if (result.images && result.images.length > 0) {
@@ -241,9 +251,9 @@ export function AddPropertyForm() {
           handleInputChange("photos", [...formData.photos, ...imageUrls])
         }
         if (result.successful && result.failed) {
-          alert(`Uploaded ${result.successful} image(s). ${result.failed} failed: ${result.errors?.join(', ')}`)
+          console.log(`Uploaded ${result.successful} image(s). ${result.failed} failed: ${result.errors?.join(', ')}`)
         } else {
-          alert(`Some images uploaded successfully`)
+          console.log(`Some images uploaded successfully`)
         }
       } else {
         // Full failure case
@@ -251,7 +261,7 @@ export function AddPropertyForm() {
       }
     } catch (error: any) {
       console.error('Error uploading images:', error)
-      alert('Failed to upload images: ' + error.message)
+      console.error('Failed to upload images: ' + error.message)
     } finally {
       setUploadingImages(false)
       setUploadProgress({})
@@ -364,7 +374,7 @@ export function AddPropertyForm() {
           console.error('Validation details:', JSON.stringify(result.details, null, 2))
           console.error('Step data that failed:', JSON.stringify(stepData, null, 2))
         }
-        alert(`Failed to save step ${step}: ${result.error}${result.details ? '\nSee console for details' : ''}`)
+        console.error(`Failed to save step ${step}: ${result.error}${result.details ? '\nSee console for details' : ''}`)
         return false
       }
     } catch (error) {
@@ -416,6 +426,9 @@ export function AddPropertyForm() {
 
   const nextStep = async () => {
     if (currentStep < totalSteps) {
+      // Clear any previous errors
+      setFormErrors({})
+      
       // Save current step before moving to next
       const stepData = getCurrentStepData(currentStep)
       const saved = await saveDraft(currentStep, stepData)
@@ -423,13 +436,15 @@ export function AddPropertyForm() {
       if (saved) {
         setCurrentStep(currentStep + 1)
       } else {
-        alert('Failed to save progress. Please try again.')
+        setFormErrors({ general: 'Failed to save progress. Please try again.' })
       }
     }
   }
 
   const prevStep = () => {
     if (currentStep > 1) {
+      // Clear any errors when going back
+      setFormErrors({})
       setCurrentStep(currentStep - 1)
     }
   }
@@ -473,45 +488,101 @@ export function AddPropertyForm() {
     setAuthErrors({})
 
     try {
-      const { data, error } = await supabase.auth.signUp({
-        email: signupForm.email,
-        password: signupForm.password,
-        options: {
-          data: {
-            first_name: signupForm.firstName,
-            last_name: signupForm.lastName,
-            phone: signupForm.phone,
-            user_type: 'landlord'
-          }
+      // First create a pending property if we don't have one
+      let propertyToken = pendingPropertyToken
+      
+      if (!propertyToken) {
+        // Create pending property from form data
+        const pendingResponse = await fetch('/api/properties/create-pending', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            propertyData: {
+              propertyType: formData.propertyType,
+              bedrooms: formData.bedrooms,
+              bathrooms: formData.bathrooms,
+              monthlyRent: formData.monthlyRent,
+              securityDeposit: formData.securityDeposit,
+              availableDate: formData.availableDate,
+              description: formData.description,
+              amenities: formData.amenities,
+              address: formData.address,
+              city: formData.city,
+              county: formData.state,
+              postcode: formData.postcode,
+              photos: formData.photos.filter(photo => typeof photo === 'string') // Only include uploaded photo URLs
+            },
+            contactInfo: {
+              contactName: signupForm.firstName + ' ' + signupForm.lastName,
+              contactEmail: signupForm.email,
+              contactPhone: signupForm.phone
+            }
+          })
+        })
+        
+        const pendingResult = await pendingResponse.json()
+        
+        if (pendingResult.success) {
+          propertyToken = pendingResult.pendingPropertyToken
+          setPendingPropertyToken(propertyToken)
+        } else {
+          throw new Error(pendingResult.error || 'Failed to create pending property')
         }
+      }
+
+      // Now create account using our new API
+      const response = await fetch('/api/auth/signup-and-claim', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: signupForm.email,
+          password: signupForm.password,
+          firstName: signupForm.firstName,
+          lastName: signupForm.lastName,
+          phone: signupForm.phone,
+          pendingPropertyToken: propertyToken,
+          acceptedTerms: true
+        })
       })
 
-      if (error) throw error
+      const data = await response.json()
 
-      if (data.user) {
-        // Create user profile
-        const { error: profileError } = await supabase
-          .from('user_profiles')
-          .insert({
-            user_id: data.user.id,
-            first_name: signupForm.firstName,
-            last_name: signupForm.lastName,
-            email: signupForm.email,
-            phone: signupForm.phone,
-            user_type: 'landlord',
-            terms_accepted: true,
-            terms_accepted_at: new Date().toISOString()
-          })
+      if (!response.ok) {
+        throw new Error(data.error || 'Signup failed')
+      }
 
-        if (profileError) {
-          console.error('Profile creation error:', profileError)
-        }
-
+      if (data.success && data.session) {
+        // Store auth tokens
+        localStorage.setItem('accessToken', data.session.accessToken)
+        localStorage.setItem('refreshToken', data.session.refreshToken)
+        
+        // Update auth state
         setIsLoggedIn(true)
-        alert('Account created successfully! You can now publish your property.')
+        setUserToken(data.session.accessToken)
+        
+        // Now publish the property
+        const publishResponse = await fetch('/api/properties/publish', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${data.session.accessToken}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            pendingPropertyToken: propertyToken
+          })
+        })
+
+        const publishResult = await publishResponse.json()
+
+        if (publishResult.success) {
+          router.push('/landlord/dashboard')
+        } else {
+          setAuthErrors({ general: 'Account created but failed to publish property: ' + publishResult.error })
+        }
       }
 
     } catch (error: any) {
+      console.error('Signup error:', error)
       setAuthErrors({ general: error.message })
     } finally {
       setAuthLoading(false)
@@ -527,17 +598,97 @@ export function AddPropertyForm() {
     setAuthErrors({})
 
     try {
-      const { error } = await supabase.auth.signInWithPassword({
-        email: loginForm.email,
-        password: loginForm.password
+      // First create a pending property if we don't have one
+      let propertyToken = pendingPropertyToken
+      
+      if (!propertyToken) {
+        // Create pending property from form data
+        const pendingResponse = await fetch('/api/properties/create-pending', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            propertyData: {
+              propertyType: formData.propertyType,
+              bedrooms: formData.bedrooms,
+              bathrooms: formData.bathrooms,
+              monthlyRent: formData.monthlyRent,
+              securityDeposit: formData.securityDeposit,
+              availableDate: formData.availableDate,
+              description: formData.description,
+              amenities: formData.amenities,
+              address: formData.address,
+              city: formData.city,
+              county: formData.state,
+              postcode: formData.postcode,
+              photos: formData.photos.filter(photo => typeof photo === 'string') // Only include uploaded photo URLs
+            },
+            contactInfo: {
+              contactName: formData.contactName || loginForm.email, // Use form data or email as fallback
+              contactEmail: formData.contactEmail || loginForm.email,
+              contactPhone: formData.contactPhone || ''
+            }
+          })
+        })
+        
+        const pendingResult = await pendingResponse.json()
+        
+        if (pendingResult.success) {
+          propertyToken = pendingResult.pendingPropertyToken
+          setPendingPropertyToken(propertyToken)
+        } else {
+          throw new Error(pendingResult.error || 'Failed to create pending property')
+        }
+      }
+
+      // Now login using our new API
+      const response = await fetch('/api/auth/login-and-claim', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: loginForm.email,
+          password: loginForm.password,
+          pendingPropertyToken: propertyToken
+        })
       })
 
-      if (error) throw error
+      const data = await response.json()
 
-      setIsLoggedIn(true)
-      alert('Logged in successfully! You can now publish your property.')
+      if (!response.ok) {
+        throw new Error(data.error || 'Login failed')
+      }
+
+      if (data.success && data.session) {
+        // Store auth tokens
+        localStorage.setItem('accessToken', data.session.accessToken)
+        localStorage.setItem('refreshToken', data.session.refreshToken)
+        
+        // Update auth state
+        setIsLoggedIn(true)
+        setUserToken(data.session.accessToken)
+        
+        // Now publish the property
+        const publishResponse = await fetch('/api/properties/publish', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${data.session.accessToken}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            pendingPropertyToken: propertyToken
+          })
+        })
+
+        const publishResult = await publishResponse.json()
+
+        if (publishResult.success) {
+          router.push('/landlord/dashboard')
+        } else {
+          setAuthErrors({ general: 'Logged in but failed to publish property: ' + publishResult.error })
+        }
+      }
 
     } catch (error: any) {
+      console.error('Login error:', error)
       setAuthErrors({ general: error.message })
     } finally {
       setAuthLoading(false)
@@ -565,14 +716,23 @@ export function AddPropertyForm() {
       const missingFields = requiredFields.filter(req => !formData[req.field as keyof typeof formData])
       
       if (missingFields.length > 0) {
-        alert(`Please fill in the following required fields: ${missingFields.map(f => f.label).join(', ')}`)
+        setFormErrors(prev => ({ 
+          ...prev, 
+          general: `Please fill in the following required fields: ${missingFields.map(f => f.label).join(', ')}`
+        }))
         return
       }
       
       if (formData.photos.length === 0) {
-        alert('Please add at least one photo of your property.')
+        setFormErrors(prev => ({ 
+          ...prev, 
+          photos: 'Please add at least one photo of your property'
+        }))
         return
       }
+      
+      // Clear any previous errors
+      setFormErrors({})
       
       // Ensure all steps are saved before publishing
       console.log('Saving all steps before publishing...')
@@ -583,63 +743,130 @@ export function AddPropertyForm() {
         console.log(`Saving step ${step}:`, stepData)
         const saved = await saveDraft(step, stepData)
         if (!saved) {
-          alert(`Failed to save step ${step}. Please check all required fields and try again.`)
+          setFormErrors(prev => ({ 
+            ...prev, 
+            general: `Failed to save step ${step}. Please check all required fields and try again.`
+          }))
           return
         }
       }
       
       console.log('All steps saved successfully. Proceeding with publish...')
       
-      // Then attempt to publish
-      console.log('Publishing with:', { sessionId, draftId, userToken: !!userToken })
-      
-      const publishHeaders: { [key: string]: string } = { 'Content-Type': 'application/json' }
-      if (userToken) {
-        publishHeaders.Authorization = `Bearer ${userToken}`
-      }
-      
-      const publishPayload = {
-        ...(sessionId ? { sessionId } : {}),
-        ...(draftId ? { draftId } : {}),
-        contactInfo: {
-          contactName: formData.contactName || '',
-          contactEmail: formData.contactEmail || '',
-          contactPhone: formData.contactPhone || ''
+      // Check if user is authenticated
+      if (isLoggedIn && userToken) {
+        // User is authenticated, try to publish directly with new API
+        console.log('Publishing as authenticated user with token')
+        
+        // For authenticated users, we need a pending property token
+        let propertyToken = pendingPropertyToken
+        
+        if (!propertyToken) {
+          // Create pending property from form data
+          const pendingResponse = await fetch('/api/properties/create-pending', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              propertyData: {
+                propertyType: formData.propertyType,
+                bedrooms: formData.bedrooms,
+                bathrooms: formData.bathrooms,
+                monthlyRent: formData.monthlyRent,
+                securityDeposit: formData.securityDeposit,
+                availableDate: formData.availableDate,
+                description: formData.description,
+                amenities: formData.amenities,
+                address: formData.address,
+                city: formData.city,
+                county: formData.state,
+                postcode: formData.postcode,
+                photos: formData.photos.filter(photo => typeof photo === 'string') // Only include uploaded photo URLs
+              },
+              contactInfo: {
+                contactName: formData.contactName || '',
+                contactEmail: formData.contactEmail || '',
+                contactPhone: formData.contactPhone || ''
+              }
+            })
+          })
+          
+          const pendingResult = await pendingResponse.json()
+          
+          if (pendingResult.success) {
+            propertyToken = pendingResult.pendingPropertyToken
+            setPendingPropertyToken(propertyToken)
+          } else {
+            throw new Error(pendingResult.error || 'Failed to create pending property')
+          }
         }
-      }
-      
-      console.log('Publish payload:', publishPayload)
-      
-      const response = await fetch('/api/properties/publish', {
-        method: 'POST',
-        headers: publishHeaders,
-        body: JSON.stringify(publishPayload)
-      })
+        
+        // Now publish with auth token
+        const publishResponse = await fetch('/api/properties/publish', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${userToken}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            pendingPropertyToken: propertyToken
+          })
+        })
 
-      const result = await response.json()
-      
-      if (result.success) {
-        alert('Property published successfully!')
-        router.push("/landlord")
-      } else if (result.status === 'signup_required') {
-        // Store the pending property token for later use in authentication
-        setPendingPropertyToken(result.pendingPropertyToken)
-        // The authentication section is already visible on this page for non-logged-in users
-        alert('Please create an account or sign in to publish your property. Your property has been saved and will be published after authentication.')
-      } else if (result.requiresSignup) {
-        alert(`${result.message}\n\nYour property draft has been saved. Please sign up to continue.`)
-        // Optionally redirect to signup with draft ID
-        router.push(`/auth/signup?draftId=${result.draftId}`)
-      } else if (result.requiresConversion) {
-        alert(`${result.message}\n\nWould you like to convert your account to a landlord account?`)
-        // Optionally redirect to conversion
-        router.push('/auth/convert-to-landlord')
+        const publishResult = await publishResponse.json()
+        
+        if (publishResult.success) {
+          router.push('/landlord/dashboard')
+        } else {
+          console.error('Failed to publish property: ' + publishResult.error)
+        }
       } else {
-        alert('Failed to publish property: ' + result.error)
+        // User is not authenticated, use old flow to create pending property
+        console.log('Publishing without authentication - creating pending property')
+        
+        const publishHeaders: { [key: string]: string } = { 'Content-Type': 'application/json' }
+        
+        const publishPayload = {
+          ...(sessionId ? { sessionId } : {}),
+          ...(draftId ? { draftId } : {}),
+          contactInfo: {
+            contactName: formData.contactName || '',
+            contactEmail: formData.contactEmail || '',
+            contactPhone: formData.contactPhone || ''
+          }
+        }
+        
+        console.log('Publish payload:', publishPayload)
+        
+        const response = await fetch('/api/properties/publish', {
+          method: 'POST',
+          headers: publishHeaders,
+          body: JSON.stringify(publishPayload)
+        })
+
+        const result = await response.json()
+        
+        if (result.success) {
+          router.push('/landlord/dashboard')
+        } else if (result.status === 'signup_required') {
+          // Store the pending property token for later use in authentication
+          setPendingPropertyToken(result.pendingPropertyToken)
+          // The authentication section is already visible on this page for non-logged-in users
+          console.log('Your property has been saved. Please create an account or sign in below to complete publishing.')
+        } else if (result.requiresSignup) {
+          console.log(`${result.message}\n\nYour property draft has been saved. Please sign up to continue.`)
+          // Optionally redirect to signup with draft ID
+          router.push(`/auth/signup?draftId=${result.draftId}`)
+        } else if (result.requiresConversion) {
+          console.log(`${result.message}\n\nWould you like to convert your account to a landlord account?`)
+          // Optionally redirect to conversion
+          router.push('/auth/convert-to-landlord')
+        } else {
+          console.error('Failed to publish property: ' + result.error)
+        }
       }
     } catch (error) {
       console.error('Error publishing property:', error)
-      alert('An error occurred while publishing. Your draft has been saved.')
+      console.error('An error occurred while publishing. Your draft has been saved.')
     } finally {
       setIsLoading(false)
     }
@@ -662,7 +889,7 @@ export function AddPropertyForm() {
       case 3:
         return formData.photos.length > 0
       case 4:
-        return formData.agreeToTerms
+        return formData.confirmPropertyAccuracy
       default:
         return false
     }
@@ -1012,6 +1239,15 @@ export function AddPropertyForm() {
                     <p className="text-sm text-muted-foreground mt-2">Uploading images...</p>
                   </div>
                 )}
+                
+                {formErrors.photos && (
+                  <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-md">
+                    <div className="flex">
+                      <AlertCircle className="h-4 w-4 text-red-500 mt-0.5 mr-2" />
+                      <p className="text-sm text-red-700">{formErrors.photos}</p>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           )}
@@ -1019,6 +1255,24 @@ export function AddPropertyForm() {
           {/* Step 4: Review & Publish */}
           {currentStep === 4 && (
             <div className="space-y-6">
+              {formErrors.general && (
+                <div className="p-4 bg-red-50 border border-red-200 rounded-md">
+                  <div className="flex">
+                    <AlertCircle className="h-5 w-5 text-red-500 mt-0.5 mr-2" />
+                    <p className="text-sm text-red-700">{formErrors.general}</p>
+                  </div>
+                </div>
+              )}
+              
+              {formErrors.photos && (
+                <div className="p-4 bg-red-50 border border-red-200 rounded-md">
+                  <div className="flex">
+                    <AlertCircle className="h-5 w-5 text-red-500 mt-0.5 mr-2" />
+                    <p className="text-sm text-red-700">{formErrors.photos}</p>
+                  </div>
+                </div>
+              )}
+              
               <div className="rounded-lg p-6 border">
                 <h3 className="text-xl font-semibold mb-6">Property Summary</h3>
                 
@@ -1085,6 +1339,21 @@ export function AddPropertyForm() {
                 </div>
               </div>
 
+              {/* Property Accuracy Confirmation - For all users */}
+              <div className="space-y-4">
+                <div className="flex items-start space-x-3 p-3 rounded-md border border-muted-foreground/20 hover:bg-muted/50 transition-colors">
+                  <Checkbox
+                    id="property-accuracy"
+                    checked={formData.confirmPropertyAccuracy}
+                    onCheckedChange={(checked) => handleInputChange("confirmPropertyAccuracy", checked as boolean)}
+                    className="h-5 w-5 border-2 data-[state=checked]:bg-primary data-[state=checked]:border-primary border-muted-foreground"
+                  />
+                  <Label htmlFor="property-accuracy" className="text-sm font-medium cursor-pointer flex-1 leading-relaxed">
+                    I confirm that all property information provided is accurate and complete
+                  </Label>
+                </div>
+              </div>
+
               {/* Auth Section - Show only if user is not logged in */}
               {isLoggedIn === false && (
                 <Card>
@@ -1093,9 +1362,9 @@ export function AddPropertyForm() {
                   </CardHeader>
                   <CardContent>
                     <Tabs value={authTab} onValueChange={setAuthTab}>
-                      <TabsList className="grid w-full grid-cols-2">
-                        <TabsTrigger value="signup">Create Account</TabsTrigger>
-                        <TabsTrigger value="login">Already Have Account?</TabsTrigger>
+                      <TabsList className="grid w-full grid-cols-2 bg-muted/30 p-1">
+                        <TabsTrigger value="signup" className="data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm">Create Account</TabsTrigger>
+                        <TabsTrigger value="login" className="data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm">Log In</TabsTrigger>
                       </TabsList>
 
                       <TabsContent value="signup" className="space-y-4">
@@ -1187,15 +1456,15 @@ export function AddPropertyForm() {
                             </div>
                           </div>
 
-                          <div className="flex items-center space-x-2">
+                          <div className="flex items-start space-x-3 p-3 rounded-md border border-muted-foreground/20 hover:bg-muted/50 transition-colors">
                             <Checkbox
                               id="terms"
                               checked={signupForm.acceptedTerms}
                               onCheckedChange={(checked) => setSignupForm(prev => ({ ...prev, acceptedTerms: checked as boolean }))}
-                              className={authErrors.acceptedTerms ? 'border-red-500' : ''}
+                              className={`h-5 w-5 border-2 data-[state=checked]:bg-primary data-[state=checked]:border-primary ${authErrors.acceptedTerms ? 'border-red-500' : 'border-muted-foreground'}`}
                             />
-                            <Label htmlFor="terms" className="text-sm">
-                              I agree to the Terms of Service and Privacy Policy as a landlord
+                            <Label htmlFor="terms" className="text-sm font-medium cursor-pointer flex-1 leading-relaxed">
+                              I agree to the Terms of Service and Privacy Policy, and confirm that all information provided is accurate
                             </Label>
                           </div>
                           {authErrors.acceptedTerms && (
@@ -1206,10 +1475,10 @@ export function AddPropertyForm() {
                             {authLoading ? (
                               <>
                                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                                Creating Account...
+                                Creating Account & Publishing...
                               </>
                             ) : (
-                              'Create Account'
+                              'Create Account & Publish Property'
                             )}
                           </Button>
                         </form>
@@ -1256,10 +1525,10 @@ export function AddPropertyForm() {
                             {authLoading ? (
                               <>
                                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                                Logging In...
+                                Logging In & Publishing...
                               </>
                             ) : (
-                              'Login'
+                              'Login & Publish Property'
                             )}
                           </Button>
                         </form>
@@ -1269,19 +1538,6 @@ export function AddPropertyForm() {
                 </Card>
               )}
 
-              <div className="space-y-4">
-                <div className="flex items-center space-x-2 p-4 rounded-md border border-muted-foreground/20 hover:bg-muted/50 transition-colors">
-                  <Checkbox
-                    id="terms"
-                    checked={formData.agreeToTerms}
-                    onCheckedChange={(checked) => handleInputChange("agreeToTerms", checked as boolean)}
-                    className="border-2 border-muted-foreground data-[state=checked]:bg-primary data-[state=checked]:border-primary"
-                  />
-                  <Label htmlFor="terms" className="text-sm font-normal cursor-pointer flex-1">
-                    I agree to the terms and conditions and confirm that all information provided is accurate
-                  </Label>
-                </div>
-              </div>
             </div>
           )}
         </CardContent>
@@ -1304,13 +1560,21 @@ export function AddPropertyForm() {
             <ChevronRight className="ml-2 h-4 w-4" />
           </Button>
         ) : (
-          <Button
-            onClick={handleSubmit}
-            disabled={!isStepValid() || isLoading}
-            className="bg-accent hover:bg-accent/90 text-accent-foreground"
-          >
-            {isLoading ? 'Publishing...' : 'Publish Property'}
-          </Button>
+          <>
+            {isLoggedIn === true ? (
+              <Button
+                onClick={handleSubmit}
+                disabled={!isStepValid() || isLoading}
+                className="bg-accent hover:bg-accent/90 text-accent-foreground"
+              >
+                {isLoading ? 'Publishing...' : 'Publish Property'}
+              </Button>
+            ) : (
+              <div className="flex items-center justify-center px-4 py-2 bg-muted/30 rounded-md border border-dashed text-sm font-medium text-muted-foreground leading-none">
+                Complete
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>

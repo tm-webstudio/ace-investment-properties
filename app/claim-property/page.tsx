@@ -32,6 +32,20 @@ interface ClaimResponse {
   redirectUrl?: string
   message?: string
   error?: string
+  requiresAction?: string
+  user?: {
+    id: string
+    email: string
+    firstName: string
+    lastName: string
+    emailVerified: boolean
+  }
+  session?: {
+    accessToken: string
+    refreshToken: string
+    expiresAt: string
+  }
+  pendingPropertyToken?: string
 }
 
 function ClaimPropertyContent() {
@@ -45,6 +59,12 @@ function ClaimPropertyContent() {
   const [claiming, setClaiming] = useState(false)
   const [activeTab, setActiveTab] = useState('signup')
   const [success, setSuccess] = useState(false)
+  const [step, setStep] = useState<'auth' | 'publishing' | 'complete'>('auth')
+  const [authData, setAuthData] = useState<{
+    user: any
+    session: any
+    pendingPropertyToken: string
+  } | null>(null)
 
   // Signup form state
   const [signupForm, setSignupForm] = useState({
@@ -137,6 +157,7 @@ function ClaimPropertyContent() {
     setSignupErrors({})
 
     try {
+      // Step 1: Create account and login user
       const response = await fetch('/api/auth/signup-and-claim', {
         method: 'POST',
         headers: {
@@ -154,13 +175,68 @@ function ClaimPropertyContent() {
         throw new Error(data.error || 'Signup failed')
       }
 
-      setSuccess(true)
-      setTimeout(() => {
-        router.push(data.redirectUrl || '/landlord/dashboard')
-      }, 2000)
+      if (data.requiresAction === 'publish_property' && data.session && data.user) {
+        // Store auth tokens in localStorage
+        localStorage.setItem('accessToken', data.session.accessToken)
+        localStorage.setItem('refreshToken', data.session.refreshToken)
+        
+        // Save auth data for step 2
+        setAuthData({
+          user: data.user,
+          session: data.session,
+          pendingPropertyToken: data.pendingPropertyToken!
+        })
+        
+        // Move to publishing step
+        setStep('publishing')
+        
+        // Step 2: Publish the property
+        await publishProperty(data.session.accessToken, data.pendingPropertyToken!)
+      } else {
+        // Fallback to old flow
+        setSuccess(true)
+        setTimeout(() => {
+          router.push(data.redirectUrl || '/landlord/dashboard')
+        }, 2000)
+      }
 
     } catch (err) {
       setSignupErrors({ general: err instanceof Error ? err.message : 'Signup failed' })
+      setClaiming(false)
+    }
+  }
+
+  const publishProperty = async (accessToken: string, pendingPropertyToken: string) => {
+    try {
+      const publishResponse = await fetch('/api/properties/publish', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          pendingPropertyToken
+        })
+      })
+
+      const publishData = await publishResponse.json()
+
+      if (!publishResponse.ok) {
+        throw new Error(publishData.error || 'Failed to publish property')
+      }
+
+      // Success! Move to complete step
+      setStep('complete')
+      setSuccess(true)
+      
+      // Redirect after showing success message
+      setTimeout(() => {
+        router.push(`/landlord/dashboard?newProperty=${publishData.property.id}`)
+      }, 3000)
+
+    } catch (err) {
+      setSignupErrors({ general: err instanceof Error ? err.message : 'Failed to publish property' })
+      setStep('auth') // Go back to auth step on error
     } finally {
       setClaiming(false)
     }
@@ -175,6 +251,7 @@ function ClaimPropertyContent() {
     setLoginErrors({})
 
     try {
+      // Step 1: Login user
       const response = await fetch('/api/auth/login-and-claim', {
         method: 'POST',
         headers: {
@@ -192,14 +269,33 @@ function ClaimPropertyContent() {
         throw new Error(data.error || 'Login failed')
       }
 
-      setSuccess(true)
-      setTimeout(() => {
-        router.push(data.redirectUrl || '/landlord/dashboard')
-      }, 2000)
+      if (data.requiresAction === 'publish_property' && data.session && data.user) {
+        // Store auth tokens in localStorage
+        localStorage.setItem('accessToken', data.session.accessToken)
+        localStorage.setItem('refreshToken', data.session.refreshToken)
+        
+        // Save auth data for step 2
+        setAuthData({
+          user: data.user,
+          session: data.session,
+          pendingPropertyToken: data.pendingPropertyToken!
+        })
+        
+        // Move to publishing step
+        setStep('publishing')
+        
+        // Step 2: Publish the property
+        await publishProperty(data.session.accessToken, data.pendingPropertyToken!)
+      } else {
+        // Fallback to old flow
+        setSuccess(true)
+        setTimeout(() => {
+          router.push(data.redirectUrl || '/landlord/dashboard')
+        }, 2000)
+      }
 
     } catch (err) {
       setLoginErrors({ general: err instanceof Error ? err.message : 'Login failed' })
-    } finally {
       setClaiming(false)
     }
   }
@@ -234,7 +330,30 @@ function ClaimPropertyContent() {
     )
   }
 
-  if (success) {
+  if (step === 'publishing') {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <Card className="w-full max-w-md">
+          <CardContent className="pt-6">
+            <div className="text-center">
+              <Loader2 className="h-12 w-12 animate-spin text-accent mx-auto mb-4" />
+              <h1 className="text-xl font-semibold mb-2">Publishing Your Property...</h1>
+              <p className="text-muted-foreground mb-4">
+                Your account has been created successfully. We're now publishing your property to our platform.
+              </p>
+              {authData?.user && (
+                <div className="text-sm text-muted-foreground">
+                  Welcome, {authData.user.firstName}! 👋
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
+
+  if (step === 'complete' || success) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center p-4">
         <Card className="w-full max-w-md">
@@ -245,6 +364,14 @@ function ClaimPropertyContent() {
               <p className="text-muted-foreground mb-4">
                 Your property has been published and is now live on our platform.
               </p>
+              {authData?.user && (
+                <div className="mb-4 p-3 bg-green-50 rounded-lg">
+                  <p className="text-sm text-green-800">
+                    ✅ Account created for {authData.user.email}<br/>
+                    ✅ Property published successfully
+                  </p>
+                </div>
+              )}
               <div className="space-y-2">
                 <Button className="w-full" onClick={() => router.push('/landlord/dashboard')}>
                   Go to Dashboard
@@ -442,10 +569,17 @@ function ClaimPropertyContent() {
 
                   <Button type="submit" className="w-full" disabled={claiming}>
                     {claiming ? (
-                      <>
-                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                        Creating Account...
-                      </>
+                      step === 'publishing' ? (
+                        <>
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          Publishing Property...
+                        </>
+                      ) : (
+                        <>
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          Creating Account...
+                        </>
+                      )
                     ) : (
                       'Create Account & Publish Property'
                     )}
@@ -498,10 +632,17 @@ function ClaimPropertyContent() {
 
                   <Button type="submit" className="w-full" disabled={claiming}>
                     {claiming ? (
-                      <>
-                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                        Logging In...
-                      </>
+                      step === 'publishing' ? (
+                        <>
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          Publishing Property...
+                        </>
+                      ) : (
+                        <>
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          Logging In...
+                        </>
+                      )
                     ) : (
                       'Login & Publish Property'
                     )}

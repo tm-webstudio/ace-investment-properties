@@ -123,6 +123,27 @@ export function EditPropertyForm({ propertyId, initialData }: EditPropertyFormPr
   // Get current user session on component mount
   useEffect(() => {
     const getSession = async () => {
+      // First check for stored access token from our auth flow
+      const accessToken = localStorage.getItem('accessToken')
+      
+      if (accessToken) {
+        console.log('Edit form: Found access token, verifying with Supabase')
+        
+        // Verify the stored token
+        const { data: { user }, error } = await supabase.auth.getUser(accessToken)
+        
+        if (user && !error) {
+          console.log('Edit form: Token is valid, user authenticated:', user.id)
+          setUserToken(accessToken)
+          return
+        } else {
+          console.log('Edit form: Stored token is invalid, clearing localStorage')
+          localStorage.removeItem('accessToken')
+          localStorage.removeItem('refreshToken')
+        }
+      }
+      
+      // Fallback to regular session check
       const { data: { session } } = await supabase.auth.getSession()
       if (session?.access_token) {
         setUserToken(session.access_token)

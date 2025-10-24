@@ -1,9 +1,47 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
+import { createClient } from '@supabase/supabase-js'
+
+// Create admin client for user creation
+const supabaseAdmin = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!,
+  {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false
+    }
+  }
+)
+
+// Create regular client for auth operations
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+)
+
+// Simplified validation for debugging
+function validateSignupData(data: any) {
+  const required = ['email', 'password', 'firstName', 'lastName', 'pendingPropertyToken', 'acceptedTerms']
+  for (const field of required) {
+    if (!data[field]) {
+      throw new Error(`${field} is required`)
+    }
+  }
+  if (!data.acceptedTerms) {
+    throw new Error('Terms must be accepted')
+  }
+}
 
 export async function POST(request: NextRequest) {
   try {
+    console.log('Signup endpoint called')
+    
     const body = await request.json()
+    console.log('Request body:', { ...body, password: '[REDACTED]' })
+
+    // Basic validation
+    validateSignupData(body)
+
     const { 
       email, 
       password, 
@@ -14,15 +52,8 @@ export async function POST(request: NextRequest) {
       acceptedTerms 
     } = body
 
-    // Validate required fields
-    if (!email || !password || !firstName || !lastName || !pendingPropertyToken || !acceptedTerms) {
-      return NextResponse.json({ 
-        error: 'All fields are required and terms must be accepted' 
-      }, { status: 400 })
-    }
-
     // Validate pending property token first
-    const { data: pendingProperty, error: pendingError } = await supabase
+    const { data: pendingProperty, error: pendingError } = await supabaseAdmin
       .from('pending_properties')
       .select('*')
       .eq('verification_token', pendingPropertyToken)
@@ -30,25 +61,38 @@ export async function POST(request: NextRequest) {
       .gt('expires_at', new Date().toISOString())
       .single()
 
+    console.log('Pending property lookup:', { found: !!pendingProperty, error: pendingError?.message })
+
     if (pendingError || !pendingProperty) {
       return NextResponse.json({ 
         error: 'Invalid or expired property token' 
       }, { status: 400 })
     }
 
-    // Create new user account
-    const { data: authData, error: authError } = await supabase.auth.signUp({
+    // Check if user already exists
+    const { data: existingUsers } = await supabaseAdmin.auth.admin.listUsers()
+    const existingUser = existingUsers.users.find(user => user.email === email)
+    
+    if (existingUser) {
+      return NextResponse.json({ 
+        error: 'Account with this email already exists. Please use login instead.' 
+      }, { status: 400 })
+    }
+
+    // Create new user account using admin client - no email confirmation required
+    const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
       email,
       password,
-      options: {
-        data: {
-          first_name: firstName,
-          last_name: lastName,
-          phone,
-          user_type: 'landlord'
-        }
+      email_confirm: true, // This skips email confirmation
+      user_metadata: {
+        first_name: firstName,
+        last_name: lastName,
+        phone,
+        user_type: 'landlord'
       }
     })
+
+    console.log('User creation via admin:', { user: !!authData.user, error: authError?.message })
 
     if (authError || !authData.user) {
       return NextResponse.json({ 
@@ -56,81 +100,57 @@ export async function POST(request: NextRequest) {
       }, { status: 400 })
     }
 
-    // Create user profile
-    const { error: profileError } = await supabase
+    // Create user profile using admin client
+    const { error: profileError } = await supabaseAdmin
       .from('user_profiles')
       .insert({
-        user_id: authData.user.id,
-        first_name: firstName,
-        last_name: lastName,
+        id: authData.user.id,
         email,
+        full_name: `${firstName} ${lastName}`,
         phone,
         user_type: 'landlord',
-        terms_accepted: true,
-        terms_accepted_at: new Date().toISOString()
+        email_verified: false,
+        created_via: 'signup_and_claim'
       })
+
+    console.log('Profile creation:', { error: profileError })
 
     if (profileError) {
-      console.error('Error creating profile:', profileError)
-      // Continue with property claim even if profile creation fails
+      console.error('Profile creation error:', profileError)
+      // Continue even if profile creation fails
     }
 
-    // Claim the property
-    const propertyData = pendingProperty.property_data as any
-    
-    // Create the property in properties table
-    const { data: newProperty, error: propertyError } = await supabase
-      .from('properties')
-      .insert({
-        landlord_id: authData.user.id,
-        title: `${propertyData.propertyType} in ${propertyData.city}`,
-        property_type: propertyData.propertyType,
-        property_licence: propertyData.propertyLicence,
-        property_condition: propertyData.propertyCondition,
-        address: propertyData.address,
-        city: propertyData.city,
-        county: propertyData.state,
-        postcode: propertyData.postcode,
-        monthly_rent: parseFloat(propertyData.monthlyRent),
-        security_deposit: parseFloat(propertyData.securityDeposit),
-        available_date: propertyData.availableDate,
-        bedrooms: parseInt(propertyData.bedrooms),
-        bathrooms: parseFloat(propertyData.bathrooms),
-        description: propertyData.description,
-        amenities: propertyData.amenities || [],
-        photos: propertyData.photos || [],
-        status: 'active'
-      })
-      .select()
-      .single()
+    // Now sign in the user to get a session
+    const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+      email,
+      password
+    })
 
-    if (propertyError) {
-      console.error('Error creating property:', propertyError)
+    console.log('Sign in after creation:', { user: !!signInData?.user, session: !!signInData?.session, error: signInError?.message })
+
+    if (signInError || !signInData.session) {
       return NextResponse.json({ 
-        error: 'Failed to publish property' 
+        error: 'Account created but login failed. Please try logging in manually.' 
       }, { status: 500 })
-    }
-
-    // Update pending property status to claimed
-    await supabase
-      .from('pending_properties')
-      .update({ status: 'claimed' })
-      .eq('id', pendingProperty.id)
-
-    // Clean up draft if it exists
-    if (pendingProperty.draft_id) {
-      await supabase
-        .from('property_drafts')
-        .delete()
-        .eq('id', pendingProperty.draft_id)
     }
 
     return NextResponse.json({
       success: true,
-      propertyId: newProperty.id,
-      userId: authData.user.id,
-      redirectUrl: '/landlord',
-      message: 'Account created and property published successfully!'
+      message: 'Account created successfully',
+      requiresAction: 'publish_property',
+      user: {
+        id: signInData.user.id,
+        email: signInData.user.email,
+        firstName,
+        lastName,
+        emailVerified: !!signInData.user.email_confirmed_at
+      },
+      session: {
+        accessToken: signInData.session.access_token,
+        refreshToken: signInData.session.refresh_token,
+        expiresAt: new Date(signInData.session.expires_at! * 1000).toISOString()
+      },
+      pendingPropertyToken
     })
 
   } catch (error) {

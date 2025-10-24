@@ -32,6 +32,55 @@ export default function LandlordDashboard() {
   useEffect(() => {
     const getUser = async () => {
       try {
+        // First check for stored access token from our auth flow
+        const accessToken = localStorage.getItem('accessToken')
+        
+        if (accessToken) {
+          console.log('Found access token, verifying with Supabase')
+          
+          // Set the session with the stored token
+          const { data: { user }, error } = await supabase.auth.getUser(accessToken)
+          
+          if (user && !error) {
+            console.log('Token is valid, user authenticated:', user.id)
+            
+            // Try to fetch user profile
+            const { data: profile, error: profileError } = await supabase
+              .from('user_profiles')
+              .select('*')
+              .eq('id', user.id)
+              .single()
+            
+            console.log('Profile data:', profile, 'Profile error:', profileError)
+            
+            if (profile) {
+              setUser({
+                user_id: profile.id,
+                email: profile.email,
+                user_type: profile.user_type,
+                first_name: profile.full_name?.split(' ')[0] || 'User',
+                last_name: profile.full_name?.split(' ').slice(1).join(' ') || ''
+              })
+            } else {
+              // Create temporary user from auth data
+              const tempUser: UserProfile = {
+                user_id: user.id,
+                email: user.email || '',
+                user_type: 'landlord',
+                first_name: user.user_metadata?.first_name || 'User',
+                last_name: user.user_metadata?.last_name || ''
+              }
+              setUser(tempUser)
+            }
+            return
+          } else {
+            console.log('Stored token is invalid, clearing localStorage')
+            localStorage.removeItem('accessToken')
+            localStorage.removeItem('refreshToken')
+          }
+        }
+        
+        // Fallback to regular session check
         const { data: { session } } = await supabase.auth.getSession()
         console.log('Dashboard session check:', session)
         
@@ -40,13 +89,19 @@ export default function LandlordDashboard() {
           const { data: profile, error: profileError } = await supabase
             .from('user_profiles')
             .select('*')
-            .eq('user_id', session.user.id)
+            .eq('id', session.user.id)
             .single()
           
           console.log('Profile data:', profile, 'Profile error:', profileError)
           
           if (profile) {
-            setUser(profile)
+            setUser({
+              user_id: profile.id,
+              email: profile.email,
+              user_type: profile.user_type,
+              first_name: profile.full_name?.split(' ')[0] || 'User',
+              last_name: profile.full_name?.split(' ').slice(1).join(' ') || ''
+            })
           } else {
             // If no profile exists, create a temporary user object from session
             console.log('No profile found, using session data')
