@@ -7,7 +7,8 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { Bed, Bath, Heart, MoreVertical, Edit, Eye, Trash2, Users } from "lucide-react"
+import { Bed, Bath, MoreVertical, Edit, Eye, Trash2, Users } from "lucide-react"
+import { SavePropertyButton } from "./save-property-button"
 import { format } from "date-fns"
 import { supabase } from "@/lib/supabase"
 import type { Property } from "@/lib/sample-data"
@@ -229,14 +230,14 @@ export function PropertyCard({ property, variant = 'default', onPropertyDeleted 
               );
             })()}
           </div>
-          <Button
-            size="icon"
-            variant="ghost"
-            className="absolute top-4 right-4 bg-white/90 hover:bg-white text-gray-600 hover:text-red-500 shadow-lg transition-colors"
-            onClick={(e) => e.preventDefault()}
-          >
-            <Heart className="h-5 w-5" />
-          </Button>
+          <div className="absolute top-4 right-4 z-10">
+            <SavePropertyButton
+              propertyId={property.id}
+              size="small"
+              variant="ghost"
+              className="bg-white/90 hover:bg-white shadow-lg"
+            />
+          </div>
           <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
         </div>
 

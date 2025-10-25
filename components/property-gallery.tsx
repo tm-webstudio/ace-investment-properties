@@ -6,14 +6,16 @@ import { useState, useRef } from "react"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
-import { ChevronLeft, ChevronRight, Grid3X3, Heart, Share } from "lucide-react"
+import { ChevronLeft, ChevronRight, Grid3X3, Share } from "lucide-react"
+import { SavePropertyButton } from "./save-property-button"
 
 interface PropertyGalleryProps {
   images: string[]
   title: string
+  propertyId?: string
 }
 
-export function PropertyGallery({ images, title }: PropertyGalleryProps) {
+export function PropertyGallery({ images, title, propertyId }: PropertyGalleryProps) {
   const [currentImage, setCurrentImage] = useState(0)
   const [isLightboxOpen, setIsLightboxOpen] = useState(false)
   const [mobileCurrentImage, setMobileCurrentImage] = useState(0)
@@ -163,9 +165,14 @@ export function PropertyGallery({ images, title }: PropertyGalleryProps) {
           <Button variant="outline" size="icon" className="bg-transparent rounded-none">
             <Share className="h-4 w-4" />
           </Button>
-          <Button variant="outline" size="icon" className="bg-transparent rounded-none">
-            <Heart className="h-4 w-4" />
-          </Button>
+          {propertyId && (
+            <SavePropertyButton
+              propertyId={propertyId}
+              size="medium"
+              variant="outline"
+              className="bg-transparent rounded-none"
+            />
+          )}
         </div>
       </div>
 

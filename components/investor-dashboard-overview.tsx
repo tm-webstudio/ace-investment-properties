@@ -1,3 +1,6 @@
+"use client"
+
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -6,25 +9,79 @@ import { PropertyCard } from "@/components/property-card"
 import { TrendingUp, Heart, Calendar, Bell, Search, BarChart3, Home, Eye, Clock } from "lucide-react"
 import Link from "next/link"
 import type { Investor } from "@/lib/sample-data"
-import { sampleSavedProperties, sampleViewings, sampleNotifications, sampleProperties, kentProperties, midlandsProperties } from "@/lib/sample-data"
+import { sampleViewings, sampleNotifications } from "@/lib/sample-data"
+import { useAuth } from "@/contexts/auth-context"
+import { supabase } from "@/lib/supabase"
 
 interface InvestorDashboardOverviewProps {
   investor: Investor
 }
 
 export function InvestorDashboardOverview({ investor }: InvestorDashboardOverviewProps) {
-  // Get all properties for reference
-  const allProperties = [...sampleProperties, ...kentProperties, ...midlandsProperties]
-  
-  // Get investor's saved properties with property details
-  const savedPropertiesWithDetails = sampleSavedProperties
-    .filter(saved => saved.investorId === investor.id)
-    .map(saved => {
-      const property = allProperties.find(p => p.id === saved.propertyId)
-      return { ...saved, property }
-    })
-    .filter(item => item.property)
-    .slice(0, 5) // Show latest 5
+  const { user } = useAuth()
+  const [savedProperties, setSavedProperties] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+
+  // Fetch real saved properties from API
+  useEffect(() => {
+    const fetchSavedProperties = async () => {
+      if (!user) {
+        setLoading(false)
+        return
+      }
+
+      try {
+        let token = localStorage.getItem('accessToken')
+        
+        if (!token) {
+          // Try to get token from Supabase session as fallback
+          const { data: { session } } = await supabase.auth.getSession()
+          if (session?.access_token) {
+            token = session.access_token
+          } else {
+            setLoading(false)
+            return
+          }
+        }
+
+        const response = await fetch('/api/saved-properties?limit=5', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        })
+
+        if (response.ok) {
+          const data = await response.json()
+          setSavedProperties(data.properties || [])
+        }
+      } catch (error) {
+        console.error('Error fetching saved properties:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchSavedProperties()
+  }, [user])
+
+  // Transform saved properties for display
+  const savedPropertiesWithDetails = savedProperties.map(saved => ({
+    id: saved.savedPropertyId,
+    property: {
+      id: saved.property.id,
+      title: `${saved.property.property_type} in ${saved.property.city}`,
+      price: saved.property.monthly_rent,
+      images: saved.property.photos || [],
+      photos: saved.property.photos || [],
+      bedrooms: saved.property.bedrooms,
+      bathrooms: saved.property.bathrooms,
+      availableDate: saved.property.available_date,
+      amenities: saved.property.amenities || [],
+      property_type: saved.property.property_type,
+      city: saved.property.city,
+      monthly_rent: saved.property.monthly_rent
+    }
+  }))
 
   // Get investor's upcoming viewings
   const upcomingViewings = sampleViewings
@@ -80,12 +137,18 @@ export function InvestorDashboardOverview({ investor }: InvestorDashboardOvervie
           </Link>
         </CardHeader>
         <CardContent>
-          {savedPropertiesWithDetails.length > 0 ? (
+          {loading ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              {Array.from({ length: 4 }, (_, index) => (
+                <PropertyCardSkeleton key={index} />
+              ))}
+            </div>
+          ) : savedPropertiesWithDetails.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               {savedPropertiesWithDetails.map((item) => (
                 <PropertyCard 
                   key={item.id} 
-                  property={item.property!} 
+                  property={item.property} 
                   variant="default" 
                 />
               ))}
@@ -178,5 +241,55 @@ export function InvestorDashboardOverview({ investor }: InvestorDashboardOvervie
       </div>
 
     </div>
+  )
+}
+
+function PropertyCardSkeleton() {
+  return (
+    <Card className="overflow-hidden border-border/50 p-0 gap-3.5 rounded-none">
+      {/* Image Skeleton */}
+      <div className="relative">
+        <div className="w-full h-48 bg-muted animate-pulse" />
+        
+        {/* Badge Skeleton */}
+        <div className="absolute top-4 left-4">
+          <div className="h-6 w-24 bg-muted-foreground/20 rounded animate-pulse" />
+        </div>
+        
+        {/* Heart Button Skeleton */}
+        <div className="absolute top-4 right-4">
+          <div className="h-10 w-10 bg-muted-foreground/20 rounded animate-pulse" />
+        </div>
+      </div>
+
+      <CardContent className="px-5 pb-4 pr-4 pl-4">
+        <div className="space-y-2.5">
+          {/* Title and Price Skeleton */}
+          <div className="mb-1.5">
+            <div className="h-6 w-3/4 bg-muted animate-pulse rounded mb-1" />
+            <div className="h-5 w-1/2 bg-muted animate-pulse rounded" />
+          </div>
+
+          {/* Bed/Bath Skeleton */}
+          <div className="flex items-center gap-4">
+            <div className="flex items-center">
+              <div className="h-4 w-4 bg-muted animate-pulse rounded mr-1" />
+              <div className="h-4 w-12 bg-muted animate-pulse rounded" />
+            </div>
+            <div className="flex items-center">
+              <div className="h-4 w-4 bg-muted animate-pulse rounded mr-1" />
+              <div className="h-4 w-12 bg-muted animate-pulse rounded" />
+            </div>
+          </div>
+
+          {/* Amenities Skeleton */}
+          <div className="flex flex-wrap gap-2">
+            <div className="h-6 w-16 bg-muted animate-pulse rounded" />
+            <div className="h-6 w-20 bg-muted animate-pulse rounded" />
+            <div className="h-6 w-14 bg-muted animate-pulse rounded" />
+          </div>
+        </div>
+      </CardContent>
+    </Card>
   )
 }
