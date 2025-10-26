@@ -14,7 +14,25 @@ interface AdminDashboardOverviewProps {
 
 export function AdminDashboardOverview({ admin }: AdminDashboardOverviewProps) {
   // Get pending properties for approval
-  const pendingProperties = samplePendingProperties.filter(p => p.status === "pending").slice(0, 5)
+  const pendingProperties = samplePendingProperties.filter(p => p.status === "pending").slice(0, 6)
+  
+  // Transform pending properties to match Property interface
+  const pendingPropertiesForDisplay = pendingProperties.map(pending => ({
+    ...pending.propertyData,
+    id: pending.id,
+    property_type: pending.propertyData.propertyType,
+    monthly_rent: pending.propertyData.price,
+    photos: ["/spacious-family-home.png"], // Use working placeholder image
+    images: ["/spacious-family-home.png"], // Use working placeholder image  
+    available_date: pending.propertyData.availableDate,
+    availableDate: pending.propertyData.availableDate, // Also set this for consistency
+    _pendingInfo: {
+      status: pending.status,
+      submittedBy: pending.submittedBy,
+      submittedDate: pending.submittedDate,
+      landlordName: pending.propertyData.landlordName
+    }
+  }))
   
   // Get all viewings for management
   const allViewings = sampleViewings.slice(0, 5)
@@ -126,79 +144,61 @@ export function AdminDashboardOverview({ admin }: AdminDashboardOverviewProps) {
           </Link>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Property</TableHead>
-                <TableHead>Location</TableHead>
-                <TableHead>Price</TableHead>
-                <TableHead>Landlord</TableHead>
-                <TableHead>Submitted</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {pendingProperties.map((pending) => (
-                <TableRow key={pending.id}>
-                  <TableCell className="font-medium">{pending.propertyData.title}</TableCell>
-                  <TableCell>{pending.propertyData.city}</TableCell>
-                  <TableCell>£{pending.propertyData.price.toLocaleString()}</TableCell>
-                  <TableCell>{pending.propertyData.landlordName}</TableCell>
-                  <TableCell>{new Date(pending.submittedDate).toLocaleDateString('en-GB')}</TableCell>
-                  <TableCell>
-                    <Badge className={getStatusColor(pending.status)}>{pending.status}</Badge>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex gap-2">
-                      <Button 
-                        variant="ghost" 
-                        size="sm"
-                        onClick={() => handleApproveProperty(pending.id)}
-                      >
-                        <CheckCircle className="h-4 w-4 text-green-600" />
-                      </Button>
-                      <Button 
-                        variant="ghost" 
-                        size="sm"
-                        onClick={() => handleRejectProperty(pending.id)}
-                      >
-                        <XCircle className="h-4 w-4 text-red-600" />
-                      </Button>
-                      <Button variant="ghost" size="sm">
-                        <Eye className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
-
-      {/* Recent Properties */}
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>Recent Properties</CardTitle>
-          <Link href="/admin/properties">
-            <Button variant="outline" size="sm" className="bg-transparent">
-              View All
-            </Button>
-          </Link>
-        </CardHeader>
-        <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {sampleProperties.slice(0, 4).map((property) => (
-              <PropertyCard 
-                key={property.id} 
-                property={property} 
-                variant="default" 
-              />
+            {pendingPropertiesForDisplay.map((property) => (
+              <div key={property.id} className="relative">
+                <PropertyCard 
+                  property={property}
+                  variant="default"
+                />
+                
+                {/* Admin overlay with status and actions */}
+                <div className="absolute top-3 left-3 right-3 flex justify-between items-start z-10">
+                  <Badge className={getStatusColor(property._pendingInfo.status)}>
+                    {property._pendingInfo.status}
+                  </Badge>
+                  <div className="flex gap-1">
+                    <Button 
+                      variant="secondary" 
+                      size="sm"
+                      onClick={() => handleApproveProperty(property.id)}
+                      className="bg-green-100 hover:bg-green-200 border-green-300 h-8 w-8 p-0"
+                    >
+                      <CheckCircle className="h-4 w-4 text-green-600" />
+                    </Button>
+                    <Button 
+                      variant="secondary" 
+                      size="sm"
+                      onClick={() => handleRejectProperty(property.id)}
+                      className="bg-red-100 hover:bg-red-200 border-red-300 h-8 w-8 p-0"
+                    >
+                      <XCircle className="h-4 w-4 text-red-600" />
+                    </Button>
+                    <Button 
+                      variant="secondary" 
+                      size="sm"
+                      className="bg-blue-100 hover:bg-blue-200 border-blue-300 h-8 w-8 p-0"
+                    >
+                      <Eye className="h-4 w-4 text-blue-600" />
+                    </Button>
+                  </div>
+                </div>
+                
+                {/* Submission info */}
+                <div className="absolute bottom-3 left-3 right-3 z-10">
+                  <div className="bg-white/95 backdrop-blur-sm rounded p-2 text-xs text-gray-700 shadow-sm">
+                    <div className="flex justify-between items-center">
+                      <span className="font-medium">By: {property._pendingInfo.landlordName}</span>
+                      <span>Submitted: {new Date(property._pendingInfo.submittedDate).toLocaleDateString('en-GB')}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
             ))}
           </div>
         </CardContent>
       </Card>
+
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Recent Viewings */}
@@ -231,26 +231,54 @@ export function AdminDashboardOverview({ admin }: AdminDashboardOverviewProps) {
           </CardContent>
         </Card>
 
-        {/* Admin Actions */}
+        {/* Landlord Documents */}
         <Card>
-          <CardHeader>
-            <CardTitle>Admin Permissions</CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle>Landlord Documents</CardTitle>
+            <Link href="/admin/documents">
+              <Button variant="outline" size="sm" className="bg-transparent">
+                View All
+              </Button>
+            </Link>
           </CardHeader>
           <CardContent>
-            <div className="space-y-3">
-              <div className="flex items-center justify-between p-3 border rounded-lg">
-                <div className="flex items-center space-x-3">
-                  <Shield className="h-5 w-5 text-blue-600" />
-                  <div>
-                    <p className="font-medium text-sm">Role: {admin.role.replace('_', ' ').toUpperCase()}</p>
-                    <p className="text-xs text-muted-foreground">{admin.permissions.length} permissions</p>
+            <div className="space-y-4">
+              {[
+                { id: 1, landlordName: "John Smith", documentType: "Gas Safety Certificate", property: "Modern Studio Apartment", status: "pending", submittedDate: "2025-10-25" },
+                { id: 2, landlordName: "Emma Williams", documentType: "EPC Certificate", property: "Victorian Terrace", status: "approved", submittedDate: "2025-10-24" },
+                { id: 3, landlordName: "Oliver Davies", documentType: "Electrical Certificate", property: "Luxury Penthouse", status: "pending", submittedDate: "2025-10-23" },
+                { id: 4, landlordName: "Sarah Johnson", documentType: "Insurance Certificate", property: "Family Home", status: "rejected", submittedDate: "2025-10-22" },
+                { id: 5, landlordName: "Michael Brown", documentType: "HMO License", property: "Student Accommodation", status: "pending", submittedDate: "2025-10-21" }
+              ].map((doc) => (
+                <div key={doc.id} className="flex items-center justify-between p-4 border rounded-lg">
+                  <div className="space-y-1 flex-1">
+                    <div className="flex items-center gap-2">
+                      <p className="font-medium text-sm">{doc.documentType}</p>
+                      <Badge className={getStatusColor(doc.status)}>{doc.status}</Badge>
+                    </div>
+                    <p className="text-xs text-muted-foreground">{doc.property}</p>
+                    <p className="text-xs text-muted-foreground">By: {doc.landlordName}</p>
                   </div>
-                </div>
-              </div>
-              {admin.permissions.map((permission) => (
-                <div key={permission} className="flex items-center space-x-3 p-2 bg-gray-50 rounded">
-                  <CheckCircle className="h-4 w-4 text-green-600" />
-                  <span className="text-sm">{permission.replace('_', ' ').toUpperCase()}</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-muted-foreground">
+                      {new Date(doc.submittedDate).toLocaleDateString('en-GB')}
+                    </span>
+                    <div className="flex gap-1">
+                      <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                        <Eye className="h-4 w-4" />
+                      </Button>
+                      {doc.status === 'pending' && (
+                        <>
+                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                            <CheckCircle className="h-4 w-4 text-green-600" />
+                          </Button>
+                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                            <XCircle className="h-4 w-4 text-red-600" />
+                          </Button>
+                        </>
+                      )}
+                    </div>
+                  </div>
                 </div>
               ))}
             </div>

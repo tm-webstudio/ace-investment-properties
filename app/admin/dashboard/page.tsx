@@ -1,4 +1,4 @@
-"use client"
+ "use client"
 
 import { Navigation } from "@/components/navigation"
 import { Footer } from "@/components/footer"
@@ -15,15 +15,15 @@ export default function AdminDashboard() {
       <Navigation />
       <main className="flex-1 bg-background">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <Card className="mb-8 bg-gradient-to-r from-primary/5 via-primary/3 to-accent/5 border-primary/10">
+          <Card className="mb-8 bg-gradient-to-r from-red-50 via-red-100/50 to-red-50 border-red-200/30">
             <CardHeader className="pb-4 pt-4">
-              <p className="text-sm font-bold text-primary/70 uppercase tracking-wide mb-1">
+              <p className="text-sm font-bold text-red-700/70 uppercase tracking-wide mb-1">
                 Admin Dashboard
               </p>
-              <h1 className="font-serif text-3xl md:text-4xl font-bold text-primary mb-1">
+              <h1 className="font-serif text-3xl md:text-4xl font-bold text-red-900 mb-1">
                 System Administration
               </h1>
-              <p className="text-primary/70 text-lg">Manage properties, viewings, and platform operations</p>
+              <p className="text-red-800/70 text-lg">Manage properties, viewings, and platform operations</p>
             </CardHeader>
           </Card>
 

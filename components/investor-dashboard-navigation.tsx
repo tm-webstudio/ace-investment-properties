@@ -3,7 +3,7 @@
 import { usePathname } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { User, BarChart3, Search } from "lucide-react"
+import { User, BarChart3, Settings } from "lucide-react"
 
 interface InvestorDashboardNavigationProps {
   customButton?: React.ReactNode
@@ -43,10 +43,10 @@ export function InvestorDashboardNavigation({ customButton }: InvestorDashboardN
         </nav>
 
         {customButton || (
-          <Link href="/properties">
+          <Link href="/investor/preferences">
             <Button className="bg-accent hover:bg-accent/90 text-accent-foreground">
-              <Search className="mr-2 h-4 w-4" />
-              Browse Properties
+              <Settings className="mr-2 h-4 w-4" />
+              Edit Preferences
             </Button>
           </Link>
         )}

@@ -116,17 +116,12 @@ export default function SignUpPage() {
               I am a:
             </Label>
             <div className="grid grid-cols-3 gap-2">
-              <button
-                type="button"
-                onClick={() => setAccountType("investor")}
-                className={`p-3 border-2 rounded-lg text-sm font-medium transition-colors ${
-                  accountType === "investor"
-                    ? "border-primary bg-primary/10 text-primary"
-                    : "border-gray-300 hover:border-gray-400"
-                }`}
+              <Link
+                href="/investor/signup"
+                className="p-3 border-2 rounded-lg text-sm font-medium transition-colors border-gray-300 hover:border-primary hover:bg-primary/5 text-center block"
               >
                 Investor
-              </button>
+              </Link>
               <button
                 type="button"
                 onClick={() => setAccountType("landlord")}

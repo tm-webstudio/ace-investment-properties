@@ -9,7 +9,7 @@ export async function POST(request: NextRequest) {
     if (rateLimitResult) return rateLimitResult
 
     const body = await request.json()
-    const { email, password, first_name, last_name, user_type = 'investor' } = body
+    const { email, password, first_name, last_name, user_type = 'investor', preferences } = body
 
     // Validate input
     if (!email || !password || !first_name || !last_name) {
@@ -93,6 +93,61 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Save investor preferences if provided
+    if (user_type === 'investor' && preferences) {
+      try {
+        // Validate preferences for investors
+        const { operator_type, preference_data } = preferences
+        
+        if (!operator_type || !preference_data) {
+          console.error('Invalid preferences data for investor')
+        } else {
+          const preferencesData = {
+            investor_id: authData.user.id,
+            operator_type: preferences.operator_type,
+            operator_type_other: preferences.operator_type === 'other' ? preferences.operator_type_other : null,
+            properties_managing: preferences.properties_managing || 0,
+            preference_data: preferences.preference_data,
+            notification_enabled: true,
+            is_active: true,
+            updated_at: new Date().toISOString()
+          }
+
+          const { error: preferencesError } = await supabase
+            .from('investor_preferences')
+            .insert(preferencesData)
+
+          if (preferencesError) {
+            console.error('Preferences creation error:', preferencesError)
+            // Don't fail the signup if preferences fail to save, user can set them later
+          }
+        }
+      } catch (prefError) {
+        console.error('Error processing preferences:', prefError)
+        // Don't fail the signup if preferences processing fails
+      }
+    }
+
+    // Count matching properties for investors with preferences
+    let matchedProperties = 0
+    if (user_type === 'investor' && preferences) {
+      try {
+        // This is a simplified matching algorithm
+        // In a real app, you'd implement more sophisticated matching
+        const { data: properties } = await supabase
+          .from('properties')
+          .select('*')
+          .eq('status', 'active')
+        
+        if (properties) {
+          matchedProperties = properties.length // Simplified count
+        }
+      } catch (matchError) {
+        console.error('Error counting matched properties:', matchError)
+        // Don't fail signup if matching fails
+      }
+    }
+
     return NextResponse.json({
       success: true,
       message: 'Account created successfully! Please check your email for verification.',
@@ -100,7 +155,8 @@ export async function POST(request: NextRequest) {
         id: authData.user.id,
         email: authData.user.email,
         user_type: user_type
-      }
+      },
+      matchedProperties: user_type === 'investor' ? matchedProperties : undefined
     })
 
   } catch (error: any) {

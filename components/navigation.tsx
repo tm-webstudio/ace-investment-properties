@@ -211,8 +211,8 @@ export function Navigation() {
               )}
             </div>
 
-            <Link href="/landlord" className="hover:text-accent transition-colors">
-              For Landlords
+            <Link href="/investor" className="hover:text-accent transition-colors">
+              For Investors
             </Link>
           </div>
 
@@ -222,9 +222,9 @@ export function Navigation() {
                 {user ? (
                   <>
                     <UserDropdown />
-                    <Link href="/landlord/add-property">
+                    <Link href="/investor/signup">
                       <Button className="bg-accent hover:bg-accent/80 border-accent border text-accent-foreground rounded-none transition-all duration-300 ease-in-out">
-                        List Your Property
+                        Join as Investor
                       </Button>
                     </Link>
                   </>
@@ -238,9 +238,9 @@ export function Navigation() {
                         Sign In
                       </Button>
                     </Link>
-                    <Link href="/landlord/add-property">
+                    <Link href="/investor/signup">
                       <Button className="bg-accent hover:bg-accent/80 border-accent border text-accent-foreground rounded-none transition-all duration-300 ease-in-out">
-                        List Your Property
+                        Join as Investor
                       </Button>
                     </Link>
                   </>
@@ -405,12 +405,12 @@ export function Navigation() {
             </div>
 
             <Link
-              href="/landlord"
+              href="/investor"
               className="block text-primary-foreground hover:text-accent transition-colors py-2"
               onClick={() => setIsOpen(false)}
               style={{ fontSize: '17px' }}
             >
-              For Landlords
+              For Investors
             </Link>
           </div>
 
@@ -429,12 +429,12 @@ export function Navigation() {
                     Dashboard
                   </Button>
                 </Link>
-                <Link href="/landlord/add-property">
+                <Link href="/investor/signup">
                   <Button
                     className="w-full bg-accent hover:bg-accent/80 border-accent border text-accent-foreground py-3 rounded-none text-sm transition-all duration-300 ease-in-out mb-3"
                     onClick={() => setIsOpen(false)}
                   >
-                    List Your Property
+                    Join as Investor
                   </Button>
                 </Link>
                 <Button
@@ -459,12 +459,12 @@ export function Navigation() {
                     Sign In
                   </Button>
                 </Link>
-                <Link href="/landlord/add-property">
+                <Link href="/investor/signup">
                   <Button
                     className="w-full bg-accent hover:bg-accent/80 border-accent border text-accent-foreground py-3 rounded-none text-sm transition-all duration-300 ease-in-out"
                     onClick={() => setIsOpen(false)}
                   >
-                    List Your Property
+                    Join as Investor
                   </Button>
                 </Link>
               </>

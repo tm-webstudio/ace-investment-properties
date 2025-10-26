@@ -154,15 +154,15 @@ export default function LandlordDashboard() {
       <Navigation />
       <main className="flex-1 bg-background">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <Card className="mb-8 bg-gradient-to-r from-primary/5 via-primary/3 to-accent/5 border-primary/10">
+          <Card className="mb-8 bg-gradient-to-r from-blue-50 via-blue-100/50 to-blue-50 border-blue-200/30">
             <CardHeader className="pb-4 pt-4">
-              <p className="text-sm font-bold text-primary/70 uppercase tracking-wide mb-1">
+              <p className="text-sm font-bold text-blue-700/70 uppercase tracking-wide mb-1">
                 Landlord Dashboard
               </p>
-              <h1 className="font-serif text-3xl md:text-4xl font-bold text-primary mb-1">
+              <h1 className="font-serif text-3xl md:text-4xl font-bold text-blue-900 mb-1">
                 Welcome back, {user.first_name} {user.last_name}
               </h1>
-              <p className="text-primary/70 text-lg">Manage your properties and applications</p>
+              <p className="text-blue-800/70 text-lg">Manage your properties and applications</p>
             </CardHeader>
           </Card>
 

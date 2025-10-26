@@ -24,6 +24,9 @@ export function Footer() {
                 Browse Properties
               </Link>
               <Link href="/landlord" className="block hover:text-accent transition-colors">
+                For Landlords
+              </Link>
+              <Link href="/landlord/add-property" className="block hover:text-accent transition-colors">
                 List Your Property
               </Link>
               <Link href="/landlord/dashboard" className="block hover:text-accent transition-colors">

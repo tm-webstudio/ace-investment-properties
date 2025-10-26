@@ -89,7 +89,18 @@ export function PropertyCard({ property, variant = 'default', onPropertyDeleted 
               // Use available_date for landlord variant
               const availableDateStr = property.availableDate || property.available_date;
               const todayStr = '2025-09-04';
+              
+              if (!availableDateStr) {
+                return (
+                  <Badge className="font-semibold shadow-lg bg-accent text-accent-foreground hover:bg-accent/90">
+                    Available Now
+                  </Badge>
+                );
+              }
+              
               const isAvailableNow = availableDateStr <= todayStr;
+              const availableDate = new Date(availableDateStr);
+              const isValidDate = !isNaN(availableDate.getTime());
               
               return (
                 <Badge className={`font-semibold shadow-lg ${
@@ -97,7 +108,8 @@ export function PropertyCard({ property, variant = 'default', onPropertyDeleted 
                     ? 'bg-accent text-accent-foreground hover:bg-accent/90' 
                     : 'bg-red-600 text-white hover:bg-red-700'
                 }`}>
-                  {isAvailableNow ? 'Available Now' : `Available ${format(new Date(availableDateStr), 'dd/MM/yyyy')}`}
+                  {isAvailableNow ? 'Available Now' : 
+                   isValidDate ? `Available ${format(availableDate, 'dd/MM/yyyy')}` : 'Available Soon'}
                 </Badge>
               );
             })()}
@@ -206,8 +218,8 @@ export function PropertyCard({ property, variant = 'default', onPropertyDeleted 
       <Card className="overflow-hidden hover:shadow-lg transition-all duration-300 group border-border/50 hover:border-accent/20 cursor-pointer p-0 gap-3.5 rounded-none">
         <div className="relative overflow-hidden">
           <Image
-            src={property.images[0] || "/placeholder.svg"}
-            alt={property.title}
+            src={(property.images || property.photos)?.[0] || "/placeholder.svg"}
+            alt={property.title || `${property.property_type} in ${property.city}`}
             width={400}
             height={250}
             className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
@@ -215,9 +227,20 @@ export function PropertyCard({ property, variant = 'default', onPropertyDeleted 
           <div className="absolute top-4 left-4">
             {(() => {
               // Use string comparison for more reliable date checking
-              const availableDateStr = property.availableDate;
+              const availableDateStr = property.availableDate || property.available_date;
               const todayStr = '2025-09-04'; // Current date
+              
+              if (!availableDateStr) {
+                return (
+                  <Badge className="font-semibold shadow-lg bg-accent text-accent-foreground hover:bg-accent/90">
+                    Available Now
+                  </Badge>
+                );
+              }
+              
               const isAvailableNow = availableDateStr <= todayStr;
+              const availableDate = new Date(availableDateStr);
+              const isValidDate = !isNaN(availableDate.getTime());
               
               return (
                 <Badge className={`font-semibold shadow-lg ${
@@ -225,7 +248,8 @@ export function PropertyCard({ property, variant = 'default', onPropertyDeleted 
                     ? 'bg-accent text-accent-foreground hover:bg-accent/90' 
                     : 'bg-red-600 text-white hover:bg-red-700'
                 }`}>
-                  {isAvailableNow ? 'Available Now' : `Available ${format(new Date(availableDateStr), 'dd/MM/yyyy')}`}
+                  {isAvailableNow ? 'Available Now' : 
+                   isValidDate ? `Available ${format(availableDate, 'dd/MM/yyyy')}` : 'Available Soon'}
                 </Badge>
               );
             })()}
@@ -248,7 +272,7 @@ export function PropertyCard({ property, variant = 'default', onPropertyDeleted 
                 {property.title}
               </h3>
               <div className="text-base font-semibold text-accent">
-                £{property.price.toLocaleString()} pcm
+                £{(property.price || property.monthly_rent || 0).toLocaleString()} pcm
               </div>
             </div>
 
@@ -268,14 +292,14 @@ export function PropertyCard({ property, variant = 'default', onPropertyDeleted 
             </div>
 
             <div className="flex flex-wrap gap-2">
-              {property.amenities.slice(0, 3).map((amenity) => (
+              {(property.amenities || []).slice(0, 3).map((amenity) => (
                 <Badge key={amenity} variant="secondary" className="text-xs">
                   {amenity}
                 </Badge>
               ))}
-              {property.amenities.length > 3 && (
+              {(property.amenities || []).length > 3 && (
                 <Badge variant="secondary" className="text-xs">
-                  +{property.amenities.length - 3} more
+                  +{(property.amenities || []).length - 3} more
                 </Badge>
               )}
             </div>
