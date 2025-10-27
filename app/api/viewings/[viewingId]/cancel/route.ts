@@ -14,23 +14,11 @@ export async function PUT(
   try {
     const { viewingId } = params
 
-    // Get user ID from authorization header
-    const authHeader = request.headers.get('authorization')
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return NextResponse.json(
-        { success: false, error: 'Authentication required' },
-        { status: 401 }
-      )
-    }
-
-    const token = authHeader.substring(7)
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token)
+    // Use the requireAuth middleware
+    const req = await requireAuth(request)
     
-    if (authError || !user) {
-      return NextResponse.json(
-        { success: false, error: 'Invalid authentication token' },
-        { status: 401 }
-      )
+    if (req instanceof NextResponse) {
+      return req // Return auth error response
     }
 
     // Get viewing to check permissions
@@ -48,7 +36,7 @@ export async function PUT(
     }
 
     // Check if user owns this viewing request
-    if (viewing.user_id !== user.id) {
+    if (viewing.user_id !== req.user.id) {
       return NextResponse.json(
         { success: false, error: 'Permission denied. You can only cancel your own viewing requests.' },
         { status: 403 }

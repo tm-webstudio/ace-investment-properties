@@ -9,23 +9,11 @@ if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_A
 
 export async function GET(request: NextRequest) {
   try {
-    // Get user ID from authorization header
-    const authHeader = request.headers.get('authorization')
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return NextResponse.json(
-        { success: false, error: 'Authentication required' },
-        { status: 401 }
-      )
-    }
-
-    const token = authHeader.substring(7)
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token)
+    // Use the requireAuth middleware
+    const req = await requireAuth(request)
     
-    if (authError || !user) {
-      return NextResponse.json(
-        { success: false, error: 'Invalid authentication token' },
-        { status: 401 }
-      )
+    if (req instanceof NextResponse) {
+      return req // Return auth error response
     }
 
     // Get query parameters
@@ -54,7 +42,7 @@ export async function GET(request: NextRequest) {
           )
         )
       `)
-      .eq('user_id', user.id)
+      .eq('user_id', req.user.id)
       .order('viewing_date', { ascending: false })
       .order('viewing_time', { ascending: false })
       .range(offset, offset + limit - 1)
