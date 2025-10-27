@@ -47,6 +47,13 @@ function validateFutureDate(date: string): boolean {
 
 export async function POST(request: NextRequest) {
   try {
+    // Use the requireAuth middleware
+    const req = await requireAuth(request)
+    
+    if (req instanceof NextResponse) {
+      return req // Return auth error response
+    }
+    
     const body: ViewingRequestBody = await request.json()
     
     // Validate required fields
@@ -90,25 +97,6 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Get user ID from authorization header
-    const authHeader = request.headers.get('authorization')
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return NextResponse.json(
-        { success: false, error: 'Authentication required' },
-        { status: 401 }
-      )
-    }
-
-    const token = authHeader.substring(7)
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token)
-    
-    if (authError || !user) {
-      return NextResponse.json(
-        { success: false, error: 'Invalid authentication token' },
-        { status: 401 }
-      )
-    }
-
     // Check if property exists and get landlord_id
     const { data: property, error: propertyError } = await supabase
       .from('properties')
@@ -134,7 +122,7 @@ export async function POST(request: NextRequest) {
     const { data: existingViewing } = await supabase
       .from('property_viewings')
       .select('id')
-      .eq('user_id', user.id)
+      .eq('user_id', req.user.id)
       .eq('property_id', body.propertyId)
       .eq('viewing_date', body.viewingDate)
       .eq('viewing_time', body.viewingTime)
@@ -169,7 +157,7 @@ export async function POST(request: NextRequest) {
       .from('property_viewings')
       .insert({
         property_id: body.propertyId,
-        user_id: user.id,
+        user_id: req.user.id,
         landlord_id: property.landlord_id,
         viewing_date: body.viewingDate,
         viewing_time: body.viewingTime,
