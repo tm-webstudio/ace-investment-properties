@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { PropertyCard } from "@/components/property-card"
+import { ViewingRequests } from "@/components/viewing-requests"
 import { KeyRound as Pound, Home, FileText, TrendingUp, Eye, MessageSquare, Plus, Clock } from "lucide-react"
 import Link from "next/link"
 import { supabase } from "@/lib/supabase"
@@ -82,41 +83,6 @@ export function DashboardOverview({ userId }: DashboardOverviewProps) {
     fetchProperties()
   }
 
-  // Mock requested viewings data
-  const requestedViewings = [
-    {
-      id: "1",
-      investorName: "Sarah Johnson",
-      propertyTitle: "Modern Downtown Loft",
-      status: "pending",
-      requestedDate: "2024-01-15",
-      preferredTime: "2:00 PM",
-    },
-    {
-      id: "2",
-      investorName: "Michael Chen",
-      propertyTitle: "Spacious Family Home",
-      status: "confirmed",
-      requestedDate: "2024-01-16",
-      preferredTime: "10:00 AM",
-    },
-    {
-      id: "3",
-      investorName: "Emily Davis",
-      propertyTitle: "Modern Downtown Loft",
-      status: "pending",
-      requestedDate: "2024-01-17",
-      preferredTime: "4:00 PM",
-    },
-    {
-      id: "4",
-      investorName: "David Wilson",
-      propertyTitle: "Spacious Family Home",
-      status: "cancelled",
-      requestedDate: "2024-01-18",
-      preferredTime: "11:30 AM",
-    },
-  ]
 
   // Mock compliance & documents data
   const complianceItems = [
@@ -149,19 +115,6 @@ export function DashboardOverview({ userId }: DashboardOverviewProps) {
       expiryDate: "2024-12-31",
     },
   ]
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "confirmed":
-        return "bg-green-100 text-green-800"
-      case "pending":
-        return "bg-yellow-100 text-yellow-800"
-      case "cancelled":
-        return "bg-red-100 text-red-800"
-      default:
-        return "bg-gray-100 text-gray-800"
-    }
-  }
 
   const getComplianceStatusColor = (status: string) => {
     switch (status) {
@@ -292,52 +245,8 @@ export function DashboardOverview({ userId }: DashboardOverviewProps) {
           </CardContent>
         </Card>
 
-        {/* Requested Viewings */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle>Requested Viewings</CardTitle>
-            <Link href="/landlord/viewings">
-              <Button variant="outline" size="sm" className="bg-transparent">
-                View All
-              </Button>
-            </Link>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {requestedViewings.map((viewing) => (
-                <div key={viewing.id} className="flex items-center justify-between p-4 border rounded-lg">
-                  <div className="space-y-1">
-                    <p className="font-medium text-sm">{viewing.propertyTitle}</p>
-                    <div className="flex items-center text-sm text-muted-foreground">
-                      <Eye className="h-4 w-4 mr-1" />
-                      {viewing.investorName}
-                    </div>
-                    <div className="flex items-center text-sm text-muted-foreground">
-                      <Clock className="h-4 w-4 mr-1" />
-                      {viewing.preferredTime} on {new Date(viewing.requestedDate).toLocaleDateString('en-GB')}
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <Badge className={getStatusColor(viewing.status)}>
-                      {viewing.status}
-                    </Badge>
-                    <div className="flex gap-2">
-                      <Button variant="ghost" size="sm">
-                        <Eye className="h-4 w-4" />
-                      </Button>
-                      <Button variant="ghost" size="sm">
-                        <MessageSquare className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              ))}
-              {requestedViewings.length === 0 && (
-                <p className="text-muted-foreground text-center py-4">No viewing requests at the moment</p>
-              )}
-            </div>
-          </CardContent>
-        </Card>
+        {/* Viewing Requests */}
+        <ViewingRequests variant="dashboard" limit={5} />
       </div>
 
     </div>

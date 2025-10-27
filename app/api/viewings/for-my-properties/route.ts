@@ -51,22 +51,7 @@ export async function GET(request: NextRequest) {
     // Build query - get viewings for landlord's properties
     let query = supabase
       .from('property_viewings')
-      .select(`
-        *,
-        properties (
-          id,
-          title,
-          address,
-          city,
-          monthly_rent,
-          photos
-        ),
-        user_profiles!property_viewings_user_id_fkey (
-          full_name,
-          email,
-          phone
-        )
-      `)
+      .select('*')
       .eq('landlord_id', user.id)
 
     // Filter by status - default to pending first, then others
@@ -95,6 +80,33 @@ export async function GET(request: NextRequest) {
         { success: false, error: 'Failed to fetch viewing requests' },
         { status: 500 }
       )
+    }
+
+    // Manually fetch property and user data for each viewing
+    if (viewings && viewings.length > 0) {
+      for (const viewing of viewings) {
+        // Fetch property data
+        if (viewing.property_id) {
+          const { data: property } = await supabase
+            .from('properties')
+            .select('id, property_type, address, city, monthly_rent, photos')
+            .eq('id', viewing.property_id)
+            .single()
+          
+          viewing.property = property
+        }
+
+        // Fetch user data
+        if (viewing.user_id) {
+          const { data: userProfile } = await supabase
+            .from('user_profiles')
+            .select('full_name, email, phone')
+            .eq('id', viewing.user_id)
+            .single()
+          
+          viewing.user_profile = userProfile
+        }
+      }
     }
 
     // Mark as viewed by landlord

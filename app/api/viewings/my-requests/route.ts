@@ -22,26 +22,10 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '20')
     const offset = parseInt(searchParams.get('offset') || '0')
 
-    // Build query
+    // Build query - fetch viewings only, will manually add property data
     let query = supabase
       .from('property_viewings')
-      .select(`
-        *,
-        properties (
-          id,
-          title,
-          address,
-          city,
-          monthly_rent,
-          photos,
-          landlord_id,
-          user_profiles!properties_landlord_id_fkey (
-            full_name,
-            email,
-            phone
-          )
-        )
-      `)
+      .select('*')
       .eq('user_id', req.user.id)
       .order('viewing_date', { ascending: false })
       .order('viewing_time', { ascending: false })
@@ -61,6 +45,23 @@ export async function GET(request: NextRequest) {
         { status: 500 }
       )
     }
+
+    // Manually fetch property data for each viewing
+    if (viewings && viewings.length > 0) {
+      for (const viewing of viewings) {
+        if (viewing.property_id) {
+          const { data: property } = await supabase
+            .from('properties')
+            .select('id, property_type, address, city, monthly_rent, photos')
+            .eq('id', viewing.property_id)
+            .single()
+          
+          // Attach the property data to the viewing
+          viewing.property = property
+        }
+      }
+    }
+
 
     // Mark as viewed by user
     if (viewings && viewings.length > 0) {

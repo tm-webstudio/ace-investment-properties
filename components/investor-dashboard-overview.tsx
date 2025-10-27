@@ -90,11 +90,14 @@ export function InvestorDashboardOverview({ investor }: InvestorDashboardOvervie
 
         if (response.ok) {
           const data = await response.json()
-          // Filter for upcoming approved viewings only
+          
+          // Filter for upcoming pending viewings only
           const now = new Date()
           const upcoming = (data.viewings || [])
             .filter((viewing: any) => {
-              if (viewing.status !== 'approved') return false
+              // Only show pending viewings (user's active requests)
+              if (viewing.status !== 'pending') return false
+              
               const viewingDateTime = new Date(`${viewing.viewing_date}T${viewing.viewing_time}`)
               return viewingDateTime > now
             })
@@ -266,8 +269,8 @@ export function InvestorDashboardOverview({ investor }: InvestorDashboardOvervie
                           {viewing.viewing_time}
                         </div>
                       </div>
-                      <Badge className="bg-green-100 text-green-800">
-                        ✓ Confirmed
+                      <Badge className="bg-orange-100 text-orange-800">
+                        ⏳ Pending
                       </Badge>
                     </div>
                   )
