@@ -20,7 +20,9 @@ interface InvestorDashboardOverviewProps {
 export function InvestorDashboardOverview({ investor }: InvestorDashboardOverviewProps) {
   const { user } = useAuth()
   const [savedProperties, setSavedProperties] = useState<any[]>([])
+  const [upcomingViewings, setUpcomingViewings] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+  const [viewingsLoading, setViewingsLoading] = useState(true)
 
   // Fetch real saved properties from API
   useEffect(() => {
@@ -61,7 +63,59 @@ export function InvestorDashboardOverview({ investor }: InvestorDashboardOvervie
       }
     }
 
+    const fetchUpcomingViewings = async () => {
+      if (!user) {
+        setViewingsLoading(false)
+        return
+      }
+
+      try {
+        let token = localStorage.getItem('accessToken')
+        
+        if (!token) {
+          const { data: { session } } = await supabase.auth.getSession()
+          if (session?.access_token) {
+            token = session.access_token
+          } else {
+            setViewingsLoading(false)
+            return
+          }
+        }
+
+        const response = await fetch('/api/viewings/my-requests', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        })
+
+        if (response.ok) {
+          const data = await response.json()
+          // Filter for upcoming approved viewings only
+          const now = new Date()
+          const upcoming = (data.viewings || [])
+            .filter((viewing: any) => {
+              if (viewing.status !== 'approved') return false
+              const viewingDateTime = new Date(`${viewing.viewing_date}T${viewing.viewing_time}`)
+              return viewingDateTime > now
+            })
+            .sort((a: any, b: any) => {
+              const aDateTime = new Date(`${a.viewing_date}T${a.viewing_time}`)
+              const bDateTime = new Date(`${b.viewing_date}T${b.viewing_time}`)
+              return aDateTime.getTime() - bDateTime.getTime()
+            })
+            .slice(0, 4) // Show next 4
+          
+          setUpcomingViewings(upcoming)
+        }
+      } catch (error) {
+        console.error('Error fetching viewings:', error)
+      } finally {
+        setViewingsLoading(false)
+      }
+    }
+
     fetchSavedProperties()
+    fetchUpcomingViewings()
   }, [user])
 
   // Transform saved properties for display
@@ -86,10 +140,7 @@ export function InvestorDashboardOverview({ investor }: InvestorDashboardOvervie
     }
   }))
 
-  // Get investor's upcoming viewings
-  const upcomingViewings = sampleViewings
-    .filter(viewing => viewing.investorId === investor.id && viewing.status === "scheduled")
-    .slice(0, 4) // Show next 4
+  // upcomingViewings is now fetched from API in useEffect
 
   // Get investor's recent notifications
   const recentNotifications = sampleNotifications
@@ -183,29 +234,49 @@ export function InvestorDashboardOverview({ investor }: InvestorDashboardOvervie
             </Link>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              {upcomingViewings.map((viewing) => (
-                <div key={viewing.id} className="flex items-center justify-between p-4 border rounded-lg">
-                  <div className="space-y-1">
-                    <p className="font-medium text-sm">{viewing.propertyTitle}</p>
-                    <div className="flex items-center text-sm text-muted-foreground">
-                      <Calendar className="h-4 w-4 mr-1" />
-                      {new Date(viewing.viewingDate).toLocaleDateString('en-GB')}
-                    </div>
-                    <div className="flex items-center text-sm text-muted-foreground">
-                      <Clock className="h-4 w-4 mr-1" />
-                      {viewing.viewingTime}
+            {viewingsLoading ? (
+              <div className="space-y-4">
+                {Array.from({ length: 3 }, (_, index) => (
+                  <div key={index} className="animate-pulse p-4 border rounded-lg">
+                    <div className="flex justify-between">
+                      <div className="space-y-2">
+                        <div className="h-4 w-40 bg-muted rounded"></div>
+                        <div className="h-3 w-32 bg-muted rounded"></div>
+                        <div className="h-3 w-24 bg-muted rounded"></div>
+                      </div>
+                      <div className="h-6 w-16 bg-muted rounded"></div>
                     </div>
                   </div>
-                  <Badge className="bg-blue-100 text-blue-800">
-                    {viewing.status}
-                  </Badge>
-                </div>
-              ))}
-              {upcomingViewings.length === 0 && (
-                <p className="text-muted-foreground text-center py-4">No upcoming viewings scheduled</p>
-              )}
-            </div>
+                ))}
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {upcomingViewings.map((viewing) => {
+                  const propertyTitle = viewing.property?.title || `${viewing.property?.property_type} in ${viewing.property?.city}`
+                  return (
+                    <div key={viewing.id} className="flex items-center justify-between p-4 border rounded-lg">
+                      <div className="space-y-1">
+                        <p className="font-medium text-sm">{propertyTitle}</p>
+                        <div className="flex items-center text-sm text-muted-foreground">
+                          <Calendar className="h-4 w-4 mr-1" />
+                          {new Date(viewing.viewing_date).toLocaleDateString('en-GB')}
+                        </div>
+                        <div className="flex items-center text-sm text-muted-foreground">
+                          <Clock className="h-4 w-4 mr-1" />
+                          {viewing.viewing_time}
+                        </div>
+                      </div>
+                      <Badge className="bg-green-100 text-green-800">
+                        ✓ Confirmed
+                      </Badge>
+                    </div>
+                  )
+                })}
+                {!viewingsLoading && upcomingViewings.length === 0 && (
+                  <p className="text-muted-foreground text-center py-4">No upcoming viewings scheduled</p>
+                )}
+              </div>
+            )}
           </CardContent>
         </Card>
 

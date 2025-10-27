@@ -172,8 +172,24 @@ export async function POST(request: NextRequest) {
 
     if (insertError) {
       console.error('Error creating viewing:', insertError)
+      
+      // Provide more specific error messages
+      if (insertError.code === '42P01') {
+        return NextResponse.json(
+          { success: false, error: 'Viewing system is not yet set up. Please contact support.' },
+          { status: 503 }
+        )
+      }
+      
+      if (insertError.code === '23505') {
+        return NextResponse.json(
+          { success: false, error: 'You have already requested a viewing for this property at this time' },
+          { status: 409 }
+        )
+      }
+      
       return NextResponse.json(
-        { success: false, error: 'Failed to create viewing request' },
+        { success: false, error: `Failed to create viewing request: ${insertError.message}` },
         { status: 500 }
       )
     }
