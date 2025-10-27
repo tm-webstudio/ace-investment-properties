@@ -52,9 +52,17 @@ export async function GET(request: NextRequest) {
     
     const totalPages = Math.ceil((count || 0) / limit)
     
+    // Convert amounts from pence back to pounds for display
+    const formattedProperties = properties.map(property => ({
+      ...property,
+      monthly_rent: property.monthly_rent / 100,
+      security_deposit: property.security_deposit / 100,
+      availability: property.availability || 'vacant' // Default to vacant if not set
+    }))
+    
     return NextResponse.json({
       success: true,
-      properties,
+      properties: formattedProperties,
       pagination: {
         page,
         limit,

@@ -26,6 +26,7 @@ interface Property {
   published_at: string
   created_at: string
   updated_at: string
+  availability: string
 }
 
 export default function MyPropertiesPage() {
@@ -35,6 +36,13 @@ export default function MyPropertiesPage() {
 
   useEffect(() => {
     fetchProperties()
+    
+    // Check if we're returning from an edit and need to refresh
+    const urlParams = new URLSearchParams(window.location.search)
+    if (urlParams.get('updated') === 'true') {
+      // Remove the query parameter to clean up the URL
+      window.history.replaceState({}, '', window.location.pathname)
+    }
   }, [])
 
   const fetchProperties = async () => {
@@ -187,7 +195,7 @@ export default function MyPropertiesPage() {
               </a>
             </div>
           ) : (
-            <MyPropertiesGrid properties={properties} />
+            <MyPropertiesGrid properties={properties} onPropertyDeleted={fetchProperties} />
           )}
         </div>
       </main>

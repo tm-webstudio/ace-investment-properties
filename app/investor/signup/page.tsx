@@ -3,6 +3,8 @@
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
+import { Navigation } from "@/components/navigation"
+import { Footer } from "@/components/footer"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
@@ -337,24 +339,10 @@ export default function InvestorSignup() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      {/* Header with Logo and Close Button */}
-      <div className="absolute top-4 left-4 right-4 flex items-center justify-between z-10">
-        <div className="w-10"></div>
-        <Link href="/" className="flex justify-center">
-          <span className="font-serif font-bold text-xl text-primary">
-            Ace Investment Properties
-          </span>
-        </Link>
-        <button
-          onClick={() => router.back()}
-          className="p-2 hover:bg-gray-200 rounded-full transition-colors"
-        >
-          <X className="h-5 w-5 text-gray-600" />
-        </button>
-      </div>
-
-      <div className="max-w-2xl mx-auto mt-16">
+    <div className="min-h-screen flex flex-col">
+      <Navigation />
+      <main className="flex-1 bg-gray-50">
+        <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Header */}
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
@@ -511,7 +499,9 @@ export default function InvestorSignup() {
             </Link>
           </p>
         </div>
-      </div>
+        </div>
+      </main>
+      <Footer />
     </div>
   )
 }

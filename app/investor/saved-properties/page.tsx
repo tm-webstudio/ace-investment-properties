@@ -240,8 +240,8 @@ export default function SavedPropertiesPage() {
                 <p className="text-muted-foreground mb-6">
                   Start browsing properties and save the ones you're interested in.
                 </p>
-                <Link href="/properties">
-                  <Button>Browse Properties</Button>
+                <Link href="/investor/property-matching">
+                  <Button>Find Properties</Button>
                 </Link>
               </CardContent>
             </Card>
@@ -346,12 +346,6 @@ export default function SavedPropertiesPage() {
 
                         {/* Actions */}
                         <div className="flex gap-2">
-                          <Link href={`/properties/${saved.property.id}`} className="flex-1">
-                            <Button variant="outline" className="w-full">
-                              <ExternalLink className="h-4 w-4 mr-2" />
-                              View Details
-                            </Button>
-                          </Link>
                         </div>
                       </CardContent>
                     </div>

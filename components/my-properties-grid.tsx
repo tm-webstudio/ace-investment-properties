@@ -23,13 +23,15 @@ interface Property {
   published_at: string
   created_at: string
   updated_at: string
+  availability: string
 }
 
 interface MyPropertiesGridProps {
   properties: Property[]
+  onPropertyDeleted?: () => void
 }
 
-export function MyPropertiesGrid({ properties }: MyPropertiesGridProps) {
+export function MyPropertiesGrid({ properties, onPropertyDeleted }: MyPropertiesGridProps) {
   return (
     <div className="space-y-6">
       {properties.length === 0 ? (
@@ -48,7 +50,7 @@ export function MyPropertiesGrid({ properties }: MyPropertiesGridProps) {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {properties.map((property) => (
-            <PropertyCard key={property.id} property={property} variant="landlord" />
+            <PropertyCard key={property.id} property={property} variant="landlord" onPropertyDeleted={onPropertyDeleted} />
           ))}
         </div>
       )}

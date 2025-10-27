@@ -22,6 +22,9 @@ export async function GET() {
         postcode,
         photos,
         status,
+        availability,
+        property_licence,
+        property_condition,
         published_at,
         created_at,
         updated_at
@@ -43,6 +46,7 @@ export async function GET() {
       ...property,
       price: property.monthly_rent / 100, // Convert from pence to pounds
       deposit: property.security_deposit / 100,
+      availability: property.availability || 'vacant', // Default to vacant if not set
       title: `${property.property_type} in ${property.city}`,
       propertyType: property.bedrooms === 0 ? 'Studio' : 
                    property.bedrooms === 1 ? '1BR' :

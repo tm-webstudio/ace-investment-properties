@@ -18,10 +18,10 @@ const supabaseAdmin = process.env.SUPABASE_SERVICE_ROLE_KEY
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const propertyId = params.id
+    const { id: propertyId } = await params
     
     // Get the authorization header
     const authorization = request.headers.get('authorization')
@@ -55,9 +55,17 @@ export async function GET(
       return NextResponse.json({ error: 'Property not found' }, { status: 404 })
     }
 
+    // Convert amounts from pence back to pounds for display
+    const propertyForDisplay = {
+      ...property,
+      monthly_rent: property.monthly_rent / 100,
+      security_deposit: property.security_deposit / 100,
+      availability: property.availability || 'vacant' // Default to vacant if not set
+    }
+
     return NextResponse.json({
       success: true,
-      property: property
+      property: propertyForDisplay
     })
 
   } catch (error) {
@@ -68,10 +76,10 @@ export async function GET(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const propertyId = params.id
+    const { id: propertyId } = await params
     
     // Get the authorization header
     const authorization = request.headers.get('authorization')
@@ -113,10 +121,10 @@ export async function DELETE(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const propertyId = params.id
+    const { id: propertyId } = await params
     
     // Get the authorization header
     const authorization = request.headers.get('authorization')
@@ -140,6 +148,7 @@ export async function PUT(
 
     // Prepare the update object with proper field mapping
     const propertyUpdate = {
+      availability: updateData.availability,
       property_type: updateData.property_type,
       property_licence: updateData.property_licence,
       property_condition: updateData.property_condition,
@@ -176,9 +185,11 @@ export async function PUT(
 
     if (updateError) {
       console.error('Error updating property:', updateError)
+      console.error('Update data that failed:', propertyUpdate)
       return NextResponse.json({ 
         error: 'Failed to update property', 
-        details: updateError.message 
+        details: updateError.message,
+        code: updateError.code 
       }, { status: 500 })
     }
 

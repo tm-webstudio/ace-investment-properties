@@ -20,6 +20,7 @@ import Link from "next/link"
 
 interface PropertyFormData {
   // Basic Info
+  availability: string
   propertyType: string
   propertyLicence?: string
   propertyCondition: string
@@ -55,7 +56,10 @@ interface EditPropertyFormProps {
 export function EditPropertyForm({ propertyId, initialData }: EditPropertyFormProps) {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
+  const [hasFormChanged, setHasFormChanged] = useState(false)
+  const [initialFormData, setInitialFormData] = useState<PropertyFormData | null>(null)
   const [formData, setFormData] = useState<PropertyFormData>({
+    availability: initialData?.availability || "vacant",
     propertyType: initialData?.property_type || "",
     propertyLicence: initialData?.property_licence || "",
     propertyCondition: initialData?.property_condition || "",
@@ -76,6 +80,62 @@ export function EditPropertyForm({ propertyId, initialData }: EditPropertyFormPr
     contactEmail: "",
     contactPhone: "",
   })
+
+  // Store initial form data when component mounts
+  useEffect(() => {
+    if (initialData && !initialFormData) {
+      const initial: PropertyFormData = {
+        availability: initialData?.availability || "vacant",
+        propertyType: initialData?.property_type || "",
+        propertyLicence: initialData?.property_licence || "",
+        propertyCondition: initialData?.property_condition || "",
+        address: initialData?.address || "",
+        city: initialData?.city || "",
+        state: initialData?.county || "",
+        postcode: initialData?.postcode || "",
+        monthlyRent: initialData?.monthly_rent?.toString() || "",
+        securityDeposit: initialData?.security_deposit?.toString() || "",
+        availableDate: initialData?.available_date || "",
+        bedrooms: initialData?.bedrooms?.toString() || "",
+        bathrooms: initialData?.bathrooms?.toString() || "",
+        description: initialData?.description || "",
+        amenities: initialData?.amenities || [],
+        photos: initialData?.photos || [],
+        primaryPhotoIndex: 0,
+        contactName: "",
+        contactEmail: "",
+        contactPhone: "",
+      }
+      setInitialFormData(initial)
+    }
+  }, [initialData, initialFormData])
+
+  // Check if form has changed
+  const checkFormChanges = (newFormData: PropertyFormData) => {
+    if (!initialFormData) return false
+    
+    const changed = (
+      newFormData.availability !== initialFormData.availability ||
+      newFormData.propertyType !== initialFormData.propertyType ||
+      newFormData.propertyLicence !== initialFormData.propertyLicence ||
+      newFormData.propertyCondition !== initialFormData.propertyCondition ||
+      newFormData.address !== initialFormData.address ||
+      newFormData.city !== initialFormData.city ||
+      newFormData.state !== initialFormData.state ||
+      newFormData.postcode !== initialFormData.postcode ||
+      newFormData.monthlyRent !== initialFormData.monthlyRent ||
+      newFormData.securityDeposit !== initialFormData.securityDeposit ||
+      newFormData.availableDate !== initialFormData.availableDate ||
+      newFormData.bedrooms !== initialFormData.bedrooms ||
+      newFormData.bathrooms !== initialFormData.bathrooms ||
+      newFormData.description !== initialFormData.description ||
+      JSON.stringify(newFormData.amenities.sort()) !== JSON.stringify(initialFormData.amenities.sort()) ||
+      JSON.stringify(newFormData.photos) !== JSON.stringify(initialFormData.photos)
+    )
+    
+    setHasFormChanged(changed)
+    return changed
+  }
 
   const amenityOptions = [
     "Pet-friendly",
@@ -99,11 +159,27 @@ export function EditPropertyForm({ propertyId, initialData }: EditPropertyFormPr
   ]
 
   const handleInputChange = (field: keyof PropertyFormData, value: any) => {
-    setFormData((prev) => ({ ...prev, [field]: value }))
+    setFormData((prev) => {
+      const updated = { ...prev, [field]: value }
+      
+      // Clear available date when vacant is selected
+      if (field === 'availability' && value === 'vacant') {
+        updated.availableDate = ''
+      }
+      
+      // Check if form has changed
+      checkFormChanges(updated)
+      
+      return updated
+    })
   }
 
   const handleImagesReorder = (newImages: (File | string)[]) => {
-    setFormData(prev => ({ ...prev, photos: newImages }))
+    setFormData(prev => {
+      const updated = { ...prev, photos: newImages }
+      checkFormChanges(updated)
+      return updated
+    })
   }
 
   const handlePrimaryImageChange = (index: number) => {
@@ -195,10 +271,14 @@ export function EditPropertyForm({ propertyId, initialData }: EditPropertyFormPr
       // In a real app, you would upload to a property-specific endpoint
       const newImageUrls = validFiles.map(file => URL.createObjectURL(file))
       
-      setFormData(prev => ({
-        ...prev,
-        photos: [...prev.photos, ...newImageUrls]
-      }))
+      setFormData(prev => {
+        const updated = {
+          ...prev,
+          photos: [...prev.photos, ...newImageUrls]
+        }
+        checkFormChanges(updated)
+        return updated
+      })
       
       alert(`Successfully added ${validFiles.length} image(s) to edit queue`)
     } catch (error: any) {
@@ -246,28 +326,55 @@ export function EditPropertyForm({ propertyId, initialData }: EditPropertyFormPr
     }
 
     const newPhotos = formData.photos.filter((_, i) => i !== index)
-    setFormData(prev => ({
-      ...prev,
-      photos: newPhotos,
-      primaryPhotoIndex: prev.primaryPhotoIndex >= newPhotos.length ? 0 : prev.primaryPhotoIndex
-    }))
+    setFormData(prev => {
+      const updated = {
+        ...prev,
+        photos: newPhotos,
+        primaryPhotoIndex: prev.primaryPhotoIndex >= newPhotos.length ? 0 : prev.primaryPhotoIndex
+      }
+      checkFormChanges(updated)
+      return updated
+    })
   }
 
   const validateForm = (): boolean => {
-    return !!(
+    const baseValidation = !!(
+      formData.availability &&
       formData.propertyType &&
       formData.address &&
       formData.city &&
-      formData.state &&
       formData.postcode &&
       formData.monthlyRent &&
       formData.securityDeposit &&
-      formData.availableDate &&
-      formData.bedrooms &&
-      formData.bathrooms &&
+      formData.bedrooms !== "" &&
+      formData.bathrooms !== "" &&
       formData.description &&
       formData.photos.length > 0
     )
+
+    // Only require available date if tenanted or upcoming
+    const dateRequired = (formData.availability === 'tenanted' || formData.availability === 'upcoming') 
+      ? !!formData.availableDate 
+      : true
+
+    // Debug logging - remove after testing
+    if (!baseValidation) {
+      console.log('Validation failed for:', {
+        availability: !!formData.availability,
+        propertyType: !!formData.propertyType,
+        address: !!formData.address,
+        city: !!formData.city,
+        postcode: !!formData.postcode,
+        monthlyRent: !!formData.monthlyRent,
+        securityDeposit: !!formData.securityDeposit,
+        bedrooms: formData.bedrooms !== "",
+        bathrooms: formData.bathrooms !== "",
+        description: !!formData.description,
+        photos: formData.photos.length > 0
+      })
+    }
+
+    return baseValidation && dateRequired
   }
 
   const handleSubmit = async () => {
@@ -280,6 +387,7 @@ export function EditPropertyForm({ propertyId, initialData }: EditPropertyFormPr
     try {
       // Create the update payload
       const updateData = {
+        availability: formData.availability,
         property_type: formData.propertyType,
         property_licence: formData.propertyLicence,
         property_condition: formData.propertyCondition,
@@ -310,8 +418,8 @@ export function EditPropertyForm({ propertyId, initialData }: EditPropertyFormPr
       const result = await response.json()
 
       if (result.success) {
-        // Redirect to properties list with success message
-        router.push('/landlord/properties?updated=true')
+        // Redirect to dashboard with success message
+        router.push('/landlord/dashboard?updated=true')
       } else {
         alert(`Update failed: ${result.error}`)
       }
@@ -331,10 +439,10 @@ export function EditPropertyForm({ propertyId, initialData }: EditPropertyFormPr
           {/* Header */}
           <div className="mb-8">
             <div className="flex items-center gap-4 mb-4">
-              <Link href="/landlord/properties">
+              <Link href="/landlord/dashboard">
                 <Button variant="ghost" size="sm">
                   <ArrowLeft className="h-4 w-4 mr-2" />
-                  Back to Properties
+                  Back to Dashboard
                 </Button>
               </Link>
             </div>
@@ -353,6 +461,38 @@ export function EditPropertyForm({ propertyId, initialData }: EditPropertyFormPr
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4 py-4">
+                {/* Availability and Available Date Row */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <Label htmlFor="availability">Availability *</Label>
+                    <Select
+                      value={formData.availability}
+                      onValueChange={(value) => handleInputChange("availability", value)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select availability" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="vacant">Vacant</SelectItem>
+                        <SelectItem value="tenanted">Tenanted</SelectItem>
+                        <SelectItem value="upcoming">Upcoming</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+{(formData.availability === 'tenanted' || formData.availability === 'upcoming') && (
+                    <div>
+                      <Label htmlFor="availableDate">Available Date *</Label>
+                      <Input
+                        id="availableDate"
+                        type="date"
+                        value={formData.availableDate}
+                        onChange={(e) => handleInputChange("availableDate", e.target.value)}
+                      />
+                    </div>
+                  )}
+                  <div></div>
+                </div>
+
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
                     <Label htmlFor="propertyType">Property Type *</Label>
@@ -426,6 +566,10 @@ export function EditPropertyForm({ propertyId, initialData }: EditPropertyFormPr
                       </SelectContent>
                     </Select>
                   </div>
+                  <div></div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
                     <Label htmlFor="propertyCondition">Property Condition</Label>
                     <Select
@@ -444,9 +588,6 @@ export function EditPropertyForm({ propertyId, initialData }: EditPropertyFormPr
                       </SelectContent>
                     </Select>
                   </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
                     <Label htmlFor="monthlyRent">Monthly Rent (£) *</Label>
                     <Input
@@ -467,15 +608,6 @@ export function EditPropertyForm({ propertyId, initialData }: EditPropertyFormPr
                       placeholder="2500"
                     />
                   </div>
-                  <div>
-                    <Label htmlFor="availableDate">Available Date *</Label>
-                    <Input
-                      id="availableDate"
-                      type="date"
-                      value={formData.availableDate}
-                      onChange={(e) => handleInputChange("availableDate", e.target.value)}
-                    />
-                  </div>
                 </div>
 
                 <div>
@@ -485,7 +617,8 @@ export function EditPropertyForm({ propertyId, initialData }: EditPropertyFormPr
                     value={formData.description}
                     onChange={(e) => handleInputChange("description", e.target.value)}
                     placeholder="Describe your property, highlighting key features and amenities..."
-                    rows={6}
+                    rows={8}
+                    className="min-h-[150px] resize-y"
                   />
                   <p className="text-sm text-muted-foreground mt-1">
                     {formData.description.length}/1000 characters
@@ -663,12 +796,12 @@ export function EditPropertyForm({ propertyId, initialData }: EditPropertyFormPr
             <Card>
               <CardContent className="pt-6">
                 <div className="flex justify-between items-center">
-                  <Link href="/landlord/properties">
+                  <Link href="/landlord/dashboard">
                     <Button variant="ghost">Cancel</Button>
                   </Link>
                   <Button
                     onClick={handleSubmit}
-                    disabled={!validateForm() || isLoading}
+                    disabled={!validateForm() || isLoading || !hasFormChanged}
                     className="bg-accent hover:bg-accent/90 text-accent-foreground"
                   >
                     {isLoading ? "Updating..." : "Update Property"}

@@ -56,13 +56,6 @@ export function KentProperties() {
               Explore our curated selection of rental properties in beautiful Kent countryside
             </p>
           </div>
-          <div className="hidden md:block">
-            <Link href="/properties">
-              <Button size="sm" className="bg-slate-900 hover:bg-slate-800 text-white">
-                View All
-              </Button>
-            </Link>
-          </div>
         </div>
 
         <div className="relative mb-12">

@@ -20,9 +20,6 @@ export function Footer() {
           <div className="space-y-4">
             <h3 className="font-semibold text-lg">Quick Links</h3>
             <div className="space-y-2">
-              <Link href="/properties" className="block hover:text-accent transition-colors">
-                Browse Properties
-              </Link>
               <Link href="/landlord" className="block hover:text-accent transition-colors">
                 For Landlords
               </Link>

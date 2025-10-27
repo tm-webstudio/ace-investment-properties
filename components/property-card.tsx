@@ -3,6 +3,7 @@
 import { useState } from "react"
 import Image from "next/image"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -21,12 +22,49 @@ interface PropertyCardProps {
 
 export function PropertyCard({ property, variant = 'default', onPropertyDeleted }: PropertyCardProps) {
   const [isDeleting, setIsDeleting] = useState(false)
+  const router = useRouter()
+  
+  // Debug availability - temporary
+  console.log('PropertyCard debug:', {
+    id: property.id,
+    availability: property.availability,
+    type: typeof property.availability
+  })
+
+  // Helper function to get licence display name
+  const getLicenceDisplay = (licence: string) => {
+    switch (licence) {
+      case 'hmo': return 'HMO Licence'
+      case 'c2': return 'C2 Licence'
+      case 'selective': return 'Selective Licence'
+      case 'additional': return 'Additional Licence'
+      case 'other': return 'Licensed'
+      case 'none': return null // Don't show badge for "No Licence Required"
+      default: return null // Don't show badge if no licence or unknown
+    }
+  }
+
+  // Helper function to get condition display name
+  const getConditionDisplay = (condition: string) => {
+    switch (condition) {
+      case 'excellent': return 'Excellent'
+      case 'newly-renovated': return 'Newly Renovated'
+      case 'good': return 'Good'
+      case 'fair': return 'Fair'
+      case 'needs-work': return 'Needs Work'
+      default: return null // Don't show badge if no condition or unknown
+    }
+  }
 
   const handleCardClick = (e: React.MouseEvent) => {
-    // Only navigate if clicking on non-interactive elements
-    if (variant === 'landlord' && !(e.target as HTMLElement).closest('[data-dropdown-trigger]')) {
-      window.location.href = `/properties/${property.id}`
+    // Prevent navigation if clicking on interactive elements
+    const target = e.target as HTMLElement
+    if (target.closest('button') || target.closest('[data-dropdown-trigger]') || target.closest('a')) {
+      return
     }
+    
+    // Navigate to property detail page
+    router.push(`/properties/${property.id}`)
   }
 
   const handleDeleteProperty = async () => {
@@ -85,34 +123,23 @@ export function PropertyCard({ property, variant = 'default', onPropertyDeleted 
             className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
           />
           <div className="absolute top-4 left-4">
-            {(() => {
-              // Use available_date for landlord variant
-              const availableDateStr = property.availableDate || property.available_date;
-              const todayStr = '2025-09-04';
-              
-              if (!availableDateStr) {
-                return (
-                  <Badge className="font-semibold shadow-lg bg-accent text-accent-foreground hover:bg-accent/90">
-                    Available Now
-                  </Badge>
-                );
+            <Badge 
+              variant={
+                property.availability === 'vacant' ? 'default' : 
+                property.availability === 'tenanted' ? 'destructive' : 
+                property.availability === 'upcoming' ? 'default' :
+                'secondary'
               }
-              
-              const isAvailableNow = availableDateStr <= todayStr;
-              const availableDate = new Date(availableDateStr);
-              const isValidDate = !isNaN(availableDate.getTime());
-              
-              return (
-                <Badge className={`font-semibold shadow-lg ${
-                  isAvailableNow 
-                    ? 'bg-accent text-accent-foreground hover:bg-accent/90' 
-                    : 'bg-red-600 text-white hover:bg-red-700'
-                }`}>
-                  {isAvailableNow ? 'Available Now' : 
-                   isValidDate ? `Available ${format(availableDate, 'dd/MM/yyyy')}` : 'Available Soon'}
-                </Badge>
-              );
-            })()}
+              className={`text-xs font-semibold shadow-lg ${
+                property.availability === 'vacant' ? 'bg-accent text-accent-foreground hover:bg-accent/90' : 
+                property.availability === 'upcoming' ? 'bg-orange-500 text-white hover:bg-orange-600' : ''
+              }`}
+            >
+              {property.availability === 'vacant' ? 'Vacant' :
+               property.availability === 'tenanted' ? 'Tenanted' :
+               property.availability === 'upcoming' ? 'Upcoming' :
+               'Available'}
+            </Badge>
           </div>
           <div className="absolute top-4 right-4 z-10">
             <DropdownMenu>
@@ -135,12 +162,6 @@ export function PropertyCard({ property, variant = 'default', onPropertyDeleted 
                 sideOffset={8}
                 data-dropdown-trigger
               >
-                <DropdownMenuItem asChild>
-                  <Link href={`/properties/${property.id}`} className="cursor-pointer transition-colors duration-150">
-                    <Eye className="mr-2 h-4 w-4" />
-                    View Listing
-                  </Link>
-                </DropdownMenuItem>
                 <DropdownMenuItem asChild>
                   <Link href={`/landlord/properties/${property.id}/edit`} className="cursor-pointer transition-colors duration-150">
                     <Edit className="mr-2 h-4 w-4" />
@@ -168,7 +189,7 @@ export function PropertyCard({ property, variant = 'default', onPropertyDeleted 
           <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
         </div>
 
-        <CardContent className="px-5 pb-4 pr-4 pl-4 cursor-pointer" onClick={handleCardClick}>
+        <CardContent className="px-5 pb-4 pr-4 pl-4" onClick={handleCardClick}>
           <div className="space-y-2.5">
             <div className="mb-1.5">
               <h3 className="font-serif text-lg font-semibold text-card-foreground mb-1 line-clamp-1">
@@ -180,6 +201,9 @@ export function PropertyCard({ property, variant = 'default', onPropertyDeleted 
             </div>
 
             <div className="flex items-center gap-4 text-sm text-muted-foreground">
+              <div className="flex items-center">
+                <span className="capitalize">{property.property_type}</span>
+              </div>
               <div className="flex items-center">
                 <Bed className="h-4 w-4 mr-1" />
                 <span>
@@ -194,17 +218,34 @@ export function PropertyCard({ property, variant = 'default', onPropertyDeleted 
               </div>
             </div>
 
-            <div className="flex flex-wrap gap-2">
-              {(property.amenities || []).slice(0, 3).map((amenity) => (
-                <Badge key={amenity} variant="secondary" className="text-xs">
-                  {amenity}
-                </Badge>
-              ))}
-              {(property.amenities || []).length > 3 && (
-                <Badge variant="secondary" className="text-xs">
-                  +{(property.amenities || []).length - 3} more
-                </Badge>
-              )}
+            <div className="flex items-center gap-2">
+              {(() => {
+                const licenceDisplay = getLicenceDisplay(property.property_licence);
+                
+                if (!licenceDisplay) {
+                  return null;
+                }
+                
+                return (
+                  <Badge className="text-xs font-semibold bg-primary text-primary-foreground hover:bg-primary/90">
+                    {licenceDisplay}
+                  </Badge>
+                );
+              })()}
+              
+              {(() => {
+                const conditionDisplay = getConditionDisplay(property.property_condition);
+                
+                if (!conditionDisplay) {
+                  return null;
+                }
+                
+                return (
+                  <Badge className="text-xs font-semibold bg-gray-200 text-gray-700 hover:bg-gray-300">
+                    {conditionDisplay}
+                  </Badge>
+                );
+              })()}
             </div>
           </div>
         </CardContent>
@@ -214,9 +255,9 @@ export function PropertyCard({ property, variant = 'default', onPropertyDeleted 
 
   // Default variant with heart icon
   return (
-    <Link href={`/properties/${property.id}`} className="block">
+    <div className="block">
       <Card className="overflow-hidden hover:shadow-lg transition-all duration-300 group border-border/50 hover:border-accent/20 cursor-pointer p-0 gap-3.5 rounded-none">
-        <div className="relative overflow-hidden">
+        <div className="relative overflow-hidden cursor-pointer" onClick={handleCardClick}>
           <Image
             src={(property.images || property.photos)?.[0] || "/placeholder.svg"}
             alt={property.title || `${property.property_type} in ${property.city}`}
@@ -225,34 +266,23 @@ export function PropertyCard({ property, variant = 'default', onPropertyDeleted 
             className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
           />
           <div className="absolute top-4 left-4">
-            {(() => {
-              // Use string comparison for more reliable date checking
-              const availableDateStr = property.availableDate || property.available_date;
-              const todayStr = '2025-09-04'; // Current date
-              
-              if (!availableDateStr) {
-                return (
-                  <Badge className="font-semibold shadow-lg bg-accent text-accent-foreground hover:bg-accent/90">
-                    Available Now
-                  </Badge>
-                );
+            <Badge 
+              variant={
+                property.availability === 'vacant' ? 'default' : 
+                property.availability === 'tenanted' ? 'destructive' : 
+                property.availability === 'upcoming' ? 'default' :
+                'secondary'
               }
-              
-              const isAvailableNow = availableDateStr <= todayStr;
-              const availableDate = new Date(availableDateStr);
-              const isValidDate = !isNaN(availableDate.getTime());
-              
-              return (
-                <Badge className={`font-semibold shadow-lg ${
-                  isAvailableNow 
-                    ? 'bg-accent text-accent-foreground hover:bg-accent/90' 
-                    : 'bg-red-600 text-white hover:bg-red-700'
-                }`}>
-                  {isAvailableNow ? 'Available Now' : 
-                   isValidDate ? `Available ${format(availableDate, 'dd/MM/yyyy')}` : 'Available Soon'}
-                </Badge>
-              );
-            })()}
+              className={`text-xs font-semibold shadow-lg ${
+                property.availability === 'vacant' ? 'bg-accent text-accent-foreground hover:bg-accent/90' : 
+                property.availability === 'upcoming' ? 'bg-orange-500 text-white hover:bg-orange-600' : ''
+              }`}
+            >
+              {property.availability === 'vacant' ? 'Vacant' :
+               property.availability === 'tenanted' ? 'Tenanted' :
+               property.availability === 'upcoming' ? 'Upcoming' :
+               'Available'}
+            </Badge>
           </div>
           <div className="absolute top-4 right-4 z-10">
             <SavePropertyButton
@@ -265,7 +295,7 @@ export function PropertyCard({ property, variant = 'default', onPropertyDeleted 
           <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
         </div>
 
-        <CardContent className="px-5 pb-4 pr-4 pl-4">
+        <CardContent className="px-5 pb-4 pr-4 pl-4" onClick={handleCardClick}>
           <div className="space-y-2.5">
             <div className="mb-1.5">
               <h3 className="font-serif text-lg font-semibold text-card-foreground mb-1 line-clamp-1">
@@ -277,6 +307,9 @@ export function PropertyCard({ property, variant = 'default', onPropertyDeleted 
             </div>
 
             <div className="flex items-center gap-4 text-sm text-muted-foreground">
+              <div className="flex items-center">
+                <span className="capitalize">{property.property_type}</span>
+              </div>
               <div className="flex items-center">
                 <Bed className="h-4 w-4 mr-1" />
                 <span>
@@ -291,21 +324,38 @@ export function PropertyCard({ property, variant = 'default', onPropertyDeleted 
               </div>
             </div>
 
-            <div className="flex flex-wrap gap-2">
-              {(property.amenities || []).slice(0, 3).map((amenity) => (
-                <Badge key={amenity} variant="secondary" className="text-xs">
-                  {amenity}
-                </Badge>
-              ))}
-              {(property.amenities || []).length > 3 && (
-                <Badge variant="secondary" className="text-xs">
-                  +{(property.amenities || []).length - 3} more
-                </Badge>
-              )}
+            <div className="flex items-center gap-2">
+              {(() => {
+                const licenceDisplay = getLicenceDisplay(property.property_licence);
+                
+                if (!licenceDisplay) {
+                  return null;
+                }
+                
+                return (
+                  <Badge className="text-xs font-semibold bg-primary text-primary-foreground hover:bg-primary/90">
+                    {licenceDisplay}
+                  </Badge>
+                );
+              })()}
+              
+              {(() => {
+                const conditionDisplay = getConditionDisplay(property.property_condition);
+                
+                if (!conditionDisplay) {
+                  return null;
+                }
+                
+                return (
+                  <Badge className="text-xs font-semibold bg-gray-200 text-gray-700 hover:bg-gray-300">
+                    {conditionDisplay}
+                  </Badge>
+                );
+              })()}
             </div>
           </div>
         </CardContent>
       </Card>
-    </Link>
+    </div>
   )
 }

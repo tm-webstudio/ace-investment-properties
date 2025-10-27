@@ -197,14 +197,6 @@ export function Navigation() {
                         </div>
                       </div>
 
-                      <div className="mt-8 pt-6 border-t border-border">
-                        <Link
-                          href="/properties"
-                          className="inline-flex items-center px-6 py-3 bg-primary text-primary-foreground hover:bg-primary/90 transition-colors font-medium text-sm"
-                        >
-                          View All Properties
-                        </Link>
-                      </div>
                     </div>
                   </div>
                 </>
@@ -395,11 +387,6 @@ export function Navigation() {
                     </div>
                   </div>
 
-                  <Link href="/properties" onClick={() => setIsOpen(false)}>
-                    <Button className="w-full bg-white text-primary hover:bg-gray-100 mt-3">
-                      View All Properties
-                    </Button>
-                  </Link>
                 </div>
               )}
             </div>

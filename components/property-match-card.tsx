@@ -169,13 +169,6 @@ export function PropertyMatchCard({ property, onSave, isSaved = false }: Propert
             </div>
           </div>
 
-          {/* View Details Button */}
-          <Link href={`/properties/${property.id}`}>
-            <Button className="w-full" variant="outline">
-              <Eye className="h-4 w-4 mr-2" />
-              View Details
-            </Button>
-          </Link>
         </CardContent>
       </div>
     </Card>

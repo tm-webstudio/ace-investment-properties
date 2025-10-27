@@ -22,6 +22,7 @@ import Image from "next/image"
 
 interface PropertyFormData {
   // Basic Info
+  availability: string
   propertyType: string
   propertyLicence?: string
   propertyCondition: string
@@ -60,6 +61,7 @@ export function AddPropertyForm() {
   const [draftId, setDraftId] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [formData, setFormData] = useState<PropertyFormData>({
+    availability: "",
     propertyType: "",
     propertyLicence: "",
     propertyCondition: "",
@@ -108,7 +110,16 @@ export function AddPropertyForm() {
   ]
 
   const handleInputChange = (field: keyof PropertyFormData, value: any) => {
-    setFormData((prev) => ({ ...prev, [field]: value }))
+    setFormData((prev) => {
+      const updated = { ...prev, [field]: value }
+      
+      // Clear available date when vacant is selected
+      if (field === 'availability' && value === 'vacant') {
+        updated.availableDate = ''
+      }
+      
+      return updated
+    })
   }
 
   const handleAmenityChange = (amenity: string, checked: boolean) => {
@@ -390,6 +401,7 @@ export function AddPropertyForm() {
     switch (step) {
       case 1:
         return {
+          availability: formData.availability || '',
           propertyType: formData.propertyType || '',
           propertyLicence: formData.propertyLicence || '',
           bedrooms: formData.bedrooms || '',
@@ -498,6 +510,7 @@ export function AddPropertyForm() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             propertyData: {
+              availability: formData.availability,
               propertyType: formData.propertyType,
               bedrooms: formData.bedrooms,
               bathrooms: formData.bathrooms,
@@ -608,6 +621,7 @@ export function AddPropertyForm() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             propertyData: {
+              availability: formData.availability,
               propertyType: formData.propertyType,
               bedrooms: formData.bedrooms,
               bathrooms: formData.bathrooms,
@@ -701,17 +715,22 @@ export function AddPropertyForm() {
       
       // Validate that all required fields are filled before proceeding
       const requiredFields = [
+        { field: 'availability', label: 'Availability' },
         { field: 'propertyType', label: 'Property Type' },
         { field: 'bedrooms', label: 'Bedrooms' },
         { field: 'bathrooms', label: 'Bathrooms' },
         { field: 'monthlyRent', label: 'Monthly Rent' },
         { field: 'securityDeposit', label: 'Security Deposit' },
-        { field: 'availableDate', label: 'Available Date' },
         { field: 'description', label: 'Description' },
         { field: 'address', label: 'Address' },
         { field: 'city', label: 'City' },
         { field: 'postcode', label: 'Postcode' }
       ]
+
+      // Only require available date if tenanted or upcoming
+      if (formData.availability === 'tenanted' || formData.availability === 'upcoming') {
+        requiredFields.push({ field: 'availableDate', label: 'Available Date' })
+      }
       
       const missingFields = requiredFields.filter(req => !formData[req.field as keyof typeof formData])
       
@@ -768,7 +787,8 @@ export function AddPropertyForm() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               propertyData: {
-                propertyType: formData.propertyType,
+                availability: formData.availability,
+              propertyType: formData.propertyType,
                 bedrooms: formData.bedrooms,
                 bathrooms: formData.bathrooms,
                 monthlyRent: formData.monthlyRent,
@@ -952,6 +972,38 @@ export function AddPropertyForm() {
           {/* Step 1: Basic Information */}
           {currentStep === 1 && (
             <div className="space-y-6">
+              {/* Availability and Available Date Row */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <Label htmlFor="availability">Availability *</Label>
+                  <Select
+                    value={formData.availability}
+                    onValueChange={(value) => handleInputChange("availability", value)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select availability" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="vacant">Vacant</SelectItem>
+                      <SelectItem value="tenanted">Tenanted</SelectItem>
+                      <SelectItem value="upcoming">Upcoming</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+{(formData.availability === 'tenanted' || formData.availability === 'upcoming') && (
+                  <div>
+                    <Label htmlFor="availableDate">Available Date *</Label>
+                    <Input
+                      id="availableDate"
+                      type="date"
+                      value={formData.availableDate}
+                      onChange={(e) => handleInputChange("availableDate", e.target.value)}
+                    />
+                  </div>
+                )}
+                <div></div>
+              </div>
+
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
                   <Label htmlFor="propertyType">Property Type *</Label>
@@ -1022,6 +1074,10 @@ export function AddPropertyForm() {
                     </SelectContent>
                   </Select>
                 </div>
+                <div></div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
                   <Label htmlFor="propertyCondition">Property Condition</Label>
                   <Select
@@ -1040,9 +1096,6 @@ export function AddPropertyForm() {
                     </SelectContent>
                   </Select>
                 </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
                   <Label htmlFor="monthlyRent">Monthly Rent *</Label>
                   <Input
@@ -1063,15 +1116,6 @@ export function AddPropertyForm() {
                     placeholder="2500"
                   />
                 </div>
-                <div>
-                  <Label htmlFor="availableDate">Available Date *</Label>
-                  <Input
-                    id="availableDate"
-                    type="date"
-                    value={formData.availableDate}
-                    onChange={(e) => handleInputChange("availableDate", e.target.value)}
-                  />
-                </div>
               </div>
 
               <div>
@@ -1081,7 +1125,8 @@ export function AddPropertyForm() {
                   value={formData.description}
                   onChange={(e) => handleInputChange("description", e.target.value)}
                   placeholder="Describe your property, highlighting key features and amenities..."
-                  rows={6}
+                  rows={8}
+                  className="min-h-[150px] resize-y"
                 />
               </div>
 

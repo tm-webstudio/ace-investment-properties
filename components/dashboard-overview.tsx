@@ -40,16 +40,29 @@ export function DashboardOverview({ userId }: DashboardOverviewProps) {
   const fetchProperties = async () => {
     try {
       setLoading(true)
-      const { data, error } = await supabase
-        .from('properties')
-        .select('*')
-        .eq('landlord_id', userId)
-        .order('created_at', { ascending: false })
+      
+      // Get current session for API authentication
+      const { data: { session } } = await supabase.auth.getSession()
+      
+      if (!session?.access_token) {
+        console.error('No access token available')
+        setLoading(false)
+        return
+      }
 
-      if (error) {
-        console.error('Error fetching properties:', error)
+      // Use the landlord properties API endpoint instead of direct DB query
+      const response = await fetch('/api/landlord/properties', {
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`
+        }
+      })
+
+      const result = await response.json()
+
+      if (result.success) {
+        setProperties(result.properties || [])
       } else {
-        setProperties(data || [])
+        console.error('Error fetching properties:', result.error)
       }
     } catch (error) {
       console.error('Error:', error)

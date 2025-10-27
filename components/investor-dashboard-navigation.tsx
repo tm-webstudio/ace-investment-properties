@@ -33,10 +33,25 @@ export function InvestorDashboardNavigation({ customButton }: InvestorDashboardN
             <Link key={item.id} href={item.href}>
               <Button
                 variant={activeTab === item.id ? "default" : "ghost"}
-                className="flex items-center gap-2"
+                className={`
+                  group flex items-center gap-2 relative overflow-hidden
+                  transition-all duration-200 ease-out
+                  hover:scale-[1.02] hover:-translate-y-px
+                  hover:shadow-md hover:shadow-primary/10
+                  active:scale-[0.98] active:transition-none
+                  ${activeTab === item.id 
+                    ? 'bg-primary text-primary-foreground shadow-sm' 
+                    : 'hover:bg-primary/8 hover:text-primary hover:border-primary/15'
+                  }
+                `}
               >
-                <item.icon className="h-4 w-4" />
-                {item.label}
+                <item.icon className={`
+                  h-4 w-4 transition-all duration-200 ease-out
+                  ${activeTab === item.id ? '' : 'group-hover:scale-105'}
+                `} />
+                <span className="relative z-10 font-medium">
+                  {item.label}
+                </span>
               </Button>
             </Link>
           ))}
@@ -44,9 +59,15 @@ export function InvestorDashboardNavigation({ customButton }: InvestorDashboardN
 
         {customButton || (
           <Link href="/investor/preferences">
-            <Button className="bg-accent hover:bg-accent/90 text-accent-foreground">
-              <Settings className="mr-2 h-4 w-4" />
-              Edit Preferences
+            <Button className="
+              group bg-accent hover:bg-accent/90 text-accent-foreground 
+              transition-all duration-200 ease-out
+              hover:scale-[1.02] hover:-translate-y-px
+              hover:shadow-md hover:shadow-accent/15
+              active:scale-[0.98] active:transition-none
+            ">
+              <Settings className="mr-2 h-4 w-4 transition-all duration-200 ease-out group-hover:scale-105" />
+              <span className="relative z-10 font-medium">Edit Preferences</span>
             </Button>
           </Link>
         )}

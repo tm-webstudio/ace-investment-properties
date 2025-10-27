@@ -39,6 +39,11 @@ export function UserDropdown() {
     }
   }
 
+  const getUserType = () => {
+    const userType = user.user_metadata?.user_type || 'investor'
+    return userType.charAt(0).toUpperCase() + userType.slice(1)
+  }
+
   return (
     <div
       className="relative"
@@ -64,6 +69,9 @@ export function UserDropdown() {
             onMouseLeave={() => setIsDropdownOpen(false)}
           >
             <div className="p-2">
+              <div className="px-3 py-2 text-xs font-medium text-gray-500 uppercase tracking-wider border-b border-gray-200 mb-1">
+                {getUserType()}
+              </div>
               <Link
                 href={getDashboardPath()}
                 className="flex items-center gap-2 w-full px-3 py-2 text-sm hover:bg-primary/10 hover:text-primary transition-colors rounded"

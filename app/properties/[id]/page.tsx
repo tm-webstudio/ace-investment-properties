@@ -9,6 +9,7 @@ import { PropertyDetails } from "@/components/property-details"
 import { LandlordCard } from "@/components/landlord-card"
 import { SimilarProperties } from "@/components/similar-properties"
 import { ApplicationModal } from "@/components/application-modal"
+import { BookViewingModal } from "@/components/book-viewing-modal"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
@@ -28,6 +29,7 @@ interface PropertyPageProps {
 export default function PropertyPage({ params }: PropertyPageProps) {
   const { id } = use(params)
   const [isOpen, setIsOpen] = useState(false)
+  const [isBookViewingOpen, setIsBookViewingOpen] = useState(false)
   const [property, setProperty] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -97,6 +99,10 @@ export default function PropertyPage({ params }: PropertyPageProps) {
     setFormData((prev) => ({ ...prev, [field]: value }))
   }
 
+  const handleBookViewing = () => {
+    setIsBookViewingOpen(true)
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen flex flex-col">
@@ -148,7 +154,7 @@ export default function PropertyPage({ params }: PropertyPageProps) {
 
             {/* Sidebar */}
             <div className="space-y-6">
-              <ApplicationModal property={property} />
+              <ApplicationModal property={property} onBookViewing={handleBookViewing} />
               <LandlordCard
                 name={property.landlordName}
                 phone={property.landlordPhone}
@@ -378,6 +384,21 @@ export default function PropertyPage({ params }: PropertyPageProps) {
         </div>
       </main>
       <Footer />
+      
+      {/* Book Viewing Modal */}
+      <BookViewingModal
+        isOpen={isBookViewingOpen}
+        onClose={() => setIsBookViewingOpen(false)}
+        propertyId={property.id}
+        propertyData={{
+          id: property.id,
+          title: property.title,
+          address: property.address,
+          monthly_rent: property.price,
+          photos: property.images,
+          images: property.images
+        }}
+      />
     </div>
   )
 }

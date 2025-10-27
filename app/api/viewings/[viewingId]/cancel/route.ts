@@ -1,0 +1,108 @@
+import { NextRequest, NextResponse } from 'next/server'
+import { createClient } from '@supabase/supabase-js'
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
+
+const supabase = createClient(supabaseUrl, supabaseServiceKey)
+
+export async function PUT(
+  request: NextRequest,
+  { params }: { params: { viewingId: string } }
+) {
+  try {
+    const { viewingId } = params
+
+    // Get user ID from authorization header
+    const authHeader = request.headers.get('authorization')
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return NextResponse.json(
+        { success: false, error: 'Authentication required' },
+        { status: 401 }
+      )
+    }
+
+    const token = authHeader.substring(7)
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token)
+    
+    if (authError || !user) {
+      return NextResponse.json(
+        { success: false, error: 'Invalid authentication token' },
+        { status: 401 }
+      )
+    }
+
+    // Get viewing to check permissions
+    const { data: viewing, error: viewingError } = await supabase
+      .from('property_viewings')
+      .select('*')
+      .eq('id', viewingId)
+      .single()
+
+    if (viewingError || !viewing) {
+      return NextResponse.json(
+        { success: false, error: 'Viewing not found' },
+        { status: 404 }
+      )
+    }
+
+    // Check if user owns this viewing request
+    if (viewing.user_id !== user.id) {
+      return NextResponse.json(
+        { success: false, error: 'Permission denied. You can only cancel your own viewing requests.' },
+        { status: 403 }
+      )
+    }
+
+    // Check if viewing is in a state that can be cancelled
+    if (!['pending', 'approved'].includes(viewing.status)) {
+      return NextResponse.json(
+        { success: false, error: `Cannot cancel viewing with status: ${viewing.status}` },
+        { status: 400 }
+      )
+    }
+
+    // Check if it's not too late to cancel (e.g., at least 2 hours before viewing)
+    const viewingDateTime = new Date(`${viewing.viewing_date}T${viewing.viewing_time}`)
+    const now = new Date()
+    const twoHoursFromNow = new Date(now.getTime() + (2 * 60 * 60 * 1000))
+    
+    if (viewingDateTime <= twoHoursFromNow) {
+      return NextResponse.json(
+        { success: false, error: 'Cannot cancel viewing less than 2 hours before the scheduled time. Please contact the landlord directly.' },
+        { status: 400 }
+      )
+    }
+
+    // Update viewing status to cancelled
+    const { data: updatedViewing, error: updateError } = await supabase
+      .from('property_viewings')
+      .update({ 
+        status: 'cancelled'
+      })
+      .eq('id', viewingId)
+      .select()
+      .single()
+
+    if (updateError) {
+      console.error('Error cancelling viewing:', updateError)
+      return NextResponse.json(
+        { success: false, error: 'Failed to cancel viewing' },
+        { status: 500 }
+      )
+    }
+
+    return NextResponse.json({
+      success: true,
+      viewing: updatedViewing,
+      message: 'Viewing cancelled successfully'
+    })
+
+  } catch (error) {
+    console.error('Cancel viewing error:', error)
+    return NextResponse.json(
+      { success: false, error: 'Internal server error' },
+      { status: 500 }
+    )
+  }
+}

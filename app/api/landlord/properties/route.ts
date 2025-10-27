@@ -37,6 +37,9 @@ export async function GET(request: NextRequest) {
         postcode,
         photos,
         status,
+        availability,
+        property_licence,
+        property_condition,
         published_at,
         created_at,
         updated_at
@@ -53,14 +56,22 @@ export async function GET(request: NextRequest) {
     }
 
     // Format properties for frontend
-    const formattedProperties = properties.map(property => ({
-      ...property,
-      monthly_rent: property.monthly_rent / 100, // Convert from pence to pounds
-      security_deposit: property.security_deposit / 100,
-      photos: property.photos || [],
-      amenities: property.amenities || [],
-      title: `${property.property_type} in ${property.city}` // Add title for PropertyCard
-    }))
+    const formattedProperties = properties.map(property => {
+      console.log('API formatting property:', {
+        id: property.id,
+        original_availability: property.availability,
+        final_availability: property.availability || 'vacant'
+      })
+      return {
+        ...property,
+        monthly_rent: property.monthly_rent / 100, // Convert from pence to pounds
+        security_deposit: property.security_deposit / 100,
+        availability: property.availability || 'vacant', // Default to vacant if not set
+        photos: property.photos || [],
+        amenities: property.amenities || [],
+        title: `${property.property_type} in ${property.city}` // Add title for PropertyCard
+      }
+    })
 
     return NextResponse.json({
       success: true,

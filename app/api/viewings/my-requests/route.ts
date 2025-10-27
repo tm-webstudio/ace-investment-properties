@@ -1,0 +1,107 @@
+import { NextRequest, NextResponse } from 'next/server'
+import { createClient } from '@supabase/supabase-js'
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
+
+const supabase = createClient(supabaseUrl, supabaseServiceKey)
+
+export async function GET(request: NextRequest) {
+  try {
+    // Get user ID from authorization header
+    const authHeader = request.headers.get('authorization')
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return NextResponse.json(
+        { success: false, error: 'Authentication required' },
+        { status: 401 }
+      )
+    }
+
+    const token = authHeader.substring(7)
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token)
+    
+    if (authError || !user) {
+      return NextResponse.json(
+        { success: false, error: 'Invalid authentication token' },
+        { status: 401 }
+      )
+    }
+
+    // Get query parameters
+    const { searchParams } = new URL(request.url)
+    const status = searchParams.get('status')
+    const limit = parseInt(searchParams.get('limit') || '20')
+    const offset = parseInt(searchParams.get('offset') || '0')
+
+    // Build query
+    let query = supabase
+      .from('property_viewings')
+      .select(`
+        *,
+        properties (
+          id,
+          title,
+          address,
+          city,
+          monthly_rent,
+          photos,
+          landlord_id,
+          user_profiles!properties_landlord_id_fkey (
+            full_name,
+            email,
+            phone
+          )
+        )
+      `)
+      .eq('user_id', user.id)
+      .order('viewing_date', { ascending: false })
+      .order('viewing_time', { ascending: false })
+      .range(offset, offset + limit - 1)
+
+    // Filter by status if provided
+    if (status && status !== 'all') {
+      query = query.eq('status', status)
+    }
+
+    const { data: viewings, error: viewingsError } = await query
+
+    if (viewingsError) {
+      console.error('Error fetching user viewings:', viewingsError)
+      return NextResponse.json(
+        { success: false, error: 'Failed to fetch viewing requests' },
+        { status: 500 }
+      )
+    }
+
+    // Mark as viewed by user
+    if (viewings && viewings.length > 0) {
+      const unviewedIds = viewings
+        .filter(v => !v.viewed_by_user)
+        .map(v => v.id)
+
+      if (unviewedIds.length > 0) {
+        await supabase
+          .from('property_viewings')
+          .update({ viewed_by_user: true })
+          .in('id', unviewedIds)
+      }
+    }
+
+    return NextResponse.json({
+      success: true,
+      viewings: viewings || [],
+      pagination: {
+        limit,
+        offset,
+        hasMore: viewings?.length === limit
+      }
+    })
+
+  } catch (error) {
+    console.error('My requests error:', error)
+    return NextResponse.json(
+      { success: false, error: 'Internal server error' },
+      { status: 500 }
+    )
+  }
+}

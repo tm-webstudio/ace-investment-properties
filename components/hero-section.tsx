@@ -20,12 +20,12 @@ export function HeroSection() {
 
           {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center pt-0">
-            <Link href="/properties">
+            <Link href="/investor/signup">
               <Button
                 size="lg"
                 className="bg-accent hover:bg-accent/90 text-accent-foreground px-8 text-base font-semibold shadow-lg hover:shadow-xl transition-all rounded-none py-6"
               >
-                Find Properties
+                Start Investing
               </Button>
             </Link>
           </div>

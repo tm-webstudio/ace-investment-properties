@@ -76,6 +76,9 @@ export function InvestorDashboardOverview({ investor }: InvestorDashboardOvervie
       bedrooms: saved.property.bedrooms,
       bathrooms: saved.property.bathrooms,
       availableDate: saved.property.available_date,
+      availability: saved.property.availability || 'vacant',
+      property_licence: saved.property.property_licence,
+      property_condition: saved.property.property_condition,
       amenities: saved.property.amenities || [],
       property_type: saved.property.property_type,
       city: saved.property.city,
@@ -158,9 +161,9 @@ export function InvestorDashboardOverview({ investor }: InvestorDashboardOvervie
               <Heart className="h-12 w-12 mx-auto mb-4 opacity-50" />
               <p className="text-lg font-medium mb-2">No saved properties yet</p>
               <p className="mb-4">Start exploring and save properties you're interested in</p>
-              <Link href="/properties">
+              <Link href="/investor/property-matching">
                 <Button className="bg-accent hover:bg-accent/90 text-accent-foreground">
-                  Browse Properties
+                  Find Properties
                 </Button>
               </Link>
             </div>

@@ -119,6 +119,7 @@ export async function POST(request: NextRequest) {
       .from('properties')
       .insert({
         landlord_id: user.id,
+        availability: propertyData.availability,
         property_type: propertyData.propertyType,
         bedrooms: propertyData.bedrooms,
         bathrooms: propertyData.bathrooms,
