@@ -101,6 +101,14 @@ export function BookViewingModal({ isOpen, onClose, propertyId, propertyData }: 
     }
   }, [isOpen, modalState])
 
+  // Initialize with default time slots when modal opens and user is ready for booking
+  useEffect(() => {
+    if (modalState === 'BOOKING_FORM' && availableSlots.length === 0) {
+      // Set default time slots if none are loaded
+      setAvailableSlots(generateDefaultTimeSlots())
+    }
+  }, [modalState, availableSlots.length])
+
   const checkAuthentication = async () => {
     try {
       const { data: { session } } = await supabase.auth.getSession()
@@ -240,6 +248,17 @@ export function BookViewingModal({ isOpen, onClose, propertyId, propertyData }: 
     }
   }
 
+  const generateDefaultTimeSlots = (): AvailabilitySlot[] => {
+    const slots: AvailabilitySlot[] = []
+    for (let hour = 9; hour < 18; hour++) {
+      for (let minute = 0; minute < 60; minute += 30) {
+        const time = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`
+        slots.push({ time, available: true })
+      }
+    }
+    return slots
+  }
+
   const fetchAvailableSlots = async (date: Date) => {
     if (!date) return
 
@@ -250,29 +269,40 @@ export function BookViewingModal({ isOpen, onClose, propertyId, propertyData }: 
       
       if (response.ok) {
         const data = await response.json()
+        console.log('Available slots API response:', data) // Debug log
+        
         if (data.success && data.availability && data.availability.length > 0) {
           const dayAvailability = data.availability[0]
           setBookingsForDate(dayAvailability.totalBooked || 0)
           
-          // Generate all possible time slots
+          // Generate all possible time slots and mark availability
           const allSlots: AvailabilitySlot[] = []
           for (let hour = 9; hour < 18; hour++) {
             for (let minute = 0; minute < 60; minute += 30) {
               const time = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`
-              const isAvailable = dayAvailability.availableSlots.includes(time)
+              const isAvailable = dayAvailability.availableSlots?.includes(time) ?? true
               allSlots.push({ time, available: isAvailable })
             }
           }
           
           setAvailableSlots(allSlots)
         } else {
-          setAvailableSlots([])
+          // Fallback: Generate default available time slots
+          console.log('No availability data, using default slots')
+          setAvailableSlots(generateDefaultTimeSlots())
           setBookingsForDate(0)
         }
+      } else {
+        // API error: Use default time slots
+        console.log('API error, using default slots')
+        setAvailableSlots(generateDefaultTimeSlots())
+        setBookingsForDate(0)
       }
     } catch (error) {
       console.error('Error fetching availability:', error)
-      setAvailableSlots([])
+      // Network error: Use default time slots
+      setAvailableSlots(generateDefaultTimeSlots())
+      setBookingsForDate(0)
     } finally {
       setLoadingSlots(false)
     }
@@ -748,15 +778,21 @@ export function BookViewingModal({ isOpen, onClose, propertyId, propertyData }: 
                         <SelectValue placeholder="Select a time" />
                       </SelectTrigger>
                       <SelectContent>
-                        {availableSlots.map((slot) => (
-                          <SelectItem 
-                            key={slot.time} 
-                            value={slot.time}
-                            disabled={!slot.available}
-                          >
-                            {formatTime(slot.time)} {!slot.available && '(Booked)'}
+                        {availableSlots.length > 0 ? (
+                          availableSlots.map((slot) => (
+                            <SelectItem 
+                              key={slot.time} 
+                              value={slot.time}
+                              disabled={!slot.available}
+                            >
+                              {formatTime(slot.time)} {!slot.available && '(Booked)'}
+                            </SelectItem>
+                          ))
+                        ) : (
+                          <SelectItem value="" disabled>
+                            No time slots available
                           </SelectItem>
-                        ))}
+                        )}
                       </SelectContent>
                     </Select>
                   )}
