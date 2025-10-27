@@ -1,10 +1,10 @@
-import { createClient } from '@supabase/supabase-js'
 import { NextRequest } from 'next/server'
+import { supabase } from '@/lib/supabase'
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
-
-const supabase = createClient(supabaseUrl, supabaseServiceKey)
+// Validate environment variables
+if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+  console.warn('Missing Supabase environment variables')
+}
 
 export interface AuthenticatedUser {
   id: string
