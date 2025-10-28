@@ -55,6 +55,33 @@ export async function GET(request: NextRequest) {
       )
     }
 
+    // Helper function to create property title
+    const formatPropertyTitle = (property: any) => {
+      const address = property.address || ''
+      const city = property.city || ''
+      const postcode = property.postcode || ''
+      
+      // Extract road name (everything before the first comma or the whole address if no comma)
+      // Remove door number from the beginning of the address
+      const addressPart = address.split(',')[0].trim()
+      const roadName = addressPart.replace(/^\d+\s*/, '').trim()
+      
+      // Extract outward postcode (first part before space) and capitalize
+      const outwardPostcode = postcode.split(' ')[0].toUpperCase()
+      
+      // Format: "Road Name, Area, Outward Postcode"
+      const title = `${roadName}, ${city}, ${outwardPostcode}`.replace(/,\s*,/g, ',').replace(/^,\s*|,\s*$/g, '')
+      
+      // Capitalize first letter of each word, but keep postcode all caps
+      return title.split(' ').map(word => {
+        // Keep outward postcode in all caps
+        if (word === outwardPostcode) {
+          return word.toUpperCase()
+        }
+        return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+      }).join(' ')
+    }
+
     // Format properties for frontend
     const formattedProperties = properties.map(property => {
       console.log('API formatting property:', {
@@ -69,7 +96,7 @@ export async function GET(request: NextRequest) {
         availability: property.availability || 'vacant', // Default to vacant if not set
         photos: property.photos || [],
         amenities: property.amenities || [],
-        title: `${property.property_type} in ${property.city}` // Add title for PropertyCard
+        title: formatPropertyTitle(property) // Use new title format
       }
     })
 

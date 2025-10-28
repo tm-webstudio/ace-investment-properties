@@ -220,7 +220,7 @@ export function OnboardingStep3({ data, onChange }: OnboardingStep3Props) {
         <Label className="text-base font-medium text-gray-900 mb-4 block">
           Additional preferences (optional)
         </Label>
-        <div className="space-y-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {additionalPreferenceOptions.map((option) => (
             <div key={option.id} className="flex items-center space-x-3 p-3 border border-gray-200 rounded-lg hover:border-primary/50 transition-colors">
               <Checkbox
@@ -230,7 +230,7 @@ export function OnboardingStep3({ data, onChange }: OnboardingStep3Props) {
               />
               <Label
                 htmlFor={option.id}
-                className="flex-1 cursor-pointer font-medium"
+                className="flex-1 cursor-pointer font-medium text-sm"
               >
                 {option.label}
               </Label>

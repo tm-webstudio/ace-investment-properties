@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase'
+import { formatPropertyForCard } from '@/lib/property-utils'
 
 export async function GET() {
   try {
@@ -41,19 +42,9 @@ export async function GET() {
       )
     }
 
-    // Format properties for frontend
+    // Format properties for frontend using shared utility
     const formattedProperties = properties.map(property => ({
-      ...property,
-      price: property.monthly_rent / 100, // Convert from pence to pounds
-      deposit: property.security_deposit / 100,
-      availability: property.availability || 'vacant', // Default to vacant if not set
-      title: `${property.property_type} in ${property.city}`,
-      propertyType: property.bedrooms === 0 ? 'Studio' : 
-                   property.bedrooms === 1 ? '1BR' :
-                   property.bedrooms === 2 ? '2BR' : '3BR+',
-      images: property.photos || [],
-      amenities: property.amenities || [],
-      availableDate: property.available_date,
+      ...formatPropertyForCard(property),
       featured: true // Mark all as featured for now
     }))
 

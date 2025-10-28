@@ -23,7 +23,7 @@ interface OnboardingStep2Props {
 const propertyTypeOptions = [
   { id: "houses", label: "Houses" },
   { id: "flats", label: "Flats/Apartments" },
-  { id: "hmo", label: "HMO (Houses in Multiple Occupation)" },
+  { id: "hmo", label: "HMO" },
   { id: "studios", label: "Studios" },
   { id: "commercial", label: "Commercial to Residential" }
 ]
@@ -53,7 +53,7 @@ export function OnboardingStep2({ data, onChange }: OnboardingStep2Props) {
         <Label className="text-base font-medium text-gray-900 mb-4 block">
           What type of properties are you looking for?
         </Label>
-        <div className="space-y-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {propertyTypeOptions.map((option) => (
             <div key={option.id} className="flex items-center space-x-3 p-3 border border-gray-200 rounded-lg hover:border-primary/50 transition-colors">
               <Checkbox
@@ -63,7 +63,7 @@ export function OnboardingStep2({ data, onChange }: OnboardingStep2Props) {
               />
               <Label
                 htmlFor={option.id}
-                className="flex-1 cursor-pointer font-medium"
+                className="flex-1 cursor-pointer font-medium text-sm"
               >
                 {option.label}
               </Label>

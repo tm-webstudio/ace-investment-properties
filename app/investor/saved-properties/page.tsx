@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import { SavePropertyButton } from "@/components/save-property-button"
+import { PropertyCard } from "@/components/property-card"
 import { useAuth } from "@/contexts/auth-context"
 import { useRouter } from "next/navigation"
 import { Heart, Search, Filter, MapPin, Bed, Bath, PoundSterling, Calendar, StickyNote, ExternalLink, Loader2 } from "lucide-react"
@@ -22,6 +23,7 @@ interface SavedProperty {
   notes: string | null
   property: {
     id: string
+    title: string
     property_type: string
     bedrooms: string
     bathrooms: string
@@ -35,6 +37,9 @@ interface SavedProperty {
     postcode: string
     photos: string[]
     status: string
+    availability?: string
+    property_licence?: string
+    property_condition?: string
     created_at: string
     updated_at: string
   }
@@ -155,6 +160,38 @@ export default function SavedPropertiesPage() {
     setTotal(prev => prev - 1)
   }
 
+  // Convert saved property to PropertyCard format
+  const convertToPropertyCardFormat = (saved: SavedProperty) => {
+    return {
+      id: saved.property.id,
+      title: saved.property.title, // Use title from API
+      property_type: saved.property.property_type,
+      propertyType: saved.property.property_type,
+      bedrooms: parseInt(saved.property.bedrooms),
+      bathrooms: parseInt(saved.property.bathrooms),
+      price: saved.property.monthly_rent, // Already in pounds from database
+      monthly_rent: saved.property.monthly_rent,
+      monthlyRent: saved.property.monthly_rent,
+      deposit: saved.property.security_deposit,
+      availableDate: saved.property.available_date,
+      available_date: saved.property.available_date,
+      availability: saved.property.availability || 'vacant',
+      address: saved.property.address,
+      city: saved.property.city,
+      state: saved.property.county,
+      postcode: saved.property.postcode,
+      photos: saved.property.photos,
+      images: saved.property.photos,
+      amenities: [],
+      property_licence: saved.property.property_licence || 'none',
+      property_condition: saved.property.property_condition || 'good',
+      landlordId: '',
+      landlordName: '',
+      landlordPhone: '',
+      landlordEmail: ''
+    }
+  }
+
   if (authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -227,8 +264,8 @@ export default function SavedPropertiesPage() {
 
           {/* Properties Grid */}
           {loading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-              {Array.from({ length: 6 }, (_, index) => (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+              {Array.from({ length: 8 }, (_, index) => (
                 <SavedPropertyCardSkeleton key={index} />
               ))}
             </div>
@@ -247,109 +284,13 @@ export default function SavedPropertiesPage() {
             </Card>
           ) : (
             <>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 mb-8">
                 {savedProperties.map((saved) => (
-                  <Card key={saved.savedPropertyId} className="overflow-hidden hover:shadow-lg transition-shadow">
-                    <div className="relative">
-                      {/* Property Image */}
-                      <div className="aspect-video relative">
-                        {saved.property.photos.length > 0 ? (
-                          <Image
-                            src={saved.property.photos[0]}
-                            alt={`${saved.property.property_type} in ${saved.property.city}`}
-                            fill
-                            className="object-cover"
-                          />
-                        ) : (
-                          <div className="w-full h-full bg-muted flex items-center justify-center">
-                            <MapPin className="h-12 w-12 text-muted-foreground" />
-                          </div>
-                        )}
-                        
-                        {/* Save Button Overlay */}
-                        <div className="absolute top-2 right-2">
-                          <SavePropertyButton
-                            propertyId={saved.property.id}
-                            initialSaved={true}
-                            size="small"
-                            onSaveChange={(isSaved) => {
-                              if (!isSaved) {
-                                handlePropertyUnsaved(saved.property.id)
-                              }
-                            }}
-                          />
-                        </div>
-
-                        {/* Status Badge */}
-                        <div className="absolute bottom-2 left-2">
-                          <Badge variant={saved.property.status === 'active' ? 'default' : 'secondary'}>
-                            {saved.property.status}
-                          </Badge>
-                        </div>
-                      </div>
-
-                      <CardContent className="p-4">
-                        {/* Property Details */}
-                        <div className="mb-3">
-                          <h3 className="font-semibold text-lg mb-1">
-                            {saved.property.property_type}
-                          </h3>
-                          <div className="flex items-center text-muted-foreground text-sm mb-2">
-                            <MapPin className="h-4 w-4 mr-1" />
-                            <span className="line-clamp-1">
-                              {saved.property.address}, {saved.property.city}
-                            </span>
-                          </div>
-                        </div>
-
-                        {/* Property Features */}
-                        <div className="flex items-center gap-4 text-sm text-muted-foreground mb-3">
-                          <div className="flex items-center">
-                            <Bed className="h-4 w-4 mr-1" />
-                            <span>{saved.property.bedrooms}</span>
-                          </div>
-                          <div className="flex items-center">
-                            <Bath className="h-4 w-4 mr-1" />
-                            <span>{saved.property.bathrooms}</span>
-                          </div>
-                        </div>
-
-                        {/* Price */}
-                        <div className="flex items-center mb-3">
-                          <PoundSterling className="h-4 w-4 mr-1 text-green-600" />
-                          <span className="font-semibold text-lg">
-                            {formatCurrency(saved.property.monthly_rent)}
-                          </span>
-                          <span className="text-muted-foreground ml-1">/month</span>
-                        </div>
-
-                        {/* Saved Date */}
-                        <div className="flex items-center text-sm text-muted-foreground mb-3">
-                          <Calendar className="h-4 w-4 mr-1" />
-                          <span>Saved on {formatDate(saved.savedAt)}</span>
-                        </div>
-
-                        {/* Notes */}
-                        {saved.notes && (
-                          <div className="mb-3">
-                            <div className="flex items-center text-sm text-muted-foreground mb-1">
-                              <StickyNote className="h-4 w-4 mr-1" />
-                              <span>Your notes:</span>
-                            </div>
-                            <p className="text-sm bg-muted p-2 rounded italic line-clamp-2">
-                              {saved.notes}
-                            </p>
-                          </div>
-                        )}
-
-                        <Separator className="my-3" />
-
-                        {/* Actions */}
-                        <div className="flex gap-2">
-                        </div>
-                      </CardContent>
-                    </div>
-                  </Card>
+                  <PropertyCard
+                    key={saved.savedPropertyId}
+                    property={convertToPropertyCardFormat(saved)}
+                    variant="default"
+                  />
                 ))}
               </div>
 

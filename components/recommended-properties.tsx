@@ -5,31 +5,37 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Toggle } from "@/components/ui/toggle"
-import { PropertyMatchCard } from "@/components/property-match-card"
+import { PropertyCard } from "@/components/property-card"
+import { PreferencesModal } from "@/components/preferences-modal"
 import { Settings, Filter, RefreshCw, Heart } from "lucide-react"
 import Link from "next/link"
 import { supabase } from "@/lib/supabase"
 
 interface RecommendedPropertiesProps {
   className?: string
+  preferences?: any
 }
 
 interface MatchedProperty {
   id: string
-  title?: string
+  title: string
   address: string
   city: string
   property_type: string
   bedrooms: string
   bathrooms: string
   monthly_rent: number
+  price: number // Converted price from API
   photos: string[]
   available_date?: string
+  property_licence?: string
+  property_condition?: string
+  availability?: string
   matchScore: number
   matchReasons: string[]
 }
 
-export function RecommendedProperties({ className }: RecommendedPropertiesProps) {
+export function RecommendedProperties({ className, preferences }: RecommendedPropertiesProps) {
   const [properties, setProperties] = useState<MatchedProperty[]>([])
   const [loading, setLoading] = useState(true)
   const [loadingMore, setLoadingMore] = useState(false)
@@ -204,12 +210,10 @@ export function RecommendedProperties({ className }: RecommendedPropertiesProps)
             <Button variant="ghost" size="sm" onClick={handleRefresh}>
               <RefreshCw className="h-4 w-4" />
             </Button>
-            <Link href="/investor/preferences">
-              <Button variant="outline" size="sm">
-                <Settings className="h-4 w-4 mr-2" />
-                Edit Preferences
-              </Button>
-            </Link>
+            <PreferencesModal onPreferencesUpdate={() => {
+              fetchRecommendedProperties()
+              fetchSavedProperties()
+            }} />
           </div>
         </CardHeader>
         <CardContent>
@@ -224,9 +228,10 @@ export function RecommendedProperties({ className }: RecommendedPropertiesProps)
               Adjust your preferences to see more properties or try showing all matches instead of best matches only.
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <Link href="/investor/preferences">
-                <Button>Edit Preferences</Button>
-              </Link>
+              <PreferencesModal onPreferencesUpdate={() => {
+                fetchRecommendedProperties()
+                fetchSavedProperties()
+              }} />
               <Button 
                 variant="outline" 
                 onClick={() => setShowBestOnly(false)}
@@ -249,55 +254,106 @@ export function RecommendedProperties({ className }: RecommendedPropertiesProps)
             <Heart className="h-5 w-5 text-primary" />
             Recommended For You
           </CardTitle>
-          <p className="text-sm text-gray-600 mt-1">
-            {totalMatches} properties match your preferences
-          </p>
         </div>
         <div className="flex items-center gap-2">
           <Button variant="ghost" size="sm" onClick={handleRefresh}>
             <RefreshCw className="h-4 w-4" />
           </Button>
-          <Link href="/investor/preferences">
-            <Button variant="outline" size="sm">
-              <Settings className="h-4 w-4 mr-2" />
-              Edit Preferences
-            </Button>
-          </Link>
+          <PreferencesModal onPreferencesUpdate={() => {
+            fetchRecommendedProperties()
+            fetchSavedProperties()
+          }} />
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
-        {/* Filter Toggle */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <span className="text-sm font-medium">Show:</span>
-            <div className="flex items-center gap-2">
-              <Toggle
-                pressed={showBestOnly}
-                onPressedChange={setShowBestOnly}
-                aria-label="Show best matches only"
-                size="sm"
-              >
-                Best matches only (80%+)
-              </Toggle>
+        {/* Your Preferences Section */}
+        {preferences && (
+          <div className="py-4 border rounded-lg bg-gray-50/50 max-w-md relative">
+            <div className="flex justify-between items-center mb-3 px-4">
+              <h3 className="text-base font-medium">Your Preferences</h3>
+              <PreferencesModal onPreferencesUpdate={() => {
+                fetchRecommendedProperties()
+                fetchSavedProperties()
+              }} />
+            </div>
+            <div className="grid grid-cols-2 gap-3 text-sm px-4">
+              <div>
+                <span className="text-gray-600">Budget:</span>
+                <div className="font-medium">
+                  £{preferences.preference_data.budget.min.toLocaleString()}-£{preferences.preference_data.budget.max.toLocaleString()}/month
+                </div>
+              </div>
+              <div>
+                <span className="text-gray-600">Bedrooms:</span>
+                <div className="font-medium">
+                  {preferences.preference_data.bedrooms.min === preferences.preference_data.bedrooms.max 
+                    ? `${preferences.preference_data.bedrooms.min} bedroom${preferences.preference_data.bedrooms.min !== 1 ? 's' : ''}`
+                    : `${preferences.preference_data.bedrooms.min}-${preferences.preference_data.bedrooms.max} bedrooms`
+                  }
+                </div>
+              </div>
+              <div>
+                <span className="text-gray-600">Property Types:</span>
+                <div className="font-medium">
+                  {preferences.preference_data.property_types?.length > 0 
+                    ? preferences.preference_data.property_types.slice(0, 2).join(', ') + 
+                      (preferences.preference_data.property_types.length > 2 ? ` +${preferences.preference_data.property_types.length - 2} more` : '')
+                    : 'Not specified'
+                  }
+                </div>
+              </div>
+              <div>
+                <span className="text-gray-600">Locations:</span>
+                <div className="font-medium">
+                  {preferences.preference_data.locations?.length > 0 
+                    ? preferences.preference_data.locations.map((loc: any) => loc.city).slice(0, 2).join(', ') +
+                      (preferences.preference_data.locations.length > 2 ? ` +${preferences.preference_data.locations.length - 2} more` : '')
+                    : 'Not specified'
+                  }
+                </div>
+              </div>
             </div>
           </div>
-          {!showBestOnly && (
-            <Badge variant="secondary" className="text-xs">
-              Showing all matches
-            </Badge>
-          )}
-        </div>
+        )}
 
         {/* Properties Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {properties.map((property) => (
-            <PropertyMatchCard
-              key={property.id}
-              property={property}
-              onSave={handleSaveProperty}
-              isSaved={savedProperties.has(property.id)}
-            />
-          ))}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+          {properties.map((property) => {
+            // Convert to exact Property interface format
+            const convertedProperty = {
+              id: property.id,
+              title: property.title,
+              price: property.price, // Use converted price from API
+              monthly_rent: property.monthly_rent,
+              deposit: 0,
+              address: property.address || '',
+              city: property.city,
+              state: '',
+              bedrooms: parseInt(property.bedrooms) || 0,
+              bathrooms: parseInt(property.bathrooms) || 0,
+              propertyType: property.property_type as "Studio" | "1BR" | "2BR" | "3BR+" | "House",
+              property_type: property.property_type,
+              description: '',
+              amenities: [],
+              images: property.photos || [],
+              availableDate: property.available_date || '',
+              availability: property.availability || 'vacant',
+              property_licence: property.property_licence || 'none',
+              property_condition: property.property_condition || 'good',
+              landlordId: '',
+              landlordName: '',
+              landlordPhone: '',
+              landlordEmail: '',
+              featured: false
+            }
+            
+            return (
+              <PropertyCard
+                key={property.id}
+                property={convertedProperty}
+              />
+            )
+          })}
         </div>
 
         {/* Load More */}
@@ -319,6 +375,7 @@ export function RecommendedProperties({ className }: RecommendedPropertiesProps)
             </Button>
           </div>
         )}
+
       </CardContent>
     </Card>
   )

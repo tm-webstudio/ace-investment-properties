@@ -155,15 +155,17 @@ export function DashboardOverview({ userId }: DashboardOverviewProps) {
                   property={{
                     id: property.id.toString(),
                     title: property.title,
+                    property_type: property.property_type,
                     propertyType: property.property_type,
                     bedrooms: property.bedrooms,
                     bathrooms: property.bathrooms,
-                    price: property.monthly_rent / 100, // Convert from pence to pounds
-                    monthly_rent: property.monthly_rent / 100, // Also include this field
-                    monthlyRent: property.monthly_rent / 100, // Convert from pence to pounds
-                    deposit: property.security_deposit / 100, // Convert from pence to pounds
+                    price: property.monthly_rent, // API already converted from pence to pounds
+                    monthly_rent: property.monthly_rent, // API already converted
+                    monthlyRent: property.monthly_rent, // API already converted
+                    deposit: property.security_deposit, // API already converted
                     availableDate: property.available_date,
                     available_date: property.available_date, // Also include this field
+                    availability: property.availability || 'vacant', // Ensure availability is set
                     address: property.address,
                     city: property.city,
                     state: property.county,
@@ -171,6 +173,8 @@ export function DashboardOverview({ userId }: DashboardOverviewProps) {
                     photos: property.photos,
                     images: property.photos, // Also include this field for compatibility
                     amenities: [], // Default empty array for amenities
+                    property_licence: property.property_licence || 'none',
+                    property_condition: property.property_condition || 'good',
                     landlordId: property.landlord_id,
                     landlordName: "You", // Since it's the current user
                     landlordPhone: "",

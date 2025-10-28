@@ -233,7 +233,8 @@ export function ViewingRequests({ variant = 'dashboard', limit }: ViewingRequest
   }
 
   const formatTime = (timeStr: string) => {
-    return timeStr
+    // Remove seconds from time format (HH:MM:SS -> HH:MM)
+    return timeStr.substring(0, 5)
   }
 
   const formatCurrency = (amount: number) => {
@@ -356,15 +357,35 @@ export function ViewingRequests({ variant = 'dashboard', limit }: ViewingRequest
               <div className="flex items-start justify-between">
                 <div className="space-y-2 flex-1">
                   <div className="flex items-center gap-3">
-                    <h3 className="font-semibold text-lg">
-                      {viewing.property?.property_type} in {viewing.property?.city}
+                    <h3 className="font-sans text-base font-medium">
+                      {(() => {
+                        if (!viewing.property?.address || !viewing.property?.city) {
+                          return `${viewing.property?.property_type} in ${viewing.property?.city}`
+                        }
+                        
+                        const address = viewing.property.address || ''
+                        const city = viewing.property.city || ''
+                        const postcode = '' // We don't have postcode in the viewing data
+                        
+                        // Remove door number from the beginning of the address
+                        const addressPart = address.split(',')[0].trim()
+                        const roadName = addressPart.replace(/^\d+\s*/, '').trim()
+                        
+                        // Format: "Road Name, Area"
+                        const title = `${roadName}, ${city}`.replace(/,\s*,/g, ',').replace(/^,\s*|,\s*$/g, '')
+                        
+                        // Capitalize first letter of each word
+                        return title.split(' ').map(word => 
+                          word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+                        ).join(' ')
+                      })()}
                     </h3>
                     <Badge className={getStatusColor(viewing.status)}>
                       {viewing.status}
                     </Badge>
                   </div>
                   
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-600">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-600">
                     <div className="flex items-center">
                       <Calendar className="h-4 w-4 mr-2" />
                       {formatDate(viewing.viewing_date)}
@@ -372,10 +393,6 @@ export function ViewingRequests({ variant = 'dashboard', limit }: ViewingRequest
                     <div className="flex items-center">
                       <Clock className="h-4 w-4 mr-2" />
                       {formatTime(viewing.viewing_time)}
-                    </div>
-                    <div className="flex items-center">
-                      <DollarSign className="h-4 w-4 mr-2" />
-                      {viewing.property?.monthly_rent ? formatCurrency(viewing.property.monthly_rent) : 'N/A'}
                     </div>
                   </div>
                 </div>

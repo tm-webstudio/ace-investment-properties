@@ -4,6 +4,7 @@ import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { PreferencesModal } from "@/components/preferences-modal"
 import { Settings, CheckCircle } from "lucide-react"
 
 interface PreferencesWidgetProps {
@@ -20,9 +21,10 @@ interface PreferencesWidgetProps {
     }
     updated_at: string
   }
+  onPreferencesUpdate?: () => void
 }
 
-export function PreferencesWidget({ preferences }: PreferencesWidgetProps) {
+export function PreferencesWidget({ preferences, onPreferencesUpdate }: PreferencesWidgetProps) {
   const formatOperatorType = (type: string, other?: string) => {
     switch (type) {
       case 'sa_operator': return 'SA Operator'
@@ -119,11 +121,7 @@ export function PreferencesWidget({ preferences }: PreferencesWidgetProps) {
           <div className="text-xs text-gray-500 mb-2">
             Last updated: {lastUpdated}
           </div>
-          <Link href="/investor/preferences">
-            <Button variant="outline" size="sm" className="w-full">
-              Edit Preferences
-            </Button>
-          </Link>
+          <PreferencesModal onPreferencesUpdate={onPreferencesUpdate} />
         </div>
       </CardContent>
     </Card>

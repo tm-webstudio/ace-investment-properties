@@ -126,7 +126,7 @@ export function InvestorDashboardOverview({ investor }: InvestorDashboardOvervie
     id: saved.savedPropertyId,
     property: {
       id: saved.property.id,
-      title: `${saved.property.property_type} in ${saved.property.city}`,
+      title: saved.property.title, // Use formatted title from API
       price: saved.property.monthly_rent,
       images: saved.property.photos || [],
       photos: saved.property.photos || [],

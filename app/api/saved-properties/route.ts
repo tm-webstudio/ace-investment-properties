@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { formatPropertyForCard } from '@/lib/property-utils'
 
 // Create admin client for database operations (only if env vars are available)
 const supabaseAdmin = process.env.SUPABASE_SERVICE_ROLE_KEY 
@@ -101,6 +102,9 @@ export async function GET(request: NextRequest) {
           postcode,
           photos,
           status,
+          availability,
+          property_licence,
+          property_condition,
           created_at,
           updated_at
         )
@@ -150,12 +154,18 @@ export async function GET(request: NextRequest) {
     }
 
     // Transform the data to include property details at the top level
-    const transformedProperties = savedProperties?.map(saved => ({
-      savedPropertyId: saved.id,
-      savedAt: saved.saved_at,
-      notes: saved.notes,
-      property: saved.properties
-    })) || []
+    const transformedProperties = savedProperties?.map(saved => {
+      if (!saved.properties) {
+        return null
+      }
+      
+      return {
+        savedPropertyId: saved.id,
+        savedAt: saved.saved_at,
+        notes: saved.notes,
+        property: formatPropertyForCard(saved.properties)
+      }
+    }).filter(Boolean) || []
 
     return NextResponse.json({
       properties: transformedProperties,

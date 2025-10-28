@@ -28,31 +28,27 @@ export function InvestorDashboardNavigation({ customButton }: InvestorDashboardN
   return (
     <div className="mb-8">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-        <nav className="flex flex-wrap gap-2">
+        <nav className="flex flex-wrap gap-0 border-b border-gray-200">
           {navItems.map((item) => (
             <Link key={item.id} href={item.href}>
-              <Button
-                variant={activeTab === item.id ? "default" : "ghost"}
+              <div
                 className={`
-                  group flex items-center gap-2 relative overflow-hidden
+                  group flex items-center gap-2 relative px-4 py-3
                   transition-all duration-200 ease-out
-                  hover:scale-[1.02] hover:-translate-y-px
-                  hover:shadow-md hover:shadow-primary/10
-                  active:scale-[0.98] active:transition-none
+                  border-b-2 -mb-px
                   ${activeTab === item.id 
-                    ? 'bg-primary text-primary-foreground shadow-sm' 
-                    : 'hover:bg-primary/8 hover:text-primary hover:border-primary/15'
+                    ? 'border-primary text-primary bg-primary/5' 
+                    : 'border-transparent text-gray-600 hover:text-gray-900 hover:border-gray-300'
                   }
                 `}
               >
                 <item.icon className={`
                   h-4 w-4 transition-all duration-200 ease-out
-                  ${activeTab === item.id ? '' : 'group-hover:scale-105'}
                 `} />
-                <span className="relative z-10 font-medium">
+                <span className="font-medium">
                   {item.label}
                 </span>
-              </Button>
+              </div>
             </Link>
           ))}
         </nav>

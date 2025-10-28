@@ -31,45 +31,45 @@ export function OnboardingStep1({ data, onChange }: OnboardingStep1Props) {
           })}
           className="space-y-3"
         >
-          <div className="flex items-center space-x-3 p-4 border border-gray-200 rounded-lg hover:border-primary/50 transition-colors">
-            <RadioGroupItem value="sa_operator" id="sa_operator" />
-            <Label htmlFor="sa_operator" className="flex-1 cursor-pointer font-medium">
-              SA Operator
-            </Label>
-          </div>
-          
-          <div className="flex items-center space-x-3 p-4 border border-gray-200 rounded-lg hover:border-primary/50 transition-colors">
-            <RadioGroupItem value="supported_living" id="supported_living" />
-            <Label htmlFor="supported_living" className="flex-1 cursor-pointer font-medium">
-              Supported/Assisted Living
-            </Label>
-          </div>
-          
-          <div className="flex items-center space-x-3 p-4 border border-gray-200 rounded-lg hover:border-primary/50 transition-colors">
-            <RadioGroupItem value="social_housing" id="social_housing" />
-            <Label htmlFor="social_housing" className="flex-1 cursor-pointer font-medium">
-              Social Housing/EA/TA
-            </Label>
-          </div>
-          
-          <div className="border border-gray-200 rounded-lg p-4 hover:border-primary/50 transition-colors">
-            <div className="flex items-center space-x-3 mb-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div className="flex items-center space-x-3 p-3 border border-gray-200 rounded-lg hover:border-primary/50 transition-colors">
+              <RadioGroupItem value="sa_operator" id="sa_operator" />
+              <Label htmlFor="sa_operator" className="flex-1 cursor-pointer font-medium">
+                SA Operator
+              </Label>
+            </div>
+            
+            <div className="flex items-center space-x-3 p-3 border border-gray-200 rounded-lg hover:border-primary/50 transition-colors">
+              <RadioGroupItem value="supported_living" id="supported_living" />
+              <Label htmlFor="supported_living" className="flex-1 cursor-pointer font-medium">
+                Supported/Assisted Living
+              </Label>
+            </div>
+            
+            <div className="flex items-center space-x-3 p-3 border border-gray-200 rounded-lg hover:border-primary/50 transition-colors">
+              <RadioGroupItem value="social_housing" id="social_housing" />
+              <Label htmlFor="social_housing" className="flex-1 cursor-pointer font-medium">
+                Social Housing/EA/TA
+              </Label>
+            </div>
+            
+            <div className="flex items-center space-x-3 p-3 border border-gray-200 rounded-lg hover:border-primary/50 transition-colors">
               <RadioGroupItem value="other" id="other" />
               <Label htmlFor="other" className="cursor-pointer font-medium">
                 Other
               </Label>
             </div>
-            {data.operatorType === "other" && (
-              <div className="ml-7">
-                <Input
-                  placeholder="Please specify your operator type"
-                  value={data.operatorTypeOther || ""}
-                  onChange={(e) => onChange({ operatorTypeOther: e.target.value })}
-                  className="mt-2"
-                />
-              </div>
-            )}
           </div>
+          
+          {data.operatorType === "other" && (
+            <div className="mt-3">
+              <Input
+                placeholder="Please specify your operator type"
+                value={data.operatorTypeOther || ""}
+                onChange={(e) => onChange({ operatorTypeOther: e.target.value })}
+              />
+            </div>
+          )}
         </RadioGroup>
       </div>
 

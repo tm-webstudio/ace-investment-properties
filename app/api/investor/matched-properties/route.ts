@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { formatPropertyForCard } from '@/lib/property-utils'
 
 // Create admin client for database operations (only if env vars are available)
 const supabaseAdmin = process.env.SUPABASE_SERVICE_ROLE_KEY 
@@ -124,32 +125,13 @@ export async function GET(request: NextRequest) {
     // Transform the data for frontend consumption
     const formattedProperties = matchedProperties?.map((item: any) => {
       const property = item.property_data
+      const formattedProperty = formatPropertyForCard(property)
+      
       return {
-        id: property.id,
-        property_type: property.property_type,
-        bedrooms: property.bedrooms,
-        bathrooms: property.bathrooms,
-        monthly_rent: property.monthly_rent,
-        security_deposit: property.security_deposit,
-        available_date: property.available_date,
-        description: property.description,
-        address: property.address,
-        city: property.city,
-        county: property.county,
-        postcode: property.postcode,
-        photos: property.photos || [],
-        amenities: property.amenities || [],
-        status: property.status,
-        created_at: property.created_at,
-        updated_at: property.updated_at,
+        ...formattedProperty,
         // Match information
         matchScore: item.match_score,
-        matchReasons: item.match_reasons,
-        // Frontend compatibility
-        title: `${property.property_type} in ${property.city}`,
-        price: property.monthly_rent / 100, // Convert from pence to pounds
-        images: property.photos || [],
-        availableDate: property.available_date
+        matchReasons: item.match_reasons
       }
     }) || []
 

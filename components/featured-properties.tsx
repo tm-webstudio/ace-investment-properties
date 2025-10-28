@@ -107,7 +107,7 @@ export function FeaturedProperties() {
           </div>
         </div>
 
-        <div className="relative mb-12">
+        <div className="relative">
           <div 
             ref={scrollRef}
             className="flex overflow-x-auto gap-3 pb-4 scroll-smooth"

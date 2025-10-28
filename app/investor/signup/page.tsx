@@ -341,26 +341,45 @@ export default function InvestorSignup() {
   return (
     <div className="min-h-screen flex flex-col">
       <Navigation />
-      <main className="flex-1 bg-gray-50">
-        <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Join as an Investor
-          </h1>
-          <p className="text-gray-600">
-            Tell us about your investment preferences and create your account
-          </p>
-        </div>
+      <main className="flex-1 bg-background">
+        <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          {/* Header */}
+          <Card className="mb-8 bg-gradient-to-r from-primary/5 via-primary/3 to-accent/5 border-primary/10">
+            <CardHeader className="pb-4 pt-4">
+              <p className="text-sm font-bold text-primary/70 uppercase tracking-wide mb-1">
+                Investor Signup
+              </p>
+              <h1 className="font-serif text-3xl md:text-4xl font-bold text-primary mb-1">
+                Join as an Investor
+              </h1>
+              <p className="text-primary/70 text-lg">Tell us about your investment preferences and create your account</p>
+            </CardHeader>
+          </Card>
 
-        {/* Progress */}
-        <div className="mb-8">
-          <div className="flex justify-between text-sm text-gray-600 mb-2">
-            <span>Step {currentStep} of 4</span>
-            <span>{Math.round(progress)}% complete</span>
-          </div>
-          <Progress value={progress} className="h-2" />
-        </div>
+          {/* Progress */}
+          <Card className="mb-8">
+            <CardHeader>
+              <div className="flex justify-between text-sm text-gray-600 mb-2">
+                <span>Step {currentStep} of 4</span>
+                <span>{Math.round(progress)}% complete</span>
+              </div>
+              <Progress value={progress} className="h-2 mb-3" />
+              <div className="flex justify-between text-xs text-muted-foreground">
+                <div className={`${currentStep >= 1 ? 'text-primary font-medium' : ''}`}>
+                  Business
+                </div>
+                <div className={`${currentStep >= 2 ? 'text-primary font-medium' : ''}`}>
+                  Preferences
+                </div>
+                <div className={`${currentStep >= 3 ? 'text-primary font-medium' : ''}`}>
+                  Location
+                </div>
+                <div className={`${currentStep >= 4 ? 'text-primary font-medium' : ''}`}>
+                  Account
+                </div>
+              </div>
+            </CardHeader>
+          </Card>
 
         {/* Main Card */}
         <Card className="mb-8">
@@ -404,19 +423,6 @@ export default function InvestorSignup() {
           </CardContent>
         </Card>
 
-        {/* Save and finish later option */}
-        {currentStep < 4 && (
-          <div className="text-center mb-6">
-            <Button
-              variant="ghost"
-              onClick={handleSaveAndFinishLater}
-              disabled={isSavingDraft}
-              className="text-sm text-gray-600 hover:text-gray-800"
-            >
-              {isSavingDraft ? "Saving..." : "Save and finish later"}
-            </Button>
-          </div>
-        )}
 
         {/* Navigation */}
         <div className="flex justify-between">

@@ -106,15 +106,10 @@ export default function InvestorDashboard() {
           {/* Main Dashboard Content */}
           <div className="space-y-8">
             {/* Recommended Properties */}
-            <RecommendedProperties />
+            <RecommendedProperties preferences={preferences} />
             
             {/* Dashboard Overview */}
             <InvestorDashboardOverview investor={currentInvestor} />
-            
-            {/* Preferences Widget */}
-            {preferences && (
-              <PreferencesWidget preferences={preferences} />
-            )}
           </div>
         </div>
       </main>
