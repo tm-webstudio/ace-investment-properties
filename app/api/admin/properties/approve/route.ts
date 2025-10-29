@@ -82,28 +82,24 @@ export async function POST(request: NextRequest) {
     }
 
     // Update property status
-    const newStatus = action === 'approve' ? 'active' : 'rejected'
+    const newStatus = action === 'approve' ? 'active' : 'inactive'
     const updateData: any = {
-      status: newStatus,
-      reviewed_at: new Date().toISOString(),
-      reviewed_by: user.id
-    }
-
-    if (action === 'approve') {
-      updateData.published_at = new Date().toISOString()
+      status: newStatus
     }
 
     const { data: updatedProperty, error: updateError } = await supabaseAdmin
       .from('properties')
       .update(updateData)
       .eq('id', propertyId)
-      .eq('status', 'pending_approval')
       .select()
       .single()
 
     if (updateError || !updatedProperty) {
+      console.error('Update error:', updateError)
+      console.error('Property ID:', propertyId)
+      console.error('Update data:', updateData)
       return NextResponse.json(
-        { error: 'Failed to update property status' },
+        { error: 'Failed to update property status', details: updateError?.message || 'No property found' },
         { status: 500 }
       )
     }

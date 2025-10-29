@@ -308,48 +308,35 @@ export function AdminDashboardOverview({ admin }: AdminDashboardOverviewProps) {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               {pendingPropertiesForDisplay.map((property) => (
-              <div key={property.id} className="relative">
+              <div key={property.id} className="space-y-3">
                 <PropertyCard property={property} />
-                
-                {/* Admin overlay with status and actions */}
-                <div className="absolute top-3 left-3 right-3 flex justify-between items-start z-10">
-                  <Badge className={getStatusColor(property._pendingInfo.status)}>
-                    {property._pendingInfo.status}
-                  </Badge>
-                  <div className="flex gap-1">
-                    <Button 
-                      variant="secondary" 
+
+                {/* Admin info and actions below the card */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between text-xs text-muted-foreground">
+                    <span className="font-medium">By: {property._pendingInfo.landlordName}</span>
+                    <span>Submitted: {new Date(property._pendingInfo.submittedDate).toLocaleDateString('en-GB')}</span>
+                  </div>
+
+                  <div className="flex gap-2">
+                    <Button
+                      variant="default"
                       size="sm"
                       onClick={() => handleApproveProperty(property.id)}
-                      className="bg-green-100 hover:bg-green-200 border-green-300 h-8 w-8 p-0"
+                      className="flex-1 bg-green-600 hover:bg-green-700 text-white"
                     >
-                      <CheckCircle className="h-4 w-4 text-green-600" />
+                      <CheckCircle className="h-4 w-4 mr-1" />
+                      Approve
                     </Button>
-                    <Button 
-                      variant="secondary" 
+                    <Button
+                      variant="outline"
                       size="sm"
                       onClick={() => handleRejectProperty(property.id)}
-                      className="bg-red-100 hover:bg-red-200 border-red-300 h-8 w-8 p-0"
+                      className="flex-1 border-red-300 text-red-600 hover:bg-red-50"
                     >
-                      <XCircle className="h-4 w-4 text-red-600" />
+                      <XCircle className="h-4 w-4 mr-1" />
+                      Reject
                     </Button>
-                    <Button 
-                      variant="secondary" 
-                      size="sm"
-                      className="bg-blue-100 hover:bg-blue-200 border-blue-300 h-8 w-8 p-0"
-                    >
-                      <Eye className="h-4 w-4 text-blue-600" />
-                    </Button>
-                  </div>
-                </div>
-                
-                {/* Submission info */}
-                <div className="absolute bottom-3 left-3 right-3 z-10">
-                  <div className="bg-white/95 backdrop-blur-sm rounded p-2 text-xs text-gray-700 shadow-sm">
-                    <div className="flex justify-between items-center">
-                      <span className="font-medium">By: {property._pendingInfo.landlordName}</span>
-                      <span>Submitted: {new Date(property._pendingInfo.submittedDate).toLocaleDateString('en-GB')}</span>
-                    </div>
                   </div>
                 </div>
               </div>
