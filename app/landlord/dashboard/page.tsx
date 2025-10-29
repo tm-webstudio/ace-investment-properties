@@ -6,6 +6,7 @@ import { Footer } from "@/components/footer"
 import { DashboardOverview } from "@/components/dashboard-overview"
 import { DashboardNavigation } from "@/components/dashboard-navigation"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
+import { PageHeader } from "@/components/page-header"
 import { supabase } from "@/lib/supabase"
 
 interface UserProfile {
@@ -154,17 +155,12 @@ export default function LandlordDashboard() {
       <Navigation />
       <main className="flex-1 bg-background">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <Card className="mb-8 bg-gradient-to-r from-blue-50 via-blue-100/50 to-blue-50 border-blue-200/30">
-            <CardHeader className="pb-4 pt-4">
-              <p className="text-sm font-bold text-blue-700/70 uppercase tracking-wide mb-1">
-                Landlord Dashboard
-              </p>
-              <h1 className="font-serif text-3xl md:text-4xl font-bold text-blue-900 mb-1">
-                Welcome back, {user.first_name} {user.last_name}
-              </h1>
-              <p className="text-blue-800/70 text-lg">Manage your properties and applications</p>
-            </CardHeader>
-          </Card>
+          <PageHeader
+            category="Landlord Dashboard"
+            title={`Welcome back, ${user.first_name} ${user.last_name}`}
+            subtitle="Manage your properties and applications"
+            variant="blue"
+          />
 
           <DashboardNavigation />
           <DashboardOverview userId={user.user_id} />

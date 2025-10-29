@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Validate required fields
-    const requiredFields = ['propertyType', 'bedrooms', 'bathrooms', 'monthlyRent', 'securityDeposit', 'availableDate', 'description', 'address', 'city', 'postcode']
+    const requiredFields = ['propertyType', 'bedrooms', 'bathrooms', 'monthlyRent', 'securityDeposit', 'description', 'address', 'city', 'postcode']
     
     for (const field of requiredFields) {
       if (!propertyData[field]) {
@@ -51,6 +51,14 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // Special validation for availableDate - allow 'immediate' for vacant properties
+    if (!propertyData.availableDate && propertyData.availability !== 'vacant') {
+      return NextResponse.json(
+        { error: 'Available date is required for non-vacant properties' },
+        { status: 400 }
+      )
+    }
+
     // Create the property data object for pending_properties
     const pendingPropertyData = {
       propertyType: propertyData.propertyType,
@@ -58,7 +66,7 @@ export async function POST(request: NextRequest) {
       bathrooms: propertyData.bathrooms,
       monthlyRent: propertyData.monthlyRent,
       securityDeposit: propertyData.securityDeposit,
-      availableDate: propertyData.availableDate,
+      availableDate: propertyData.availableDate || 'immediate',
       description: propertyData.description,
       amenities: propertyData.amenities || [],
       address: propertyData.address,

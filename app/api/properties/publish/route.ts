@@ -106,12 +106,31 @@ export async function POST(request: NextRequest) {
     }
 
     const propertyData = pendingProperty.property_data as any
+
+    // Validate critical fields
+    if (!propertyData.propertyType || !propertyData.bedrooms || !propertyData.bathrooms || !propertyData.monthlyRent || !propertyData.address || !propertyData.city) {
+      return NextResponse.json(
+        { error: 'Missing required property data fields' },
+        { status: 400 }
+      )
+    }
     
     console.log('Property data to insert:', {
       landlord_id: user.id,
+      availability: propertyData.availability,
       property_type: propertyData.propertyType,
+      bedrooms: propertyData.bedrooms,
+      bathrooms: propertyData.bathrooms,
+      monthly_rent: propertyData.monthlyRent,
+      security_deposit: propertyData.securityDeposit,
+      available_date: propertyData.availableDate,
       address: propertyData.address,
-      city: propertyData.city
+      city: propertyData.city,
+      county: propertyData.state,
+      postcode: propertyData.postcode,
+      contact_name: propertyData.contactName,
+      contact_email: propertyData.contactEmail,
+      contact_phone: propertyData.contactPhone
     })
     
     // Create the property in properties table
@@ -121,22 +140,22 @@ export async function POST(request: NextRequest) {
         landlord_id: user.id,
         availability: propertyData.availability,
         property_type: propertyData.propertyType,
-        bedrooms: propertyData.bedrooms,
-        bathrooms: propertyData.bathrooms,
+        bedrooms: parseInt(propertyData.bedrooms) || 1,
+        bathrooms: parseInt(propertyData.bathrooms) || 1,
         monthly_rent: Math.round(parseFloat(propertyData.monthlyRent) * 100), // Convert to pence
         security_deposit: Math.round(parseFloat(propertyData.securityDeposit) * 100), // Convert to pence
-        available_date: propertyData.availableDate,
+        available_date: propertyData.availableDate === 'immediate' ? new Date().toISOString().split('T')[0] : propertyData.availableDate,
         description: propertyData.description,
         amenities: propertyData.amenities || [],
         address: propertyData.address,
         city: propertyData.city,
-        county: propertyData.state,
+        county: propertyData.state || propertyData.county,
         postcode: propertyData.postcode,
         photos: propertyData.photos || [],
         contact_name: propertyData.contactName || userProfile?.full_name || userProfile?.email || user.email,
         contact_email: propertyData.contactEmail || userProfile?.email || user.email,
         contact_phone: propertyData.contactPhone || userProfile?.phone,
-        status: 'active',
+        status: 'draft',
         published_at: new Date().toISOString()
       })
       .select()
@@ -146,8 +165,14 @@ export async function POST(request: NextRequest) {
 
     if (propertyError) {
       console.error('Error creating property:', propertyError)
+      console.error('Property error details:', JSON.stringify(propertyError, null, 2))
       return NextResponse.json(
-        { error: 'Failed to publish property', details: propertyError.message },
+        { 
+          error: 'Failed to publish property', 
+          details: propertyError.message,
+          code: propertyError.code,
+          hint: propertyError.hint
+        },
         { status: 500 }
       )
     }

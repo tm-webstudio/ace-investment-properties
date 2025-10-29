@@ -66,7 +66,7 @@ export default function InvestorProfile() {
             <h1 className="font-serif text-3xl md:text-4xl font-bold text-foreground mb-2">
               Profile Settings
             </h1>
-            <p className="text-muted-foreground text-lg">Manage your account information and investment preferences</p>
+            <p className="text-muted-foreground text-md">Manage your account information and investment preferences</p>
           </div>
 
           <InvestorDashboardNavigation 

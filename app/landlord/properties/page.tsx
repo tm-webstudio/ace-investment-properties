@@ -173,7 +173,7 @@ export default function MyPropertiesPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="mb-8">
             <h1 className="font-serif text-3xl md:text-4xl font-bold text-foreground mb-2">My Properties</h1>
-            <p className="text-muted-foreground text-lg">
+            <p className="text-muted-foreground text-md">
               {properties.length > 0 
                 ? `You have ${properties.length} ${properties.length === 1 ? 'property' : 'properties'} listed`
                 : 'Manage your rental listings'

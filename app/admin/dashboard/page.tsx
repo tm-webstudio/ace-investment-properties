@@ -5,6 +5,7 @@ import { Footer } from "@/components/footer"
 import { AdminDashboardOverview } from "@/components/admin-dashboard-overview"
 import { Card, CardHeader } from "@/components/ui/card"
 import { sampleAdmins } from "@/lib/sample-data"
+import { AdminDashboardNavigation } from "@/components/admin-dashboard-navigation"
 
 export default function AdminDashboard() {
   // In a real app, this would come from authentication
@@ -23,10 +24,11 @@ export default function AdminDashboard() {
               <h1 className="font-serif text-3xl md:text-4xl font-bold text-red-900 mb-1">
                 System Administration
               </h1>
-              <p className="text-red-800/70 text-lg">Manage properties, viewings, and platform operations</p>
+              <p className="text-red-800/70 text-md">Manage properties, viewings, and platform operations</p>
             </CardHeader>
           </Card>
 
+          <AdminDashboardNavigation />
           <AdminDashboardOverview admin={currentAdmin} />
         </div>
       </main>

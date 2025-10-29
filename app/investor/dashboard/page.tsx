@@ -97,7 +97,7 @@ export default function InvestorDashboard() {
               <h1 className="font-serif text-3xl md:text-4xl font-bold text-green-900 mb-1">
                 Welcome back, {currentInvestor.name}
               </h1>
-              <p className="text-green-800/70 text-lg">Track your property investments and opportunities</p>
+              <p className="text-green-800/70 text-md">Track your property investments and opportunities</p>
             </CardHeader>
           </Card>
 

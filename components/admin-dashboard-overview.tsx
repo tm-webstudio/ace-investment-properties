@@ -1,9 +1,10 @@
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { PropertyCard } from "@/components/property-card"
-import { Settings, Eye, CheckCircle, XCircle, Clock, Calendar, Home, Users, BarChart3, Plus, Shield } from "lucide-react"
+import { Settings, Eye, CheckCircle, XCircle, Clock, Calendar, Home, Users, BarChart3, Plus, Shield, Building } from "lucide-react"
 import Link from "next/link"
 import type { Admin } from "@/lib/sample-data"
 import { samplePendingProperties, sampleViewings, sampleProperties, sampleLandlords, sampleInvestors } from "@/lib/sample-data"
@@ -13,36 +14,108 @@ interface AdminDashboardOverviewProps {
 }
 
 export function AdminDashboardOverview({ admin }: AdminDashboardOverviewProps) {
-  // Get pending properties for approval
-  const pendingProperties = samplePendingProperties.filter(p => p.status === "pending").slice(0, 6)
-  
-  // Transform pending properties to match Property interface
-  const pendingPropertiesForDisplay = pendingProperties.map(pending => ({
-    ...pending.propertyData,
-    id: pending.id,
-    property_type: pending.propertyData.propertyType,
-    monthly_rent: pending.propertyData.price,
-    photos: ["/spacious-family-home.png"], // Use working placeholder image
-    images: ["/spacious-family-home.png"], // Use working placeholder image  
-    available_date: pending.propertyData.availableDate,
-    availableDate: pending.propertyData.availableDate, // Also set this for consistency
-    _pendingInfo: {
-      status: pending.status,
-      submittedBy: pending.submittedBy,
-      submittedDate: pending.submittedDate,
-      landlordName: pending.propertyData.landlordName
+  const [stats, setStats] = useState({
+    totalProperties: 0,
+    totalPendingProperties: 0,
+    totalLandlords: 0,
+    totalInvestors: 0,
+    totalViewings: 0
+  })
+  const [pendingPropertiesForDisplay, setPendingPropertiesForDisplay] = useState<any[]>([])
+  const [allViewings, setAllViewings] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchAdminData = async () => {
+      try {
+        let totalProperties = 0
+        let totalPendingProperties = 0
+        let pendingForDisplay: any[] = []
+
+        // Fetch properties count
+        try {
+          const propertiesResponse = await fetch('/api/properties')
+          if (propertiesResponse.ok) {
+            const propertiesData = await propertiesResponse.json()
+            totalProperties = propertiesData.success ? propertiesData.properties.length : 0
+          }
+        } catch (error) {
+          console.error('Error fetching properties:', error)
+        }
+
+        // Fetch properties pending approval
+        try {
+          const pendingResponse = await fetch('/api/properties?status=draft')
+          if (pendingResponse.ok) {
+            const pendingData = await pendingResponse.json()
+            if (pendingData.success && pendingData.properties) {
+              totalPendingProperties = pendingData.properties.length
+
+              // Get pending properties for display (first 6)
+              pendingForDisplay = pendingData.properties.slice(0, 6).map((property: any) => ({
+                ...property,
+                id: property.id,
+                title: `${property.property_type} in ${property.city}`,
+                property_type: property.property_type,
+                monthly_rent: property.monthly_rent,
+                price: property.monthly_rent,
+                photos: property.photos || ["/spacious-family-home.png"],
+                images: property.photos || ["/spacious-family-home.png"],
+                available_date: property.available_date,
+                availableDate: property.available_date,
+                availability: property.availability,
+                _pendingInfo: {
+                  status: property.status,
+                  submittedBy: property.landlord_id,
+                  submittedDate: property.created_at,
+                  landlordName: property.contact_name
+                }
+              }))
+            }
+          }
+        } catch (error) {
+          console.error('Error fetching pending properties:', error)
+        }
+
+        // For now, use sample data for users and viewings since we don't have those APIs yet
+        // In a real implementation, you would fetch from /api/users/landlords, /api/users/investors, /api/viewings
+        
+        setStats({
+          totalProperties,
+          totalPendingProperties,
+          totalLandlords: -1, // -1 indicates no API connection (will show dash)
+          totalInvestors: -1, // -1 indicates no API connection (will show dash)  
+          totalViewings: -1   // -1 indicates no API connection (will show dash)
+        })
+        
+        setPendingPropertiesForDisplay(pendingForDisplay)
+        setAllViewings([]) // Empty until viewings API is implemented
+        
+      } catch (error) {
+        console.error('Error fetching admin data:', error)
+        // Set all to 0 on error
+        setStats({
+          totalProperties: 0,
+          totalPendingProperties: 0,
+          totalLandlords: -1, // -1 indicates no API connection (will show dash)
+          totalInvestors: -1, // -1 indicates no API connection (will show dash)
+          totalViewings: -1   // -1 indicates no API connection (will show dash)
+        })
+        setPendingPropertiesForDisplay([])
+        setAllViewings([])
+      } finally {
+        setLoading(false)
+      }
     }
-  }))
-  
-  // Get all viewings for management
-  const allViewings = sampleViewings.slice(0, 5)
-  
-  // Calculate statistics
-  const totalProperties = sampleProperties.length
-  const totalPendingProperties = samplePendingProperties.filter(p => p.status === "pending").length
-  const totalLandlords = sampleLandlords.length
-  const totalInvestors = sampleInvestors.length
-  const totalViewings = sampleViewings.length
+
+    fetchAdminData()
+  }, [])
+
+  const formatStatValue = (value: number, isLoading: boolean) => {
+    if (isLoading) return '...'
+    if (value === -1) return '—' // Dash for no API connection
+    return value.toString() // Show actual value (including 0)
+  }
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -63,14 +136,89 @@ export function AdminDashboardOverview({ admin }: AdminDashboardOverviewProps) {
     }
   }
 
-  const handleApproveProperty = (propertyId: string) => {
-    // In a real app, this would make an API call
-    console.log("Approving property:", propertyId)
+  const handleApproveProperty = async (propertyId: string) => {
+    try {
+      const accessToken = localStorage.getItem('accessToken')
+      if (!accessToken) {
+        console.error('No access token found')
+        return
+      }
+
+      const response = await fetch('/api/admin/properties/approve', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${accessToken}`
+        },
+        body: JSON.stringify({
+          propertyId,
+          action: 'approve'
+        })
+      })
+
+      const data = await response.json()
+      
+      if (data.success) {
+        // Remove from pending list
+        setPendingPropertiesForDisplay(prev => 
+          prev.filter(property => property.id !== propertyId)
+        )
+        // Update stats
+        setStats(prev => ({
+          ...prev,
+          totalPendingProperties: prev.totalPendingProperties - 1,
+          totalProperties: prev.totalProperties + 1
+        }))
+        alert('Property approved successfully')
+      } else {
+        alert('Failed to approve property: ' + data.error)
+      }
+    } catch (error) {
+      console.error('Error approving property:', error)
+      alert('Error approving property')
+    }
   }
 
-  const handleRejectProperty = (propertyId: string) => {
-    // In a real app, this would make an API call
-    console.log("Rejecting property:", propertyId)
+  const handleRejectProperty = async (propertyId: string) => {
+    try {
+      const accessToken = localStorage.getItem('accessToken')
+      if (!accessToken) {
+        console.error('No access token found')
+        return
+      }
+
+      const response = await fetch('/api/admin/properties/approve', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${accessToken}`
+        },
+        body: JSON.stringify({
+          propertyId,
+          action: 'reject'
+        })
+      })
+
+      const data = await response.json()
+      
+      if (data.success) {
+        // Remove from pending list
+        setPendingPropertiesForDisplay(prev => 
+          prev.filter(property => property.id !== propertyId)
+        )
+        // Update stats
+        setStats(prev => ({
+          ...prev,
+          totalPendingProperties: prev.totalPendingProperties - 1
+        }))
+        alert('Property rejected successfully')
+      } else {
+        alert('Failed to reject property: ' + data.error)
+      }
+    } catch (error) {
+      console.error('Error rejecting property:', error)
+      alert('Error rejecting property')
+    }
   }
 
   return (
@@ -83,7 +231,7 @@ export function AdminDashboardOverview({ admin }: AdminDashboardOverviewProps) {
             <Home className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{totalProperties}</div>
+            <div className="text-2xl font-bold">{formatStatValue(stats.totalProperties, loading)}</div>
             <p className="text-xs text-muted-foreground">Active listings</p>
           </CardContent>
         </Card>
@@ -94,7 +242,7 @@ export function AdminDashboardOverview({ admin }: AdminDashboardOverviewProps) {
             <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{totalPendingProperties}</div>
+            <div className="text-2xl font-bold">{formatStatValue(stats.totalPendingProperties, loading)}</div>
             <p className="text-xs text-muted-foreground">Awaiting review</p>
           </CardContent>
         </Card>
@@ -105,7 +253,7 @@ export function AdminDashboardOverview({ admin }: AdminDashboardOverviewProps) {
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{totalLandlords}</div>
+            <div className="text-2xl font-bold">{formatStatValue(stats.totalLandlords, loading)}</div>
             <p className="text-xs text-muted-foreground">Registered users</p>
           </CardContent>
         </Card>
@@ -116,7 +264,7 @@ export function AdminDashboardOverview({ admin }: AdminDashboardOverviewProps) {
             <BarChart3 className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{totalInvestors}</div>
+            <div className="text-2xl font-bold">{formatStatValue(stats.totalInvestors, loading)}</div>
             <p className="text-xs text-muted-foreground">Active investors</p>
           </CardContent>
         </Card>
@@ -127,7 +275,7 @@ export function AdminDashboardOverview({ admin }: AdminDashboardOverviewProps) {
             <Calendar className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{totalViewings}</div>
+            <div className="text-2xl font-bold">{formatStatValue(stats.totalViewings, loading)}</div>
             <p className="text-xs text-muted-foreground">All time</p>
           </CardContent>
         </Card>
@@ -144,13 +292,24 @@ export function AdminDashboardOverview({ admin }: AdminDashboardOverviewProps) {
           </Link>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {pendingPropertiesForDisplay.map((property) => (
+          {pendingPropertiesForDisplay.length === 0 ? (
+            <div className="text-center py-8">
+              <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-muted/30 flex items-center justify-center">
+                <Building className="w-5 h-5 text-muted-foreground/60" />
+              </div>
+              <h3 className="text-base font-medium text-muted-foreground mb-2">No Pending Approvals</h3>
+              <p className="text-sm text-muted-foreground/70 mb-3 max-w-sm mx-auto">
+                All submitted properties have been reviewed. New submissions will appear here.
+              </p>
+              <Badge variant="outline" className="text-xs text-muted-foreground/50 border-muted-foreground/20">
+                {loading ? 'Loading...' : 'All caught up!'}
+              </Badge>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              {pendingPropertiesForDisplay.map((property) => (
               <div key={property.id} className="relative">
-                <PropertyCard 
-                  property={property}
-                  variant="default"
-                />
+                <PropertyCard property={property} />
                 
                 {/* Admin overlay with status and actions */}
                 <div className="absolute top-3 left-3 right-3 flex justify-between items-start z-10">
@@ -195,7 +354,8 @@ export function AdminDashboardOverview({ admin }: AdminDashboardOverviewProps) {
                 </div>
               </div>
             ))}
-          </div>
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -212,8 +372,22 @@ export function AdminDashboardOverview({ admin }: AdminDashboardOverviewProps) {
             </Link>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              {allViewings.map((viewing) => (
+            {allViewings.length === 0 ? (
+              <div className="text-center py-8">
+                <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-muted/30 flex items-center justify-center">
+                  <Calendar className="w-5 h-5 text-muted-foreground/60" />
+                </div>
+                <h3 className="text-base font-medium text-muted-foreground mb-2">No Recent Viewings</h3>
+                <p className="text-sm text-muted-foreground/70 mb-3 max-w-sm mx-auto">
+                  No viewing requests have been scheduled yet. Bookings will appear here.
+                </p>
+                <Badge variant="outline" className="text-xs text-muted-foreground/50 border-muted-foreground/20">
+                  {loading ? 'Loading...' : 'No viewings'}
+                </Badge>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {allViewings.map((viewing) => (
                 <div key={viewing.id} className="flex items-center justify-between p-4 border rounded-lg">
                   <div className="space-y-1">
                     <p className="font-medium text-sm">{viewing.propertyTitle}</p>
@@ -227,7 +401,8 @@ export function AdminDashboardOverview({ admin }: AdminDashboardOverviewProps) {
                   </Badge>
                 </div>
               ))}
-            </div>
+              </div>
+            )}
           </CardContent>
         </Card>
 

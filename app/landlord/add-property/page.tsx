@@ -1,7 +1,7 @@
 import { Navigation } from "@/components/navigation"
 import { Footer } from "@/components/footer"
 import { AddPropertyForm } from "@/components/add-property-form"
-import { Card, CardHeader } from "@/components/ui/card"
+import { PageHeader } from "@/components/page-header"
 
 export default function AddPropertyPage() {
   return (
@@ -9,17 +9,12 @@ export default function AddPropertyPage() {
       <Navigation />
       <main className="flex-1 bg-background">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <Card className="mb-8 bg-gradient-to-r from-primary/5 via-primary/3 to-accent/5 border-primary/10">
-            <CardHeader className="pb-4 pt-4">
-              <p className="text-sm font-bold text-primary/70 uppercase tracking-wide mb-1">
-                Add Property
-              </p>
-              <h1 className="font-serif text-3xl md:text-4xl font-bold text-primary mb-1">
-                List Your Property
-              </h1>
-              <p className="text-primary/70 text-lg">Add a new property to your portfolio</p>
-            </CardHeader>
-          </Card>
+          <PageHeader
+            category="Add Property"
+            title="List Your Property"
+            subtitle="Add a new property to your portfolio"
+            variant="primary"
+          />
 
           <AddPropertyForm />
         </div>

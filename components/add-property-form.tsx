@@ -60,6 +60,7 @@ export function AddPropertyForm() {
   const [sessionId, setSessionId] = useState<string | null>(null)
   const [draftId, setDraftId] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
+  const [showFullDescription, setShowFullDescription] = useState(false)
   const [formData, setFormData] = useState<PropertyFormData>({
     availability: "",
     propertyType: "",
@@ -89,6 +90,9 @@ export function AddPropertyForm() {
   const progress = (currentStep / totalSteps) * 100
 
   const amenityOptions = [
+    "Furnished",
+    "Unfurnished",
+    "Wheelchair access",
     "Pet-friendly",
     "Parking",
     "Gym",
@@ -97,10 +101,7 @@ export function AddPropertyForm() {
     "In-unit laundry",
     "Dishwasher",
     "Air conditioning",
-    "Heating",
-    "Hardwood floors",
     "Carpet",
-    "Tile floors",
     "Walk-in closet",
     "Storage unit",
     "Elevator",
@@ -408,7 +409,7 @@ export function AddPropertyForm() {
           bathrooms: formData.bathrooms || '',
           monthlyRent: formData.monthlyRent || '',
           securityDeposit: formData.securityDeposit || '',
-          availableDate: formData.availableDate || '',
+          availableDate: formData.availability === 'vacant' ? 'immediate' : (formData.availableDate || ''),
           description: formData.description || '',
           amenities: formData.amenities || []
         }
@@ -821,6 +822,9 @@ export function AddPropertyForm() {
         }
         
         // Now publish with auth token
+        console.log('Sending publish request with token:', propertyToken)
+        console.log('Using auth token:', userToken)
+        
         const publishResponse = await fetch('/api/properties/publish', {
           method: 'POST',
           headers: {
@@ -832,12 +836,23 @@ export function AddPropertyForm() {
           })
         })
 
+        console.log('Publish response status:', publishResponse.status)
+        console.log('Publish response ok:', publishResponse.ok)
+
+        if (!publishResponse.ok) {
+          const errorText = await publishResponse.text()
+          console.error('Publish response error text:', errorText)
+          throw new Error(`HTTP ${publishResponse.status}: ${errorText}`)
+        }
+
         const publishResult = await publishResponse.json()
+        console.log('Publish response:', publishResult)
         
         if (publishResult.success) {
           router.push('/landlord/dashboard')
         } else {
-          console.error('Failed to publish property: ' + publishResult.error)
+          console.error('Failed to publish property:', publishResult)
+          alert(`Failed to publish property: ${publishResult.error}\nDetails: ${publishResult.details || 'No additional details'}\nCode: ${publishResult.code || 'Unknown'}`)
         }
       } else {
         // User is not authenticated, use old flow to create pending property
@@ -881,7 +896,8 @@ export function AddPropertyForm() {
           // Optionally redirect to conversion
           router.push('/auth/convert-to-landlord')
         } else {
-          console.error('Failed to publish property: ' + result.error)
+          console.error('Failed to publish property:', result)
+          alert(`Failed to publish property: ${result.error}\nDetails: ${result.details || 'No additional details'}`)
         }
       }
     } catch (error) {
@@ -895,15 +911,18 @@ export function AddPropertyForm() {
   const isStepValid = () => {
     switch (currentStep) {
       case 1:
-        return (
+        const step1Valid = (
           formData.propertyType &&
           formData.bedrooms &&
           formData.bathrooms &&
           formData.description &&
           formData.monthlyRent &&
-          formData.securityDeposit &&
-          formData.availableDate
+          formData.securityDeposit
         )
+        // Only require available date if tenanted or upcoming
+        const availableDateValid = (formData.availability === 'vacant') || 
+          (formData.availability && formData.availableDate)
+        return step1Valid && availableDateValid
       case 2:
         return formData.address && formData.city && formData.postcode
       case 3:
@@ -916,7 +935,7 @@ export function AddPropertyForm() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 [&>*_label:not(.mb-0)]:mb-3 [&>*_label:not(.mb-0)]:block">
       {/* Progress Bar */}
       <Card>
         <CardContent className="px-6">
@@ -927,12 +946,57 @@ export function AddPropertyForm() {
               </span>
               <span>{Math.round(progress)}% Complete</span>
             </div>
-            <Progress value={progress} className="h-2" />
-            <div className="flex justify-between text-xs text-muted-foreground">
-              <span>Basic Info</span>
-              <span>Address</span>
-              <span>Photos</span>
-              <span>Review</span>
+            <div className="space-y-4">
+              {/* Progress container using CSS Grid */}
+              <div className="grid grid-cols-4 gap-8 relative px-4">
+                {/* Background progress line connecting through dots */}
+                <div className="absolute h-2 bg-muted-foreground/20 rounded-full left-2 right-2" style={{ top: '5px' }}></div>
+                
+                {/* Active progress line */}
+                <div 
+                  className="absolute h-2 bg-primary rounded-full transition-all duration-300"
+                  style={{ 
+                    top: '5px',
+                    left: '0.5rem',
+                    width: currentStep === 1 ? 'calc(12.5% - 2px)' : 
+                           currentStep === 2 ? 'calc(37.5% - 2px)' :
+                           currentStep === 3 ? 'calc(62.5% - 2px)' : 
+                           'calc(100% - 1rem)'
+                  }}
+                ></div>
+                
+                {/* Step 1 */}
+                <div className="flex flex-col items-center">
+                  <div className={`w-4 h-4 rounded-full border-2 bg-white ${currentStep >= 1 ? 'border-primary' : 'border-muted-foreground/30'} relative z-10 mb-2`}>
+                    {currentStep >= 1 && <div className="w-full h-full rounded-full bg-primary scale-50"></div>}
+                  </div>
+                  <span className="text-xs text-muted-foreground text-center">Basic Info</span>
+                </div>
+                
+                {/* Step 2 */}
+                <div className="flex flex-col items-center">
+                  <div className={`w-4 h-4 rounded-full border-2 bg-white ${currentStep >= 2 ? 'border-primary' : 'border-muted-foreground/30'} relative z-10 mb-2`}>
+                    {currentStep >= 2 && <div className="w-full h-full rounded-full bg-primary scale-50"></div>}
+                  </div>
+                  <span className="text-xs text-muted-foreground text-center">Address</span>
+                </div>
+                
+                {/* Step 3 */}
+                <div className="flex flex-col items-center">
+                  <div className={`w-4 h-4 rounded-full border-2 bg-white ${currentStep >= 3 ? 'border-primary' : 'border-muted-foreground/30'} relative z-10 mb-2`}>
+                    {currentStep >= 3 && <div className="w-full h-full rounded-full bg-primary scale-50"></div>}
+                  </div>
+                  <span className="text-xs text-muted-foreground text-center">Photos</span>
+                </div>
+                
+                {/* Step 4 */}
+                <div className="flex flex-col items-center">
+                  <div className={`w-4 h-4 rounded-full border-2 bg-white ${currentStep >= 4 ? 'border-primary' : 'border-muted-foreground/30'} relative z-10 mb-2`}>
+                    {currentStep >= 4 && <div className="w-full h-full rounded-full bg-primary scale-50"></div>}
+                  </div>
+                  <span className="text-xs text-muted-foreground text-center">Review</span>
+                </div>
+              </div>
             </div>
           </div>
         </CardContent>
@@ -1074,7 +1138,6 @@ export function AddPropertyForm() {
                     </SelectContent>
                   </Select>
                 </div>
-                <div></div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -1131,15 +1194,15 @@ export function AddPropertyForm() {
               </div>
 
               <div>
-                <Label>Amenities</Label>
+                <Label>Features</Label>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mt-2">
                   {amenityOptions.map((amenity) => (
-                    <div key={amenity} className="flex items-center space-x-2 p-2 rounded-md hover:bg-muted/50 transition-colors">
+                    <div key={amenity} className="flex items-center space-x-2 p-2 rounded-md hover:bg-muted/20 transition-colors">
                       <Checkbox
                         id={amenity}
                         checked={formData.amenities.includes(amenity)}
                         onCheckedChange={(checked) => handleAmenityChange(amenity, checked as boolean)}
-                        className="border-2 border-muted-foreground data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+                        className="border border-muted-foreground/40 data-[state=checked]:bg-primary data-[state=checked]:border-primary"
                       />
                       <Label htmlFor={amenity} className="text-sm font-normal cursor-pointer flex-1 mb-0">
                         {amenity}
@@ -1318,10 +1381,10 @@ export function AddPropertyForm() {
                 </div>
               )}
               
-              <div className="rounded-lg p-6 border">
-                <h3 className="text-xl font-semibold mb-6">Property Summary</h3>
+              <div className="rounded-lg px-4 py-4 border">
+                <h3 className="text-lg font-semibold leading-none tracking-tight mb-4">Property Summary</h3>
                 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     {formData.photos.length > 0 && (
                       <div className="aspect-video relative rounded-lg overflow-hidden mb-4">
@@ -1338,15 +1401,85 @@ export function AddPropertyForm() {
                   </div>
                   <div className="space-y-4">
                     <div>
-                      <h3 className="text-xl font-semibold">{formData.propertyType} in {formData.city}</h3>
-                      <div className="flex items-center text-muted-foreground mt-1">
-                        <MapPin className="h-4 w-4 mr-1" />
-                        <span className="text-sm">{formData.address}, {formData.city}, {formData.postcode}</span>
+                      <h3 className="text-lg font-semibold">{formData.address.replace(/^\d+\s*/, '')}, {formData.city.charAt(0).toUpperCase() + formData.city.slice(1).toLowerCase()}, {(formData.postcode?.split(' ')[0] || formData.postcode).toUpperCase()}</h3>
+                      <div className="text-lg font-semibold text-accent mt-1">
+                        £{Number.parseInt(formData.monthlyRent || "0").toLocaleString()} pcm
+                      </div>
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        <Badge 
+                          variant={
+                            formData.availability === 'vacant' ? 'default' : 
+                            formData.availability === 'tenanted' ? 'destructive' : 
+                            formData.availability === 'upcoming' ? 'default' :
+                            'secondary'
+                          }
+                          className={`text-xs font-semibold ${
+                            formData.availability === 'vacant' ? 'bg-accent text-accent-foreground hover:bg-accent/90' : 
+                            formData.availability === 'upcoming' ? 'bg-orange-500 text-white hover:bg-orange-600' : ''
+                          }`}
+                        >
+                          {formData.availability === 'vacant' ? 'Vacant' :
+                           formData.availability === 'tenanted' ? 'Tenanted' :
+                           formData.availability === 'upcoming' ? 'Upcoming' :
+                           'Available'}
+                        </Badge>
+                        {(() => {
+                          const getLicenceDisplay = (licence: string) => {
+                            switch (licence) {
+                              case 'hmo': return 'HMO Licence'
+                              case 'c2': return 'C2 Licence'
+                              case 'selective': return 'Selective Licence'
+                              case 'additional': return 'Additional Licence'
+                              case 'other': return 'Licensed'
+                              case 'none': return null
+                              default: return null
+                            }
+                          }
+                          
+                          const licenceDisplay = getLicenceDisplay(formData.propertyLicence);
+                          
+                          if (!licenceDisplay) {
+                            return null;
+                          }
+                          
+                          return (
+                            <Badge className="text-xs font-semibold bg-primary text-primary-foreground hover:bg-primary/90">
+                              {licenceDisplay}
+                            </Badge>
+                          );
+                        })()}
+                        
+                        {(() => {
+                          const getConditionDisplay = (condition: string) => {
+                            switch (condition) {
+                              case 'excellent': return 'Excellent'
+                              case 'newly-renovated': return 'Newly Renovated'
+                              case 'good': return 'Good'
+                              case 'fair': return 'Fair'
+                              case 'needs-work': return 'Needs Work'
+                              default: return null
+                            }
+                          }
+                          
+                          const conditionDisplay = getConditionDisplay(formData.propertyCondition);
+                          
+                          if (!conditionDisplay) {
+                            return null;
+                          }
+                          
+                          return (
+                            <Badge className="text-xs font-semibold bg-gray-200 text-gray-700 hover:bg-gray-300">
+                              {conditionDisplay}
+                            </Badge>
+                          );
+                        })()}
                       </div>
                     </div>
                     
-                    <div className="flex items-center space-x-4">
-                      <Badge variant="secondary">{formData.propertyType}</Badge>
+                    <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                      <div className="flex items-center">
+                        <span className="capitalize">{formData.propertyType}</span>
+                      </div>
                       <div className="flex items-center">
                         <Bed className="h-4 w-4 mr-1" />
                         <span className="text-sm">{formData.bedrooms} bed</span>
@@ -1357,62 +1490,66 @@ export function AddPropertyForm() {
                       </div>
                     </div>
 
-                    <div className="flex items-center text-lg font-semibold text-accent">
-                      <PoundSterling className="h-5 w-5 mr-1" />
-                      £{Number.parseInt(formData.monthlyRent || "0").toLocaleString()} pcm
-                    </div>
 
                     <div className="space-y-2 text-sm">
                       <div><strong>Security Deposit:</strong> £{Number.parseInt(formData.securityDeposit || "0").toLocaleString()}</div>
-                      <div><strong>Available Date:</strong> {new Date(formData.availableDate).toLocaleDateString()}</div>
-                      {formData.propertyLicence && (
-                        <div><strong>Property Licence:</strong> {formData.propertyLicence}</div>
+                      {formData.availability !== 'vacant' && formData.availableDate && (
+                        <div><strong>Available Date:</strong> {new Date(formData.availableDate).toLocaleDateString()}</div>
                       )}
-                      {formData.propertyCondition && (
-                        <div><strong>Condition:</strong> {formData.propertyCondition}</div>
-                      )}
-                      <div><strong>Amenities:</strong> {formData.amenities.length} selected</div>
+                      <div><strong>Features:</strong> {formData.amenities.length > 0 ? formData.amenities.join(', ') : 'None selected'}</div>
                     </div>
 
                     {formData.description && (
                       <div className="mt-4">
                         <strong className="text-sm">Description:</strong>
-                        <p className="mt-1 text-sm text-muted-foreground line-clamp-3">{formData.description}</p>
+                        <div className="mt-1">
+                          <p className={`text-sm text-muted-foreground ${formData.description.length > 200 ? (showFullDescription ? '' : 'line-clamp-3') : ''}`}>
+                            {formData.description}
+                          </p>
+                          {formData.description.length > 200 && (
+                            <button
+                              onClick={() => setShowFullDescription(!showFullDescription)}
+                              className="text-xs text-primary hover:underline mt-1"
+                            >
+                              {showFullDescription ? 'See less' : 'See more'}
+                            </button>
+                          )}
+                        </div>
                       </div>
                     )}
                   </div>
                 </div>
-              </div>
-
-              {/* Property Accuracy Confirmation - For all users */}
-              <div className="space-y-4">
-                <div className="flex items-start space-x-3 p-3 rounded-md border border-muted-foreground/20 hover:bg-muted/50 transition-colors">
-                  <Checkbox
-                    id="property-accuracy"
-                    checked={formData.confirmPropertyAccuracy}
-                    onCheckedChange={(checked) => handleInputChange("confirmPropertyAccuracy", checked as boolean)}
-                    className="h-5 w-5 border-2 data-[state=checked]:bg-primary data-[state=checked]:border-primary border-muted-foreground"
-                  />
-                  <Label htmlFor="property-accuracy" className="text-sm font-medium cursor-pointer flex-1 leading-relaxed">
-                    I confirm that all property information provided is accurate and complete
-                  </Label>
+                
+                {/* Property Accuracy Confirmation - Full Width within container */}
+                <div className="mt-6 pt-4 border-t border-muted-foreground/20">
+                  <div className="flex items-center space-x-3 p-3 rounded-md border border-muted-foreground/20 hover:bg-muted/20 transition-colors">
+                    <Checkbox
+                      id="property-accuracy"
+                      checked={formData.confirmPropertyAccuracy}
+                      onCheckedChange={(checked) => handleInputChange("confirmPropertyAccuracy", checked as boolean)}
+                      className="border border-muted-foreground/40 data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+                    />
+                    <Label htmlFor="property-accuracy" className="text-sm font-medium cursor-pointer flex-1 leading-relaxed mb-0">
+                      I confirm that all property information provided is accurate and complete
+                    </Label>
+                  </div>
                 </div>
               </div>
 
               {/* Auth Section - Show only if user is not logged in */}
               {isLoggedIn === false && (
                 <Card>
-                  <CardHeader>
+                  <CardHeader className="pb-1">
                     <CardTitle>Create Your Account to Publish</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <Tabs value={authTab} onValueChange={setAuthTab}>
-                      <TabsList className="grid w-full grid-cols-2 bg-muted/30 p-1">
+                      <TabsList className="grid w-full grid-cols-2 bg-muted/15 p-1">
                         <TabsTrigger value="signup" className="data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm">Create Account</TabsTrigger>
                         <TabsTrigger value="login" className="data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm">Log In</TabsTrigger>
                       </TabsList>
 
-                      <TabsContent value="signup" className="space-y-4">
+                      <TabsContent value="signup" className="space-y-4 mt-6">
                         <form onSubmit={handleSignup} className="space-y-4">
                           {authErrors.general && (
                             <Alert variant="destructive">
@@ -1501,14 +1638,14 @@ export function AddPropertyForm() {
                             </div>
                           </div>
 
-                          <div className="flex items-start space-x-3 p-3 rounded-md border border-muted-foreground/20 hover:bg-muted/50 transition-colors">
+                          <div className="flex items-center space-x-3 p-3 rounded-md border border-muted-foreground/20 hover:bg-muted/20 transition-colors">
                             <Checkbox
                               id="terms"
                               checked={signupForm.acceptedTerms}
                               onCheckedChange={(checked) => setSignupForm(prev => ({ ...prev, acceptedTerms: checked as boolean }))}
-                              className={`h-5 w-5 border-2 data-[state=checked]:bg-primary data-[state=checked]:border-primary ${authErrors.acceptedTerms ? 'border-red-500' : 'border-muted-foreground'}`}
+                              className={`border data-[state=checked]:bg-primary data-[state=checked]:border-primary ${authErrors.acceptedTerms ? 'border-red-500' : 'border-muted-foreground/40'}`}
                             />
-                            <Label htmlFor="terms" className="text-sm font-medium cursor-pointer flex-1 leading-relaxed">
+                            <Label htmlFor="terms" className="text-sm font-medium cursor-pointer flex-1 leading-relaxed mb-0">
                               I agree to the Terms of Service and Privacy Policy, and confirm that all information provided is accurate
                             </Label>
                           </div>
@@ -1516,7 +1653,7 @@ export function AddPropertyForm() {
                             <p className="text-sm text-red-500">{authErrors.acceptedTerms}</p>
                           )}
 
-                          <Button type="submit" className="w-full" disabled={authLoading}>
+                          <Button type="submit" className="w-full h-11" disabled={authLoading}>
                             {authLoading ? (
                               <>
                                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -1529,7 +1666,7 @@ export function AddPropertyForm() {
                         </form>
                       </TabsContent>
 
-                      <TabsContent value="login" className="space-y-4">
+                      <TabsContent value="login" className="space-y-4 mt-6">
                         <form onSubmit={handleLogin} className="space-y-4">
                           {authErrors.general && (
                             <Alert variant="destructive">
@@ -1566,7 +1703,7 @@ export function AddPropertyForm() {
                             )}
                           </div>
 
-                          <Button type="submit" className="w-full" disabled={authLoading}>
+                          <Button type="submit" className="w-full h-11" disabled={authLoading}>
                             {authLoading ? (
                               <>
                                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />

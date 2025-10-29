@@ -138,6 +138,9 @@ export function EditPropertyForm({ propertyId, initialData }: EditPropertyFormPr
   }
 
   const amenityOptions = [
+    "Furnished",
+    "Unfurnished",
+    "Wheelchair access",
     "Pet-friendly",
     "Parking",
     "Gym",
@@ -146,10 +149,7 @@ export function EditPropertyForm({ propertyId, initialData }: EditPropertyFormPr
     "In-unit laundry",
     "Dishwasher",
     "Air conditioning",
-    "Heating",
-    "Hardwood floors",
     "Carpet",
-    "Tile floors",
     "Walk-in closet",
     "Storage unit",
     "Elevator",
@@ -566,7 +566,6 @@ export function EditPropertyForm({ propertyId, initialData }: EditPropertyFormPr
                       </SelectContent>
                     </Select>
                   </div>
-                  <div></div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -626,15 +625,15 @@ export function EditPropertyForm({ propertyId, initialData }: EditPropertyFormPr
                 </div>
 
                 <div>
-                  <Label>Amenities</Label>
+                  <Label>Features</Label>
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mt-2">
                     {amenityOptions.map((amenity) => (
-                      <div key={amenity} className="flex items-center space-x-2 p-2 rounded-md hover:bg-muted/50 transition-colors">
+                      <div key={amenity} className="flex items-center space-x-2 p-2 rounded-md hover:bg-muted/20 transition-colors">
                         <Checkbox
                           id={amenity}
                           checked={formData.amenities.includes(amenity)}
                           onCheckedChange={(checked) => handleAmenityChange(amenity, checked as boolean)}
-                          className="border-2 border-muted-foreground data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+                          className="border border-muted-foreground/40 data-[state=checked]:bg-primary data-[state=checked]:border-primary"
                         />
                         <Label htmlFor={amenity} className="text-sm font-normal cursor-pointer flex-1 mb-0">
                           {amenity}

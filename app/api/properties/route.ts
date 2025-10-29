@@ -12,6 +12,7 @@ export async function GET(request: NextRequest) {
     const maxRent = searchParams.get('maxRent')
     const bedrooms = searchParams.get('bedrooms')
     const propertyType = searchParams.get('propertyType')
+    const status = searchParams.get('status') || 'active'
     const sortBy = searchParams.get('sortBy') || 'created_at'
     const sortOrder = searchParams.get('sortOrder') || 'desc'
     
@@ -27,7 +28,7 @@ export async function GET(request: NextRequest) {
           avatar_url
         )
       `, { count: 'exact' })
-      .eq('status', 'active')
+      .eq('status', status)
     
     // Apply filters
     if (city) {

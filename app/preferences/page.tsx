@@ -10,7 +10,7 @@ export default function PreferencesPage() {
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="mb-8">
             <h1 className="font-serif text-3xl md:text-4xl font-bold text-foreground mb-2">Set Your Preferences</h1>
-            <p className="text-muted-foreground text-lg">
+            <p className="text-muted-foreground text-md">
               Help us find the perfect rental properties that match your needs and budget
             </p>
           </div>

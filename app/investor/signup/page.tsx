@@ -352,7 +352,7 @@ export default function InvestorSignup() {
               <h1 className="font-serif text-3xl md:text-4xl font-bold text-primary mb-1">
                 Join as an Investor
               </h1>
-              <p className="text-primary/70 text-lg">Tell us about your investment preferences and create your account</p>
+              <p className="text-primary/70 text-md">Tell us about your investment preferences and create your account</p>
             </CardHeader>
           </Card>
 
