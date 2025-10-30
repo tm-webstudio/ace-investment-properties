@@ -18,6 +18,15 @@ export interface Property {
   landlordPhone: string
   landlordEmail: string
   featured: boolean
+  status?: string // draft, active, inactive, rented
+  availability?: string // vacant, tenanted, upcoming
+  property_type?: string
+  property_licence?: string
+  property_condition?: string
+  monthly_rent?: number
+  photos?: string[]
+  available_date?: string
+  postcode?: string
 }
 
 export interface Landlord {

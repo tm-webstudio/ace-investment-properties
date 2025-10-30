@@ -8,7 +8,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { Bed, Bath, MoreVertical, Edit, Eye, Trash2 } from "lucide-react"
+import { Bed, Bath, MoreVertical, Edit, Eye, Trash2, CheckCircle, XCircle } from "lucide-react"
 import { SavePropertyButton } from "./save-property-button"
 import { format } from "date-fns"
 import { supabase } from "@/lib/supabase"
@@ -16,14 +16,42 @@ import type { Property } from "@/lib/sample-data"
 
 interface PropertyCardProps {
   property: Property
-  variant?: 'default' | 'landlord' // 'default' shows heart, 'landlord' shows dropdown
+  variant?: 'default' | 'landlord' | 'admin' // 'default' shows heart, 'landlord' shows dropdown, 'admin' shows approve/reject
   onPropertyDeleted?: () => void // Callback for when property is deleted
+  onApprove?: (propertyId: string) => void // Callback for admin approval
+  onReject?: (propertyId: string) => void // Callback for admin rejection
 }
 
-export function PropertyCard({ property, variant = 'default', onPropertyDeleted }: PropertyCardProps) {
+export function PropertyCard({ property, variant = 'default', onPropertyDeleted, onApprove, onReject }: PropertyCardProps) {
   const [isDeleting, setIsDeleting] = useState(false)
   const router = useRouter()
-  
+
+  // Helper function to generate property title
+  const getPropertyTitle = () => {
+    // If title is provided, use it
+    if (property.title) return property.title
+
+    // Otherwise, generate from address
+    const address = property.address || ''
+    const city = property.city || ''
+    const propertyType = property.property_type || property.propertyType || ''
+
+    if (!address || !city) {
+      return `${propertyType} in ${city || 'Unknown'}`
+    }
+
+    // Remove door number from the beginning of the address
+    const addressPart = address.split(',')[0].trim()
+    const roadName = addressPart.replace(/^\d+\s*/, '').trim()
+
+    // Format: "Road Name, City"
+    const title = `${roadName}, ${city}`.replace(/,\s*,/g, ',').replace(/^,\s*|,\s*$/g, '')
+
+    // Capitalize first letter of each word
+    return title.split(' ').map(word =>
+      word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+    ).join(' ')
+  }
 
   // Helper function to get licence display name
   const getLicenceDisplay = (licence: string) => {
@@ -105,27 +133,43 @@ export function PropertyCard({ property, variant = 'default', onPropertyDeleted 
       setIsDeleting(false)
     }
   }
+  // Check if property is awaiting approval (only show for non-admin variants)
+  const isAwaitingApproval = property.status === 'draft' && variant !== 'admin'
+
   // Shared card structure for both variants
   const CardLayout = ({ children, topRightAction }: { children: React.ReactNode, topRightAction: React.ReactNode }) => (
-    <Card className="overflow-hidden hover:shadow-lg transition-all duration-300 group border-border/50 hover:border-accent/20 cursor-pointer p-0 gap-3.5 rounded-none">
+    <Card className={`overflow-hidden hover:shadow-lg transition-all duration-300 group border-border/50 hover:border-accent/20 cursor-pointer p-0 gap-3.5 rounded-none ${isAwaitingApproval ? 'opacity-60' : ''}`}>
       <div className="relative overflow-hidden cursor-pointer" onClick={handleCardClick}>
+        {isAwaitingApproval && (
+          <div className="absolute inset-0 bg-gray-900/10 z-[5]" />
+        )}
         <Image
           src={(property.images || property.photos)?.[0] || "/placeholder.svg"}
-          alt={property.title || `${property.property_type} in ${property.city}`}
+          alt={getPropertyTitle()}
           width={400}
           height={250}
           className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
         />
-        <div className="absolute top-4 left-4">
-          <Badge 
+
+        {/* Awaiting Approval Watermark */}
+        {isAwaitingApproval && (
+          <div className="absolute inset-0 flex items-center justify-center z-[6]">
+            <div className="bg-yellow-500/95 text-white px-4 py-2 rounded shadow-lg border-2 border-yellow-400">
+              <p className="font-bold text-sm">Awaiting Approval</p>
+            </div>
+          </div>
+        )}
+
+        <div className="absolute top-4 left-4 flex gap-2 z-10">
+          <Badge
             variant={
-              property.availability === 'vacant' ? 'default' : 
-              property.availability === 'tenanted' ? 'destructive' : 
+              property.availability === 'vacant' ? 'default' :
+              property.availability === 'tenanted' ? 'destructive' :
               property.availability === 'upcoming' ? 'default' :
               'secondary'
             }
             className={`text-xs font-semibold shadow-lg ${
-              property.availability === 'vacant' ? 'bg-accent text-accent-foreground hover:bg-accent/90' : 
+              property.availability === 'vacant' ? 'bg-accent text-accent-foreground hover:bg-accent/90' :
               property.availability === 'upcoming' ? 'bg-orange-500 text-white hover:bg-orange-600' : ''
             }`}
           >
@@ -145,7 +189,7 @@ export function PropertyCard({ property, variant = 'default', onPropertyDeleted 
         <div className="space-y-2.5">
           <div className="mb-1.5">
             <h3 className="font-sans text-base font-medium text-card-foreground mb-1 line-clamp-1">
-              {property.title}
+              {getPropertyTitle()}
             </h3>
             <div className="text-base font-semibold text-accent">
               £{(property.price || property.monthly_rent || 0).toLocaleString()} pcm
@@ -248,6 +292,37 @@ export function PropertyCard({ property, variant = 'default', onPropertyDeleted 
     )
 
     return <CardLayout topRightAction={dropdownAction}>{null}</CardLayout>
+  }
+
+  if (variant === 'admin') {
+    const adminActions = (
+      <div className="flex gap-1">
+        <Button
+          size="icon"
+          variant="ghost"
+          onClick={(e) => {
+            e.stopPropagation()
+            onApprove?.(property.id)
+          }}
+          className="bg-green-600/90 hover:bg-green-700 shadow-lg border border-green-500/50 transition-all duration-200 hover:shadow-xl h-8 w-8"
+        >
+          <CheckCircle className="h-4 w-4 text-white" />
+        </Button>
+        <Button
+          size="icon"
+          variant="ghost"
+          onClick={(e) => {
+            e.stopPropagation()
+            onReject?.(property.id)
+          }}
+          className="bg-red-600/90 hover:bg-red-700 shadow-lg border border-red-500/50 transition-all duration-200 hover:shadow-xl h-8 w-8"
+        >
+          <XCircle className="h-4 w-4 text-white" />
+        </Button>
+      </div>
+    )
+
+    return <CardLayout topRightAction={adminActions}>{null}</CardLayout>
   }
 
   // Default variant with save button

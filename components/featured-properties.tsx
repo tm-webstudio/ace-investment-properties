@@ -96,7 +96,7 @@ export function FeaturedProperties() {
   }, [])
 
   return (
-    <section className="py-16 lg:py-24 bg-background">
+    <section className="py-12 lg:py-16 bg-background">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col md:flex-row md:items-start md:justify-between mb-5 md:mb-6">
           <div>

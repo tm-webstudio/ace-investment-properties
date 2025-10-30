@@ -347,45 +347,84 @@ export function ViewingRequests({ variant = 'dashboard', limit }: ViewingRequest
       
       <div className="space-y-4">
         {loading ? (
-          <div className="flex items-center justify-center py-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-          </div>
+          <>
+            {[...Array(variant === 'dashboard' ? 3 : 5)].map((_, i) => (
+              <div key={i} className="border rounded-lg p-4 space-y-3">
+                {/* Header skeleton */}
+                <div className="flex items-start justify-between">
+                  <div className="space-y-2 flex-1">
+                    <div className="flex items-center gap-3">
+                      <div className="h-5 bg-gray-200 rounded w-48 animate-pulse"></div>
+                      <div className="h-6 bg-gray-200 rounded w-20 animate-pulse"></div>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="h-4 bg-gray-200 rounded w-32 animate-pulse"></div>
+                      <div className="h-4 bg-gray-200 rounded w-24 animate-pulse"></div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="h-9 bg-gray-200 rounded w-24 animate-pulse"></div>
+                    <div className="h-9 bg-gray-200 rounded w-24 animate-pulse"></div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </>
         ) : viewings.length > 0 ? (
           viewings.map((viewing) => (
             <div key={viewing.id} className="border rounded-lg p-4 space-y-3">
               {/* Main viewing info */}
               <div className="flex items-start justify-between">
                 <div className="space-y-2 flex-1">
-                  <div className="flex items-center gap-3">
+                  <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-3">
                     <h3 className="font-sans text-base font-medium">
                       {(() => {
                         if (!viewing.property?.address || !viewing.property?.city) {
                           return `${viewing.property?.property_type} in ${viewing.property?.city}`
                         }
-                        
+
                         const address = viewing.property.address || ''
                         const city = viewing.property.city || ''
-                        const postcode = '' // We don't have postcode in the viewing data
-                        
+                        const postcode = viewing.property.postcode || ''
+
                         // Remove door number from the beginning of the address
                         const addressPart = address.split(',')[0].trim()
                         const roadName = addressPart.replace(/^\d+\s*/, '').trim()
-                        
-                        // Format: "Road Name, Area"
-                        const title = `${roadName}, ${city}`.replace(/,\s*,/g, ',').replace(/^,\s*|,\s*$/g, '')
-                        
-                        // Capitalize first letter of each word
-                        return title.split(' ').map(word => 
-                          word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
-                        ).join(' ')
+
+                        // Extract outward postcode (first part before space) in uppercase
+                        const outwardPostcode = postcode ? postcode.split(' ')[0].toUpperCase() : ''
+
+                        // Format: "Road Name, City, OUTWARD_POSTCODE"
+                        let title = `${roadName}, ${city}`
+                        if (outwardPostcode) {
+                          title += `, ${outwardPostcode}`
+                        }
+
+                        // Clean up any double commas
+                        title = title.replace(/,\s*,/g, ',').replace(/^,\s*|,\s*$/g, '')
+
+                        // Capitalize first letter of each word (except the postcode part)
+                        const parts = title.split(',')
+                        const formattedParts = parts.map((part, index) => {
+                          const trimmedPart = part.trim()
+                          // Don't lowercase the postcode (last part if postcode exists)
+                          if (index === parts.length - 1 && outwardPostcode && trimmedPart === outwardPostcode) {
+                            return trimmedPart
+                          }
+                          return trimmedPart.split(' ').map(word =>
+                            word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+                          ).join(' ')
+                        })
+
+                        return formattedParts.join(', ')
                       })()}
                     </h3>
                     <Badge className={getStatusColor(viewing.status)}>
-                      {viewing.status}
+                      {viewing.status === 'pending' ? 'awaiting approval' : viewing.status}
                     </Badge>
                   </div>
                   
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-600">
+                  <div className="flex flex-col md:flex-row gap-1 md:gap-4 text-sm text-gray-600">
                     <div className="flex items-center">
                       <Calendar className="h-4 w-4 mr-2" />
                       {formatDate(viewing.viewing_date)}
@@ -401,29 +440,27 @@ export function ViewingRequests({ variant = 'dashboard', limit }: ViewingRequest
                   {viewing.status === 'pending' && (
                     <>
                       <Button
-                        size="sm"
+                        size="icon"
                         onClick={() => handleApprove(viewing)}
-                        className="bg-green-600 hover:bg-green-700 text-white"
+                        className="bg-green-600 hover:bg-green-700 text-white h-9 w-9"
                       >
-                        <CheckCircle className="h-4 w-4 mr-1" />
-                        Approve
+                        <CheckCircle className="h-4 w-4" />
                       </Button>
                       <Button
-                        size="sm"
-                        variant="outline"
+                        size="icon"
                         onClick={() => handleReject(viewing)}
-                        className="border-red-200 text-red-600 hover:bg-red-50"
+                        className="bg-red-600 hover:bg-red-700 text-white h-9 w-9"
                       >
-                        <XCircle className="h-4 w-4 mr-1" />
-                        Reject
+                        <XCircle className="h-4 w-4" />
                       </Button>
                     </>
                   )}
-                  
+
                   <Button
-                    size="sm"
+                    size="icon"
                     variant="ghost"
                     onClick={() => setExpandedCard(expandedCard === viewing.id ? null : viewing.id)}
+                    className="h-9 w-9"
                   >
                     {expandedCard === viewing.id ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
                   </Button>

@@ -28,19 +28,21 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // Verify user is a landlord
+    // Verify user is a landlord or admin
     const { data: userProfile, error: profileError } = await supabase
       .from('user_profiles')
       .select('user_type')
       .eq('id', user.id)
       .single()
 
-    if (profileError || userProfile?.user_type !== 'landlord') {
+    if (profileError || (userProfile?.user_type !== 'landlord' && userProfile?.user_type !== 'admin')) {
       return NextResponse.json(
-        { success: false, error: 'Landlord access required' },
+        { success: false, error: 'Landlord or admin access required' },
         { status: 403 }
       )
     }
+
+    const isAdmin = userProfile?.user_type === 'admin'
 
     // Get query parameters
     const { searchParams } = new URL(request.url)
@@ -48,11 +50,15 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '20')
     const offset = parseInt(searchParams.get('offset') || '0')
 
-    // Build query - get viewings for landlord's properties
+    // Build query - get viewings for landlord's properties or all viewings for admin
     let query = supabase
       .from('property_viewings')
       .select('*')
-      .eq('landlord_id', user.id)
+
+    // Filter by landlord if not admin
+    if (!isAdmin) {
+      query = query.eq('landlord_id', user.id)
+    }
 
     // Filter by status - default to pending first, then others
     if (status === 'pending') {
@@ -89,10 +95,10 @@ export async function GET(request: NextRequest) {
         if (viewing.property_id) {
           const { data: property } = await supabase
             .from('properties')
-            .select('id, property_type, address, city, monthly_rent, photos')
+            .select('id, property_type, address, city, postcode, monthly_rent, photos')
             .eq('id', viewing.property_id)
             .single()
-          
+
           viewing.property = property
         }
 
@@ -124,11 +130,6 @@ export async function GET(request: NextRequest) {
     }
 
     // Get summary counts
-    const { data: statusCounts } = await supabase
-      .from('property_viewings')
-      .select('status, count(*)', { count: 'exact' })
-      .eq('landlord_id', user.id)
-
     const summary = {
       pending: 0,
       approved: 0,
@@ -137,36 +138,47 @@ export async function GET(request: NextRequest) {
       completed: 0
     }
 
-    // Process status counts (this is a simplified approach)
-    const { data: pendingCount } = await supabase
+    // Build count queries with landlord filter if not admin
+    let pendingCountQuery = supabase
       .from('property_viewings')
       .select('*', { count: 'exact', head: true })
-      .eq('landlord_id', user.id)
       .eq('status', 'pending')
 
-    const { data: approvedCount } = await supabase
+    let approvedCountQuery = supabase
       .from('property_viewings')
       .select('*', { count: 'exact', head: true })
-      .eq('landlord_id', user.id)
       .eq('status', 'approved')
 
-    const { data: rejectedCount } = await supabase
+    let rejectedCountQuery = supabase
       .from('property_viewings')
       .select('*', { count: 'exact', head: true })
-      .eq('landlord_id', user.id)
       .eq('status', 'rejected')
 
-    const { data: cancelledCount } = await supabase
+    let cancelledCountQuery = supabase
       .from('property_viewings')
       .select('*', { count: 'exact', head: true })
-      .eq('landlord_id', user.id)
       .eq('status', 'cancelled')
 
-    const { data: completedCount } = await supabase
+    let completedCountQuery = supabase
       .from('property_viewings')
       .select('*', { count: 'exact', head: true })
-      .eq('landlord_id', user.id)
       .eq('status', 'completed')
+
+    // Apply landlord filter if not admin
+    if (!isAdmin) {
+      pendingCountQuery = pendingCountQuery.eq('landlord_id', user.id)
+      approvedCountQuery = approvedCountQuery.eq('landlord_id', user.id)
+      rejectedCountQuery = rejectedCountQuery.eq('landlord_id', user.id)
+      cancelledCountQuery = cancelledCountQuery.eq('landlord_id', user.id)
+      completedCountQuery = completedCountQuery.eq('landlord_id', user.id)
+    }
+
+    // Execute count queries
+    const { data: pendingCount } = await pendingCountQuery
+    const { data: approvedCount } = await approvedCountQuery
+    const { data: rejectedCount } = await rejectedCountQuery
+    const { data: cancelledCount } = await cancelledCountQuery
+    const { data: completedCount } = await completedCountQuery
 
     return NextResponse.json({
       success: true,

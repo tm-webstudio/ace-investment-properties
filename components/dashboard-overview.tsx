@@ -1,13 +1,13 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { PropertyCard } from "@/components/property-card"
 import { ViewingRequests } from "@/components/viewing-requests"
-import { KeyRound as Pound, Home, FileText, TrendingUp, Eye, MessageSquare, Plus, Clock } from "lucide-react"
+import { KeyRound as Pound, Home, FileText, TrendingUp, Eye, MessageSquare, Plus, Clock, ChevronLeft, ChevronRight } from "lucide-react"
 import Link from "next/link"
 import { supabase } from "@/lib/supabase"
 
@@ -37,6 +37,9 @@ interface DashboardOverviewProps {
 export function DashboardOverview({ userId }: DashboardOverviewProps) {
   const [properties, setProperties] = useState<Property[]>([])
   const [loading, setLoading] = useState(true)
+  const scrollRef = useRef<HTMLDivElement>(null)
+  const [canScrollLeft, setCanScrollLeft] = useState(false)
+  const [canScrollRight, setCanScrollRight] = useState(false)
 
   const fetchProperties = async () => {
     try {
@@ -82,6 +85,47 @@ export function DashboardOverview({ userId }: DashboardOverviewProps) {
     // Refresh the properties list when a property is deleted
     fetchProperties()
   }
+
+  const updateScrollButtons = () => {
+    if (scrollRef.current) {
+      const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current
+      setCanScrollLeft(scrollLeft > 0)
+      setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 1)
+    }
+  }
+
+  const scrollLeft = () => {
+    if (scrollRef.current) {
+      const cardWidth = scrollRef.current.children[0]?.clientWidth || 0
+      const gap = 16 // gap-4 = 1rem = 16px
+      scrollRef.current.scrollBy({ left: -(cardWidth + gap), behavior: 'smooth' })
+    }
+  }
+
+  const scrollRight = () => {
+    if (scrollRef.current) {
+      const cardWidth = scrollRef.current.children[0]?.clientWidth || 0
+      const gap = 16 // gap-4 = 1rem = 16px
+      scrollRef.current.scrollBy({ left: cardWidth + gap, behavior: 'smooth' })
+    }
+  }
+
+  useEffect(() => {
+    const scrollContainer = scrollRef.current
+
+    if (scrollContainer) {
+      updateScrollButtons()
+      scrollContainer.addEventListener('scroll', updateScrollButtons)
+      window.addEventListener('resize', updateScrollButtons)
+    }
+
+    return () => {
+      if (scrollContainer) {
+        scrollContainer.removeEventListener('scroll', updateScrollButtons)
+        window.removeEventListener('resize', updateScrollButtons)
+      }
+    }
+  }, [properties])
 
 
   // Mock compliance & documents data
@@ -144,46 +188,116 @@ export function DashboardOverview({ userId }: DashboardOverviewProps) {
         </CardHeader>
         <CardContent>
           {loading ? (
-            <div className="flex items-center justify-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            <div className="relative">
+              <div
+                className="flex overflow-x-hidden gap-4 pb-4"
+              >
+                {[...Array(4)].map((_, i) => (
+                  <div
+                    key={i}
+                    className="flex-none w-4/5 sm:w-1/2 lg:w-[23.5%]"
+                  >
+                    <div className="border rounded-none overflow-hidden">
+                      <div className="h-48 bg-gray-300 animate-pulse"></div>
+                      <div className="p-4 space-y-3">
+                        <div className="space-y-2">
+                          <div className="h-5 bg-gray-200 rounded w-3/4 animate-pulse"></div>
+                          <div className="h-6 bg-gray-200 rounded w-1/2 animate-pulse"></div>
+                        </div>
+                        <div className="flex gap-4">
+                          <div className="h-4 bg-gray-200 rounded w-20 animate-pulse"></div>
+                          <div className="h-4 bg-gray-200 rounded w-16 animate-pulse"></div>
+                          <div className="h-4 bg-gray-200 rounded w-16 animate-pulse"></div>
+                        </div>
+                        <div className="flex gap-2">
+                          <div className="h-6 bg-gray-200 rounded w-24 animate-pulse"></div>
+                          <div className="h-6 bg-gray-200 rounded w-20 animate-pulse"></div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           ) : properties.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              {properties.slice(0, 4).map((property) => (
-                <PropertyCard 
-                  key={property.id} 
-                  property={{
-                    id: property.id.toString(),
-                    title: property.title,
-                    property_type: property.property_type,
-                    propertyType: property.property_type,
-                    bedrooms: property.bedrooms,
-                    bathrooms: property.bathrooms,
-                    price: property.monthly_rent, // API already converted from pence to pounds
-                    monthly_rent: property.monthly_rent, // API already converted
-                    monthlyRent: property.monthly_rent, // API already converted
-                    deposit: property.security_deposit, // API already converted
-                    availableDate: property.available_date,
-                    available_date: property.available_date, // Also include this field
-                    availability: property.availability || 'vacant', // Ensure availability is set
-                    address: property.address,
-                    city: property.city,
-                    state: property.county,
-                    postcode: property.postcode,
-                    photos: property.photos,
-                    images: property.photos, // Also include this field for compatibility
-                    amenities: [], // Default empty array for amenities
-                    property_licence: property.property_licence || 'none',
-                    property_condition: property.property_condition || 'good',
-                    landlordId: property.landlord_id,
-                    landlordName: "You", // Since it's the current user
-                    landlordPhone: "",
-                    landlordEmail: ""
-                  }}
-                  variant="landlord"
-                  onPropertyDeleted={handlePropertyDeleted}
-                />
-              ))}
+            <div className="relative">
+              <div
+                ref={scrollRef}
+                className="flex overflow-x-auto gap-4 pb-4 scroll-smooth"
+                style={{
+                  scrollbarWidth: 'none',
+                  msOverflowStyle: 'none',
+                  scrollSnapType: 'x mandatory'
+                }}
+              >
+                {properties.map((property) => (
+                  <div
+                    key={property.id}
+                    className="flex-none w-4/5 sm:w-1/2 lg:w-[23.5%]"
+                    style={{ scrollSnapAlign: 'start' }}
+                  >
+                    <PropertyCard
+                      property={{
+                        id: property.id.toString(),
+                        title: property.title,
+                        property_type: property.property_type,
+                        propertyType: property.property_type,
+                        bedrooms: property.bedrooms,
+                        bathrooms: property.bathrooms,
+                        price: property.monthly_rent, // API already converted from pence to pounds
+                        monthly_rent: property.monthly_rent, // API already converted
+                        monthlyRent: property.monthly_rent, // API already converted
+                        deposit: property.security_deposit, // API already converted
+                        availableDate: property.available_date,
+                        available_date: property.available_date, // Also include this field
+                        availability: property.availability || 'vacant', // Ensure availability is set
+                        address: property.address,
+                        city: property.city,
+                        state: property.county,
+                        postcode: property.postcode,
+                        photos: property.photos,
+                        images: property.photos, // Also include this field for compatibility
+                        amenities: [], // Default empty array for amenities
+                        property_licence: property.property_licence || 'none',
+                        property_condition: property.property_condition || 'good',
+                        status: property.status, // Pass the status for approval indication
+                        landlordId: property.landlord_id,
+                        landlordName: "You", // Since it's the current user
+                        landlordPhone: "",
+                        landlordEmail: ""
+                      }}
+                      variant="landlord"
+                      onPropertyDeleted={handlePropertyDeleted}
+                    />
+                  </div>
+                ))}
+              </div>
+
+              <style jsx>{`
+                div::-webkit-scrollbar {
+                  display: none;
+                }
+              `}</style>
+
+              {!loading && canScrollLeft && (
+                <button
+                  onClick={scrollLeft}
+                  className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 bg-white shadow-lg p-2 hover:bg-gray-50 transition-colors z-10"
+                  aria-label="Scroll left"
+                >
+                  <ChevronLeft className="h-6 w-6" />
+                </button>
+              )}
+
+              {!loading && canScrollRight && (
+                <button
+                  onClick={scrollRight}
+                  className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 bg-white shadow-lg p-2 hover:bg-gray-50 transition-colors z-10"
+                  aria-label="Scroll right"
+                >
+                  <ChevronRight className="h-6 w-6" />
+                </button>
+              )}
             </div>
           ) : (
             <div className="text-center py-8 text-muted-foreground">

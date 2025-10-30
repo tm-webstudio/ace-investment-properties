@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { PropertyCard } from "@/components/property-card"
+import { ViewingRequests } from "@/components/viewing-requests"
 import { Settings, Eye, CheckCircle, XCircle, Clock, Calendar, Home, Users, BarChart3, Plus, Shield, Building } from "lucide-react"
 import Link from "next/link"
 import type { Admin } from "@/lib/sample-data"
@@ -22,7 +23,6 @@ export function AdminDashboardOverview({ admin }: AdminDashboardOverviewProps) {
     totalViewings: 0
   })
   const [pendingPropertiesForDisplay, setPendingPropertiesForDisplay] = useState<any[]>([])
-  const [allViewings, setAllViewings] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -55,8 +55,10 @@ export function AdminDashboardOverview({ admin }: AdminDashboardOverviewProps) {
               pendingForDisplay = pendingData.properties.slice(0, 6).map((property: any) => ({
                 ...property,
                 id: property.id,
-                title: `${property.property_type} in ${property.city}`,
                 property_type: property.property_type,
+                propertyType: property.property_type,
+                bedrooms: property.bedrooms,
+                bathrooms: property.bathrooms,
                 monthly_rent: property.monthly_rent,
                 price: property.monthly_rent,
                 photos: property.photos || ["/spacious-family-home.png"],
@@ -64,6 +66,13 @@ export function AdminDashboardOverview({ admin }: AdminDashboardOverviewProps) {
                 available_date: property.available_date,
                 availableDate: property.available_date,
                 availability: property.availability,
+                address: property.address,
+                city: property.city,
+                county: property.county,
+                postcode: property.postcode,
+                property_licence: property.property_licence,
+                property_condition: property.property_condition,
+                amenities: property.amenities || [],
                 _pendingInfo: {
                   status: property.status,
                   submittedBy: property.landlord_id,
@@ -77,19 +86,42 @@ export function AdminDashboardOverview({ admin }: AdminDashboardOverviewProps) {
           console.error('Error fetching pending properties:', error)
         }
 
-        // For now, use sample data for users and viewings since we don't have those APIs yet
-        // In a real implementation, you would fetch from /api/users/landlords, /api/users/investors, /api/viewings
-        
+        // Fetch admin stats (landlords, investors, viewings)
+        let totalLandlords = 0
+        let totalInvestors = 0
+        let totalViewings = 0
+
+        try {
+          const accessToken = localStorage.getItem('accessToken')
+          if (accessToken) {
+            const statsResponse = await fetch('/api/admin/stats', {
+              headers: {
+                'Authorization': `Bearer ${accessToken}`
+              }
+            })
+
+            if (statsResponse.ok) {
+              const statsData = await statsResponse.json()
+              if (statsData.success) {
+                totalLandlords = statsData.stats.totalLandlords
+                totalInvestors = statsData.stats.totalInvestors
+                totalViewings = statsData.stats.totalViewings
+              }
+            }
+          }
+        } catch (error) {
+          console.error('Error fetching admin stats:', error)
+        }
+
         setStats({
           totalProperties,
           totalPendingProperties,
-          totalLandlords: -1, // -1 indicates no API connection (will show dash)
-          totalInvestors: -1, // -1 indicates no API connection (will show dash)  
-          totalViewings: -1   // -1 indicates no API connection (will show dash)
+          totalLandlords,
+          totalInvestors,
+          totalViewings
         })
-        
+
         setPendingPropertiesForDisplay(pendingForDisplay)
-        setAllViewings([]) // Empty until viewings API is implemented
         
       } catch (error) {
         console.error('Error fetching admin data:', error)
@@ -97,12 +129,11 @@ export function AdminDashboardOverview({ admin }: AdminDashboardOverviewProps) {
         setStats({
           totalProperties: 0,
           totalPendingProperties: 0,
-          totalLandlords: -1, // -1 indicates no API connection (will show dash)
-          totalInvestors: -1, // -1 indicates no API connection (will show dash)
-          totalViewings: -1   // -1 indicates no API connection (will show dash)
+          totalLandlords: 0,
+          totalInvestors: 0,
+          totalViewings: 0
         })
         setPendingPropertiesForDisplay([])
-        setAllViewings([])
       } finally {
         setLoading(false)
       }
@@ -113,7 +144,6 @@ export function AdminDashboardOverview({ admin }: AdminDashboardOverviewProps) {
 
   const formatStatValue = (value: number, isLoading: boolean) => {
     if (isLoading) return '...'
-    if (value === -1) return '—' // Dash for no API connection
     return value.toString() // Show actual value (including 0)
   }
 
@@ -308,36 +338,18 @@ export function AdminDashboardOverview({ admin }: AdminDashboardOverviewProps) {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               {pendingPropertiesForDisplay.map((property) => (
-              <div key={property.id} className="space-y-3">
-                <PropertyCard property={property} />
+              <div key={property.id} className="space-y-2">
+                <PropertyCard
+                  property={property}
+                  variant="admin"
+                  onApprove={handleApproveProperty}
+                  onReject={handleRejectProperty}
+                />
 
-                {/* Admin info and actions below the card */}
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between text-xs text-muted-foreground">
-                    <span className="font-medium">By: {property._pendingInfo.landlordName}</span>
-                    <span>Submitted: {new Date(property._pendingInfo.submittedDate).toLocaleDateString('en-GB')}</span>
-                  </div>
-
-                  <div className="flex gap-2">
-                    <Button
-                      variant="default"
-                      size="sm"
-                      onClick={() => handleApproveProperty(property.id)}
-                      className="flex-1 bg-green-600 hover:bg-green-700 text-white"
-                    >
-                      <CheckCircle className="h-4 w-4 mr-1" />
-                      Approve
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleRejectProperty(property.id)}
-                      className="flex-1 border-red-300 text-red-600 hover:bg-red-50"
-                    >
-                      <XCircle className="h-4 w-4 mr-1" />
-                      Reject
-                    </Button>
-                  </div>
+                {/* Admin info below the card */}
+                <div className="flex items-center justify-between text-xs text-muted-foreground">
+                  <span className="font-medium">By: {property._pendingInfo.landlordName}</span>
+                  <span>Submitted: {new Date(property._pendingInfo.submittedDate).toLocaleDateString('en-GB')}</span>
                 </div>
               </div>
             ))}
@@ -349,49 +361,7 @@ export function AdminDashboardOverview({ admin }: AdminDashboardOverviewProps) {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Recent Viewings */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle>Recent Viewings</CardTitle>
-            <Link href="/admin/viewings">
-              <Button variant="outline" size="sm" className="bg-transparent">
-                View All
-              </Button>
-            </Link>
-          </CardHeader>
-          <CardContent>
-            {allViewings.length === 0 ? (
-              <div className="text-center py-8">
-                <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-muted/30 flex items-center justify-center">
-                  <Calendar className="w-5 h-5 text-muted-foreground/60" />
-                </div>
-                <h3 className="text-base font-medium text-muted-foreground mb-2">No Recent Viewings</h3>
-                <p className="text-sm text-muted-foreground/70 mb-3 max-w-sm mx-auto">
-                  No viewing requests have been scheduled yet. Bookings will appear here.
-                </p>
-                <Badge variant="outline" className="text-xs text-muted-foreground/50 border-muted-foreground/20">
-                  {loading ? 'Loading...' : 'No viewings'}
-                </Badge>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {allViewings.map((viewing) => (
-                <div key={viewing.id} className="flex items-center justify-between p-4 border rounded-lg">
-                  <div className="space-y-1">
-                    <p className="font-medium text-sm">{viewing.propertyTitle}</p>
-                    <div className="flex items-center text-sm text-muted-foreground">
-                      <Calendar className="h-4 w-4 mr-1" />
-                      {new Date(viewing.viewingDate).toLocaleDateString('en-GB')} at {viewing.viewingTime}
-                    </div>
-                  </div>
-                  <Badge className={getStatusColor(viewing.status)}>
-                    {viewing.status}
-                  </Badge>
-                </div>
-              ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
+        <ViewingRequests variant="dashboard" limit={5} />
 
         {/* Landlord Documents */}
         <Card>

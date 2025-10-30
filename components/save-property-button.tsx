@@ -119,21 +119,29 @@ export function SavePropertyButton({
     setIsCheckingInitialState(true)
     try {
       const token = await getAccessToken()
-      if (!token) return
+      if (!token) {
+        setIsCheckingInitialState(false)
+        return
+      }
 
       const response = await fetch(`/api/properties/${propertyId}/is-saved`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
+      }).catch(err => {
+        // Silently fail on network errors (e.g., ad blockers, extensions)
+        console.warn('Network error checking saved state:', err)
+        return null
       })
 
-      if (response.ok) {
+      if (response && response.ok) {
         const data = await response.json()
         setIsSaved(data.isSaved)
         onSaveChange?.(data.isSaved)
       }
     } catch (error) {
-      console.error('Error checking saved state:', error)
+      // Silently handle errors - the button will default to unsaved state
+      console.warn('Error checking saved state:', error)
     } finally {
       setIsCheckingInitialState(false)
     }
