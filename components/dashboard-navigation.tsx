@@ -15,14 +15,16 @@ export function DashboardNavigation({ customButton }: DashboardNavigationProps) 
   // Determine active tab based on current pathname
   const getActiveTab = () => {
     if (pathname.includes('/landlord/properties')) return 'properties'
+    if (pathname.includes('/landlord/property-documents')) return 'documents'
     if (pathname.includes('/landlord/profile')) return 'profile'
     return 'dashboard' // default for /landlord/dashboard or /landlord
   }
-  
+
   const activeTab = getActiveTab()
 
   const navItems = [
     { id: "dashboard", label: "Dashboard", icon: BarChart3, href: "/landlord/dashboard" },
+    { id: "documents", label: "Documents", icon: FileText, href: "/landlord/property-documents" },
     { id: "profile", label: "Profile", icon: User, href: "/landlord/profile" },
   ]
 

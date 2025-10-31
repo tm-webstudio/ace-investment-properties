@@ -39,7 +39,7 @@ export default function SignInPage() {
             router.push("/admin/dashboard")
             break
           case 'landlord':
-            router.push("/landlord")
+            router.push("/landlord/dashboard")
             break
           case 'investor':
           default:

@@ -4,11 +4,11 @@ import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Navigation } from "@/components/navigation"
 import { Footer } from "@/components/footer"
+import { PageHeader } from "@/components/page-header"
 import { InvestorDashboardNavigation } from "@/components/investor-dashboard-navigation"
 import { InvestorDashboardOverview } from "@/components/investor-dashboard-overview"
 import { RecommendedProperties } from "@/components/recommended-properties"
 import { PreferencesWidget } from "@/components/preferences-widget"
-import { Card, CardHeader } from "@/components/ui/card"
 import { sampleInvestors } from "@/lib/sample-data"
 import { supabase } from "@/lib/supabase"
 
@@ -16,8 +16,9 @@ export default function InvestorDashboard() {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(true)
   const [user, setUser] = useState<any>(null)
+  const [userProfile, setUserProfile] = useState<any>(null)
   const [preferences, setPreferences] = useState<any>(null)
-  
+
   // In a real app, this would come from user data
   const currentInvestor = sampleInvestors[0]
 
@@ -39,7 +40,7 @@ export default function InvestorDashboard() {
       // Check if user is an investor
       const { data: profile } = await supabase
         .from('user_profiles')
-        .select('user_type')
+        .select('*')
         .eq('id', user.id)
         .single()
 
@@ -47,6 +48,8 @@ export default function InvestorDashboard() {
         router.push('/dashboard')
         return
       }
+
+      setUserProfile(profile)
 
       // Fetch investor preferences
       const { data: { session } } = await supabase.auth.getSession()
@@ -89,17 +92,12 @@ export default function InvestorDashboard() {
       <Navigation />
       <main className="flex-1 bg-background">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <Card className="mb-8 bg-gradient-to-r from-green-50 via-green-100/50 to-green-50 border-green-200/30">
-            <CardHeader className="pb-4 pt-4">
-              <p className="text-sm font-bold text-green-700/70 uppercase tracking-wide mb-1">
-                Investor Dashboard
-              </p>
-              <h1 className="font-serif text-3xl md:text-4xl font-bold text-green-900 mb-1">
-                Welcome back, {currentInvestor.name}
-              </h1>
-              <p className="text-green-800/70 text-md">Track your property investments and opportunities</p>
-            </CardHeader>
-          </Card>
+          <PageHeader
+            category="Investor Dashboard"
+            title={`Welcome back, ${userProfile?.full_name || 'Investor'}`}
+            subtitle="Track your property investments and opportunities"
+            variant="green"
+          />
 
           <InvestorDashboardNavigation />
           

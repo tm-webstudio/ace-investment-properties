@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { PropertyCard } from "@/components/property-card"
 import { ViewingRequests } from "@/components/viewing-requests"
+import { PropertyDocumentsModal } from "@/components/property-documents-modal"
 import { KeyRound as Pound, Home, FileText, TrendingUp, Eye, MessageSquare, Plus, Clock, ChevronLeft, ChevronRight } from "lucide-react"
 import Link from "next/link"
 import { supabase } from "@/lib/supabase"
@@ -30,6 +31,15 @@ interface Property {
   landlord_id: string
 }
 
+interface PropertySummary {
+  propertyId: string
+  name: string
+  address: string
+  image: string
+  completedDocs: number
+  totalDocs: number
+}
+
 interface DashboardOverviewProps {
   userId: string
 }
@@ -37,6 +47,10 @@ interface DashboardOverviewProps {
 export function DashboardOverview({ userId }: DashboardOverviewProps) {
   const [properties, setProperties] = useState<Property[]>([])
   const [loading, setLoading] = useState(true)
+  const [propertiesDocSummary, setPropertiesDocSummary] = useState<PropertySummary[]>([])
+  const [loadingDocs, setLoadingDocs] = useState(true)
+  const [selectedProperty, setSelectedProperty] = useState<PropertySummary | null>(null)
+  const [modalOpen, setModalOpen] = useState(false)
   const scrollRef = useRef<HTMLDivElement>(null)
   const [canScrollLeft, setCanScrollLeft] = useState(false)
   const [canScrollRight, setCanScrollRight] = useState(false)
@@ -44,10 +58,10 @@ export function DashboardOverview({ userId }: DashboardOverviewProps) {
   const fetchProperties = async () => {
     try {
       setLoading(true)
-      
+
       // Get current session for API authentication
       const { data: { session } } = await supabase.auth.getSession()
-      
+
       if (!session?.access_token) {
         console.error('No access token available')
         setLoading(false)
@@ -75,9 +89,38 @@ export function DashboardOverview({ userId }: DashboardOverviewProps) {
     }
   }
 
+  const fetchPropertiesDocSummary = async () => {
+    try {
+      setLoadingDocs(true)
+
+      const { data: { session } } = await supabase.auth.getSession()
+
+      if (!session?.access_token) {
+        return
+      }
+
+      const response = await fetch('/api/landlord/properties-documents-summary', {
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`
+        }
+      })
+
+      const data = await response.json()
+
+      if (data.success) {
+        setPropertiesDocSummary(data.properties || [])
+      }
+    } catch (error) {
+      console.error('Error fetching documents summary:', error)
+    } finally {
+      setLoadingDocs(false)
+    }
+  }
+
   useEffect(() => {
     if (userId) {
       fetchProperties()
+      fetchPropertiesDocSummary()
     }
   }, [userId])
 
@@ -128,49 +171,23 @@ export function DashboardOverview({ userId }: DashboardOverviewProps) {
   }, [properties])
 
 
-  // Mock compliance & documents data
-  const complianceItems = [
-    {
-      id: "1",
-      document: "Gas Safety Certificate",
-      property: "Modern Downtown Loft",
-      status: "expiring",
-      expiryDate: "2024-02-15",
-    },
-    {
-      id: "2", 
-      document: "EPC Certificate",
-      property: "Spacious Family Home",
-      status: "valid",
-      expiryDate: "2024-08-20",
-    },
-    {
-      id: "3",
-      document: "Electrical Safety Certificate",
-      property: "Modern Downtown Loft", 
-      status: "expired",
-      expiryDate: "2024-01-10",
-    },
-    {
-      id: "4",
-      document: "Insurance Policy",
-      property: "Spacious Family Home",
-      status: "valid",
-      expiryDate: "2024-12-31",
-    },
-  ]
+  const handleViewDocuments = (property: PropertySummary) => {
+    setSelectedProperty(property)
+    setModalOpen(true)
+  }
 
-  const getComplianceStatusColor = (status: string) => {
-    switch (status) {
-      case "valid":
-        return "bg-green-100 text-green-800"
-      case "expiring":
-        return "bg-yellow-100 text-yellow-800"
-      case "expired":
-        return "bg-red-100 text-red-800"
-      default:
-        return "bg-gray-100 text-gray-800"
-    }
+  const handleCloseModal = () => {
+    setModalOpen(false)
+    setSelectedProperty(null)
+    // Refresh the summary to get updated counts
+    fetchPropertiesDocSummary()
+  }
+
+  const getProgressColor = (completedDocs: number, totalDocs: number) => {
+    const percentage = (completedDocs / totalDocs) * 100
+    if (percentage >= 80) return "text-green-600"
+    if (percentage >= 50) return "text-yellow-600"
+    return "text-red-600"
   }
 
   return (
@@ -320,46 +337,58 @@ export function DashboardOverview({ userId }: DashboardOverviewProps) {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle>Compliance & Documents</CardTitle>
-            <Link href="/landlord/compliance">
+            <Link href="/landlord/property-documents">
               <Button variant="outline" size="sm" className="bg-transparent">
                 View All
               </Button>
             </Link>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              {complianceItems.map((item) => (
-                <div key={item.id} className="flex items-center justify-between p-4 border rounded-lg">
-                  <div className="space-y-1">
-                    <p className="font-medium text-sm">{item.document}</p>
-                    <div className="flex items-center text-sm text-muted-foreground">
-                      <FileText className="h-4 w-4 mr-1" />
-                      {item.property}
-                    </div>
-                    <div className="flex items-center text-sm text-muted-foreground">
-                      <Clock className="h-4 w-4 mr-1" />
-                      Expires: {new Date(item.expiryDate).toLocaleDateString('en-GB')}
-                    </div>
+            {loadingDocs ? (
+              <div className="space-y-3">
+                {[...Array(3)].map((_, i) => (
+                  <div key={i} className="p-4 border rounded-lg animate-pulse">
+                    <div className="h-5 bg-gray-200 rounded w-3/4 mb-2"></div>
+                    <div className="h-4 bg-gray-200 rounded w-1/2"></div>
                   </div>
-                  <div className="flex items-center gap-3">
-                    <Badge className={getComplianceStatusColor(item.status)}>
-                      {item.status}
-                    </Badge>
-                    <div className="flex gap-2">
-                      <Button variant="ghost" size="sm">
-                        <Eye className="h-4 w-4" />
-                      </Button>
-                      <Button variant="ghost" size="sm">
+                ))}
+              </div>
+            ) : propertiesDocSummary.length > 0 ? (
+              <div className="space-y-3">
+                {propertiesDocSummary.slice(0, 4).map((property) => (
+                  <div
+                    key={property.propertyId}
+                    className="flex items-center justify-between p-4 border rounded-lg hover:shadow-md transition-shadow cursor-pointer group"
+                    onClick={() => handleViewDocuments(property)}
+                  >
+                    <div className="space-y-1 flex-1">
+                      <p className="font-medium text-sm group-hover:text-primary transition-colors">{property.name}</p>
+                      <div className="flex items-center text-xs text-muted-foreground">
+                        <Home className="h-3 w-3 mr-1" />
+                        {property.address}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <div className="text-right">
+                        <p className={`font-semibold text-sm ${getProgressColor(property.completedDocs, property.totalDocs)}`}>
+                          {property.completedDocs}/{property.totalDocs}
+                        </p>
+                        <p className="text-xs text-muted-foreground">Documents</p>
+                      </div>
+                      <Button variant="ghost" size="sm" className="opacity-0 group-hover:opacity-100 transition-opacity">
                         <FileText className="h-4 w-4" />
                       </Button>
                     </div>
                   </div>
-                </div>
-              ))}
-              {complianceItems.length === 0 && (
-                <p className="text-muted-foreground text-center py-4">All compliance documents up to date</p>
-              )}
-            </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8 text-muted-foreground">
+                <FileText className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                <p className="text-sm">No properties found</p>
+                <p className="text-xs mt-1">Add a property to start managing documents</p>
+              </div>
+            )}
           </CardContent>
         </Card>
 
@@ -367,6 +396,13 @@ export function DashboardOverview({ userId }: DashboardOverviewProps) {
         <ViewingRequests variant="dashboard" limit={5} />
       </div>
 
+      {modalOpen && selectedProperty && (
+        <PropertyDocumentsModal
+          property={selectedProperty}
+          open={modalOpen}
+          onClose={handleCloseModal}
+        />
+      )}
     </div>
   )
 }

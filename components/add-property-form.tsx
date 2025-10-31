@@ -513,6 +513,8 @@ export function AddPropertyForm() {
             propertyData: {
               availability: formData.availability,
               propertyType: formData.propertyType,
+              propertyLicence: formData.propertyLicence,
+              propertyCondition: formData.propertyCondition,
               bedrooms: formData.bedrooms,
               bathrooms: formData.bathrooms,
               monthlyRent: formData.monthlyRent,
@@ -631,6 +633,8 @@ export function AddPropertyForm() {
             propertyData: {
               availability: formData.availability,
               propertyType: formData.propertyType,
+              propertyLicence: formData.propertyLicence,
+              propertyCondition: formData.propertyCondition,
               bedrooms: formData.bedrooms,
               bathrooms: formData.bathrooms,
               monthlyRent: formData.monthlyRent,

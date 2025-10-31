@@ -9,6 +9,7 @@ import { Settings, Eye, CheckCircle, XCircle, Clock, Calendar, Home, Users, BarC
 import Link from "next/link"
 import type { Admin } from "@/lib/sample-data"
 import { samplePendingProperties, sampleViewings, sampleProperties, sampleLandlords, sampleInvestors } from "@/lib/sample-data"
+import { supabase } from "@/lib/supabase"
 
 interface AdminDashboardOverviewProps {
   admin: Admin
@@ -53,33 +54,33 @@ export function AdminDashboardOverview({ admin }: AdminDashboardOverviewProps) {
 
               // Get pending properties for display (first 6)
               pendingForDisplay = pendingData.properties.slice(0, 6).map((property: any) => ({
-                ...property,
-                id: property.id,
-                property_type: property.property_type,
-                propertyType: property.property_type,
-                bedrooms: property.bedrooms,
-                bathrooms: property.bathrooms,
-                monthly_rent: property.monthly_rent,
-                price: property.monthly_rent,
-                photos: property.photos || ["/spacious-family-home.png"],
-                images: property.photos || ["/spacious-family-home.png"],
-                available_date: property.available_date,
-                availableDate: property.available_date,
-                availability: property.availability,
-                address: property.address,
-                city: property.city,
-                county: property.county,
-                postcode: property.postcode,
-                property_licence: property.property_licence,
-                property_condition: property.property_condition,
-                amenities: property.amenities || [],
-                _pendingInfo: {
-                  status: property.status,
-                  submittedBy: property.landlord_id,
-                  submittedDate: property.created_at,
-                  landlordName: property.contact_name
-                }
-              }))
+                  ...property,
+                  id: property.id,
+                  property_type: property.property_type,
+                  propertyType: property.property_type,
+                  bedrooms: property.bedrooms,
+                  bathrooms: property.bathrooms,
+                  monthly_rent: property.monthly_rent,
+                  price: property.monthly_rent,
+                  photos: property.photos || ["/spacious-family-home.png"],
+                  images: property.photos || ["/spacious-family-home.png"],
+                  available_date: property.available_date,
+                  availableDate: property.available_date,
+                  availability: property.availability,
+                  address: property.address,
+                  city: property.city,
+                  county: property.county,
+                  postcode: property.postcode,
+                  property_licence: property.property_licence,
+                  property_condition: property.property_condition,
+                  amenities: property.amenities || [],
+                  _pendingInfo: {
+                    status: property.status,
+                    submittedBy: property.landlord_id,
+                    submittedDate: property.created_at,
+                    landlordName: property.contact_name
+                  }
+                }))
             }
           }
         } catch (error) {
@@ -92,11 +93,11 @@ export function AdminDashboardOverview({ admin }: AdminDashboardOverviewProps) {
         let totalViewings = 0
 
         try {
-          const accessToken = localStorage.getItem('accessToken')
-          if (accessToken) {
+          const { data: { session } } = await supabase.auth.getSession()
+          if (session?.access_token) {
             const statsResponse = await fetch('/api/admin/stats', {
               headers: {
-                'Authorization': `Bearer ${accessToken}`
+                'Authorization': `Bearer ${session.access_token}`
               }
             })
 
@@ -168,9 +169,11 @@ export function AdminDashboardOverview({ admin }: AdminDashboardOverviewProps) {
 
   const handleApproveProperty = async (propertyId: string) => {
     try {
-      const accessToken = localStorage.getItem('accessToken')
-      if (!accessToken) {
-        console.error('No access token found')
+      // Get session from Supabase
+      const { data: { session } } = await supabase.auth.getSession()
+
+      if (!session?.access_token) {
+        alert('Please log in to approve properties')
         return
       }
 
@@ -178,7 +181,7 @@ export function AdminDashboardOverview({ admin }: AdminDashboardOverviewProps) {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${accessToken}`
+          'Authorization': `Bearer ${session.access_token}`
         },
         body: JSON.stringify({
           propertyId,
@@ -211,9 +214,11 @@ export function AdminDashboardOverview({ admin }: AdminDashboardOverviewProps) {
 
   const handleRejectProperty = async (propertyId: string) => {
     try {
-      const accessToken = localStorage.getItem('accessToken')
-      if (!accessToken) {
-        console.error('No access token found')
+      // Get session from Supabase
+      const { data: { session } } = await supabase.auth.getSession()
+
+      if (!session?.access_token) {
+        alert('Please log in to reject properties')
         return
       }
 
@@ -221,7 +226,7 @@ export function AdminDashboardOverview({ admin }: AdminDashboardOverviewProps) {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${accessToken}`
+          'Authorization': `Bearer ${session.access_token}`
         },
         body: JSON.stringify({
           propertyId,

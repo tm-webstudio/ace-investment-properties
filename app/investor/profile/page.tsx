@@ -1,8 +1,9 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Navigation } from "@/components/navigation"
 import { Footer } from "@/components/footer"
+import { PageHeader } from "@/components/page-header"
 import { InvestorDashboardNavigation } from "@/components/investor-dashboard-navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -10,20 +11,56 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { User, Mail, Phone, MapPin, TrendingUp, Save, Edit3 } from "lucide-react"
-import { sampleInvestors } from "@/lib/sample-data"
+import { supabase } from "@/lib/supabase"
 
 export default function InvestorProfile() {
   const [isEditing, setIsEditing] = useState(false)
-  const [investor, setInvestor] = useState(sampleInvestors[0])
+  const [loading, setLoading] = useState(true)
+  const [user, setUser] = useState<any>(null)
   const [formData, setFormData] = useState({
-    name: investor.name,
-    email: investor.email,
-    phone: investor.phone,
-    address: "456 Investment Street, London",
-    company: "Smith Investment Group",
-    bio: "Experienced property investor focused on high-yield rental properties in London and surrounding areas. Looking for opportunities in emerging markets with strong growth potential.",
-    investmentGoals: "Building a diversified portfolio of rental properties across London with target yield of 8%+",
+    name: "",
+    email: "",
+    phone: "",
+    address: "",
+    company: "",
+    bio: "",
+    investmentGoals: "",
   })
+
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession()
+
+        if (session?.user) {
+          const { data: profile } = await supabase
+            .from('user_profiles')
+            .select('*')
+            .eq('id', session.user.id)
+            .single()
+
+          if (profile) {
+            setUser(profile)
+            setFormData({
+              name: profile.full_name || '',
+              email: profile.email || '',
+              phone: profile.phone || '',
+              address: profile.address || '',
+              company: profile.company_name || '',
+              bio: profile.bio || '',
+              investmentGoals: profile.investment_goals || '',
+            })
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching profile:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchUserProfile()
+  }, [])
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({
@@ -32,29 +69,58 @@ export default function InvestorProfile() {
     }))
   }
 
-  const handleSave = () => {
-    // In a real app, this would make an API call to update the profile
-    setInvestor(prev => ({
-      ...prev,
-      name: formData.name,
-      email: formData.email,
-      phone: formData.phone,
-    }))
-    setIsEditing(false)
+  const handleSave = async () => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+
+      if (session?.user) {
+        await supabase
+          .from('user_profiles')
+          .update({
+            full_name: formData.name,
+            email: formData.email,
+            phone: formData.phone,
+            address: formData.address,
+            company_name: formData.company,
+            bio: formData.bio,
+            investment_goals: formData.investmentGoals,
+          })
+          .eq('id', session.user.id)
+
+        setUser((prev: any) => ({ ...prev, ...formData }))
+      }
+    } catch (error) {
+      console.error('Error updating profile:', error)
+    } finally {
+      setIsEditing(false)
+    }
   }
 
   const handleCancel = () => {
     // Reset form data to original values
-    setFormData({
-      name: investor.name,
-      email: investor.email,
-      phone: investor.phone,
-      address: "456 Investment Street, London",
-      company: "Smith Investment Group",
-      bio: "Experienced property investor focused on high-yield rental properties in London and surrounding areas. Looking for opportunities in emerging markets with strong growth potential.",
-      investmentGoals: "Building a diversified portfolio of rental properties across London with target yield of 8%+",
-    })
+    if (user) {
+      setFormData({
+        name: user.full_name || '',
+        email: user.email || '',
+        phone: user.phone || '',
+        address: user.address || '',
+        company: user.company_name || '',
+        bio: user.bio || '',
+        investmentGoals: user.investment_goals || '',
+      })
+    }
     setIsEditing(false)
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <p>Loading profile...</p>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -62,12 +128,12 @@ export default function InvestorProfile() {
       <Navigation />
       <main className="flex-1 bg-background">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="mb-8">
-            <h1 className="font-serif text-3xl md:text-4xl font-bold text-foreground mb-2">
-              Profile Settings
-            </h1>
-            <p className="text-muted-foreground text-md">Manage your account information and investment preferences</p>
-          </div>
+          <PageHeader
+            category="Investor Dashboard"
+            title={`Welcome back, ${formData.name || 'Investor'}`}
+            subtitle="Manage your account information and investment preferences"
+            variant="green"
+          />
 
           <InvestorDashboardNavigation 
             customButton={
@@ -105,11 +171,7 @@ export default function InvestorProfile() {
                   </div>
                   <div className="flex items-center space-x-3">
                     <MapPin className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm">{formData.address}</span>
-                  </div>
-                  <div className="flex items-center space-x-3">
-                    <TrendingUp className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm">{investor.savedProperties.length} Saved Properties</span>
+                    <span className="text-sm">{formData.address || 'No address provided'}</span>
                   </div>
                 </CardContent>
               </Card>
