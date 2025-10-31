@@ -140,6 +140,8 @@ export async function POST(request: NextRequest) {
         landlord_id: user.id,
         availability: propertyData.availability,
         property_type: propertyData.propertyType,
+        property_licence: propertyData.propertyLicence || null,
+        property_condition: propertyData.propertyCondition || null,
         bedrooms: parseInt(propertyData.bedrooms) || 1,
         bathrooms: parseInt(propertyData.bathrooms) || 1,
         monthly_rent: Math.round(parseFloat(propertyData.monthlyRent) * 100), // Convert to pence

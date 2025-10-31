@@ -62,6 +62,9 @@ export async function POST(request: NextRequest) {
     // Create the property data object for pending_properties
     const pendingPropertyData = {
       propertyType: propertyData.propertyType,
+      propertyLicence: propertyData.propertyLicence || null,
+      propertyCondition: propertyData.propertyCondition || null,
+      availability: propertyData.availability,
       bedrooms: propertyData.bedrooms,
       bathrooms: propertyData.bathrooms,
       monthlyRent: propertyData.monthlyRent,
