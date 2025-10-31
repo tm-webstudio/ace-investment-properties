@@ -566,14 +566,20 @@ export function AddPropertyForm() {
       }
 
       if (data.success && data.session) {
-        // Store auth tokens
+        // Set the session in Supabase client - this is critical!
+        await supabase.auth.setSession({
+          access_token: data.session.accessToken,
+          refresh_token: data.session.refreshToken
+        })
+
+        // Also store in localStorage as backup
         localStorage.setItem('accessToken', data.session.accessToken)
         localStorage.setItem('refreshToken', data.session.refreshToken)
-        
+
         // Update auth state
         setIsLoggedIn(true)
         setUserToken(data.session.accessToken)
-        
+
         // Now publish the property
         const publishResponse = await fetch('/api/properties/publish', {
           method: 'POST',
@@ -673,14 +679,20 @@ export function AddPropertyForm() {
       }
 
       if (data.success && data.session) {
-        // Store auth tokens
+        // Set the session in Supabase client - this is critical!
+        await supabase.auth.setSession({
+          access_token: data.session.accessToken,
+          refresh_token: data.session.refreshToken
+        })
+
+        // Also store in localStorage as backup
         localStorage.setItem('accessToken', data.session.accessToken)
         localStorage.setItem('refreshToken', data.session.refreshToken)
-        
+
         // Update auth state
         setIsLoggedIn(true)
         setUserToken(data.session.accessToken)
-        
+
         // Now publish the property
         const publishResponse = await fetch('/api/properties/publish', {
           method: 'POST',
