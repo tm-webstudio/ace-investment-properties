@@ -595,7 +595,8 @@ export function AddPropertyForm() {
         const publishResult = await publishResponse.json()
 
         if (publishResult.success) {
-          router.push('/landlord/dashboard')
+          // Use hard navigation to ensure session is fully loaded on dashboard
+          window.location.href = '/landlord/dashboard'
         } else {
           setAuthErrors({ general: 'Account created but failed to publish property: ' + publishResult.error })
         }
@@ -708,7 +709,8 @@ export function AddPropertyForm() {
         const publishResult = await publishResponse.json()
 
         if (publishResult.success) {
-          router.push('/landlord/dashboard')
+          // Use hard navigation to ensure session is fully loaded on dashboard
+          window.location.href = '/landlord/dashboard'
         } else {
           setAuthErrors({ general: 'Logged in but failed to publish property: ' + publishResult.error })
         }
@@ -859,9 +861,10 @@ export function AddPropertyForm() {
 
         const publishResult = await publishResponse.json()
         console.log('Publish response:', publishResult)
-        
+
         if (publishResult.success) {
-          router.push('/landlord/dashboard')
+          // Use hard navigation to ensure session is fully loaded on dashboard
+          window.location.href = '/landlord/dashboard'
         } else {
           console.error('Failed to publish property:', publishResult)
           alert(`Failed to publish property: ${publishResult.error}\nDetails: ${publishResult.details || 'No additional details'}\nCode: ${publishResult.code || 'Unknown'}`)
@@ -891,9 +894,10 @@ export function AddPropertyForm() {
         })
 
         const result = await response.json()
-        
+
         if (result.success) {
-          router.push('/landlord/dashboard')
+          // Use hard navigation to ensure session is fully loaded on dashboard
+          window.location.href = '/landlord/dashboard'
         } else if (result.status === 'signup_required') {
           // Store the pending property token for later use in authentication
           setPendingPropertyToken(result.pendingPropertyToken)
