@@ -7,12 +7,12 @@ import { Navigation } from "@/components/navigation"
 import { Footer } from "@/components/footer"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Progress } from "@/components/ui/progress"
 import { ArrowLeft, ArrowRight, X } from "lucide-react"
 import { OnboardingStep1 } from "@/components/onboarding/step-1"
 import { OnboardingStep2 } from "@/components/onboarding/step-2"
 import { OnboardingStep3 } from "@/components/onboarding/step-3"
 import { InvestorSignupStep4 } from "@/components/investor-signup/step-4"
+import { FormProgressBar } from "@/components/form-progress-bar"
 
 interface Step1Data {
   operatorType: "sa_operator" | "supported_living" | "social_housing" | "other"
@@ -357,29 +357,18 @@ export default function InvestorSignup() {
           </Card>
 
           {/* Progress */}
-          <Card className="mb-8">
-            <CardHeader>
-              <div className="flex justify-between text-sm text-gray-600 mb-2">
-                <span>Step {currentStep} of 4</span>
-                <span>{Math.round(progress)}% complete</span>
-              </div>
-              <Progress value={progress} className="h-2 mb-3" />
-              <div className="flex justify-between text-xs text-muted-foreground">
-                <div className={`${currentStep >= 1 ? 'text-primary font-medium' : ''}`}>
-                  Business
-                </div>
-                <div className={`${currentStep >= 2 ? 'text-primary font-medium' : ''}`}>
-                  Preferences
-                </div>
-                <div className={`${currentStep >= 3 ? 'text-primary font-medium' : ''}`}>
-                  Location
-                </div>
-                <div className={`${currentStep >= 4 ? 'text-primary font-medium' : ''}`}>
-                  Account
-                </div>
-              </div>
-            </CardHeader>
-          </Card>
+          <div className="mb-8">
+            <FormProgressBar
+              currentStep={currentStep}
+              totalSteps={4}
+              steps={[
+                { label: 'Business' },
+                { label: 'Preferences' },
+                { label: 'Location' },
+                { label: 'Account' }
+              ]}
+            />
+          </div>
 
         {/* Main Card */}
         <Card className="mb-8">

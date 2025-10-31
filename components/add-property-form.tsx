@@ -11,12 +11,12 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Checkbox } from "@/components/ui/checkbox"
-import { Progress } from "@/components/ui/progress"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { ChevronLeft, ChevronRight, Upload, X, Home, FileText, Camera, CheckCircle, MapPin, Bed, Bath, PoundSterling, AlertCircle, Loader2 } from "lucide-react"
 import { ImageReorder } from './image-reorder'
+import { FormProgressBar } from './form-progress-bar'
 import { useRouter } from "next/navigation"
 import Image from "next/image"
 
@@ -937,70 +937,16 @@ export function AddPropertyForm() {
   return (
     <div className="space-y-4 [&>*_label:not(.mb-0)]:mb-3 [&>*_label:not(.mb-0)]:block">
       {/* Progress Bar */}
-      <Card>
-        <CardContent className="px-6">
-          <div className="space-y-4">
-            <div className="flex justify-between text-sm text-muted-foreground">
-              <span>
-                Step {currentStep} of {totalSteps}
-              </span>
-              <span>{Math.round(progress)}% Complete</span>
-            </div>
-            <div className="space-y-4">
-              {/* Progress container using CSS Grid */}
-              <div className="grid grid-cols-4 gap-8 relative px-4">
-                {/* Background progress line connecting through dots */}
-                <div className="absolute h-2 bg-muted-foreground/20 rounded-full left-2 right-2" style={{ top: '5px' }}></div>
-                
-                {/* Active progress line */}
-                <div 
-                  className="absolute h-2 bg-primary rounded-full transition-all duration-300"
-                  style={{ 
-                    top: '5px',
-                    left: '0.5rem',
-                    width: currentStep === 1 ? 'calc(12.5% - 2px)' : 
-                           currentStep === 2 ? 'calc(37.5% - 2px)' :
-                           currentStep === 3 ? 'calc(62.5% - 2px)' : 
-                           'calc(100% - 1rem)'
-                  }}
-                ></div>
-                
-                {/* Step 1 */}
-                <div className="flex flex-col items-center">
-                  <div className={`w-4 h-4 rounded-full border-2 bg-white ${currentStep >= 1 ? 'border-primary' : 'border-muted-foreground/30'} relative z-10 mb-2`}>
-                    {currentStep >= 1 && <div className="w-full h-full rounded-full bg-primary scale-50"></div>}
-                  </div>
-                  <span className="text-xs text-muted-foreground text-center">Basic Info</span>
-                </div>
-                
-                {/* Step 2 */}
-                <div className="flex flex-col items-center">
-                  <div className={`w-4 h-4 rounded-full border-2 bg-white ${currentStep >= 2 ? 'border-primary' : 'border-muted-foreground/30'} relative z-10 mb-2`}>
-                    {currentStep >= 2 && <div className="w-full h-full rounded-full bg-primary scale-50"></div>}
-                  </div>
-                  <span className="text-xs text-muted-foreground text-center">Address</span>
-                </div>
-                
-                {/* Step 3 */}
-                <div className="flex flex-col items-center">
-                  <div className={`w-4 h-4 rounded-full border-2 bg-white ${currentStep >= 3 ? 'border-primary' : 'border-muted-foreground/30'} relative z-10 mb-2`}>
-                    {currentStep >= 3 && <div className="w-full h-full rounded-full bg-primary scale-50"></div>}
-                  </div>
-                  <span className="text-xs text-muted-foreground text-center">Photos</span>
-                </div>
-                
-                {/* Step 4 */}
-                <div className="flex flex-col items-center">
-                  <div className={`w-4 h-4 rounded-full border-2 bg-white ${currentStep >= 4 ? 'border-primary' : 'border-muted-foreground/30'} relative z-10 mb-2`}>
-                    {currentStep >= 4 && <div className="w-full h-full rounded-full bg-primary scale-50"></div>}
-                  </div>
-                  <span className="text-xs text-muted-foreground text-center">Review</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      <FormProgressBar
+        currentStep={currentStep}
+        totalSteps={totalSteps}
+        steps={[
+          { label: 'Basic Info' },
+          { label: 'Address' },
+          { label: 'Photos' },
+          { label: 'Review' }
+        ]}
+      />
 
       {/* Step Content */}
       <Card>

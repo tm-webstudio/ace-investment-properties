@@ -1,25 +1,31 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 
-// Create admin client for user creation (only if env vars are available)
-const supabaseAdmin = process.env.SUPABASE_SERVICE_ROLE_KEY 
-  ? createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!,
-      {
-        auth: {
-          autoRefreshToken: false,
-          persistSession: false
-        }
-      }
-    )
-  : null
+// Helper function to get admin client at runtime
+function getSupabaseAdmin() {
+  if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    return null
+  }
 
-// Create regular client for auth operations
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-)
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false
+      }
+    }
+  )
+}
+
+// Helper function to get regular client at runtime
+function getSupabaseClient() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  )
+}
 
 // Simplified validation for debugging
 function validateSignupData(data: any) {
@@ -36,30 +42,42 @@ function validateSignupData(data: any) {
 
 export async function POST(request: NextRequest) {
   try {
+    // Get admin client at runtime
+    const supabaseAdmin = getSupabaseAdmin()
+
     // Check if admin client is available
     if (!supabaseAdmin) {
-      return NextResponse.json({ 
-        error: 'Service temporarily unavailable' 
+      console.error('SUPABASE_SERVICE_ROLE_KEY is not set')
+      console.error('Environment check:', {
+        hasUrl: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
+        hasAnonKey: !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+        hasServiceKey: !!process.env.SUPABASE_SERVICE_ROLE_KEY
+      })
+      return NextResponse.json({
+        error: 'Service temporarily unavailable - Missing server configuration. Please contact support.'
       }, { status: 503 })
     }
 
     console.log('Signup endpoint called')
-    
+
     const body = await request.json()
     console.log('Request body:', { ...body, password: '[REDACTED]' })
 
     // Basic validation
     validateSignupData(body)
 
-    const { 
-      email, 
-      password, 
-      firstName, 
-      lastName, 
-      phone, 
+    const {
+      email,
+      password,
+      firstName,
+      lastName,
+      phone,
       pendingPropertyToken,
-      acceptedTerms 
+      acceptedTerms
     } = body
+
+    // Get regular client for auth
+    const supabase = getSupabaseClient()
 
     // Validate pending property token first
     const { data: pendingProperty, error: pendingError } = await supabaseAdmin
