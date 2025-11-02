@@ -390,11 +390,11 @@ export function AdminDashboardOverview({ admin }: AdminDashboardOverviewProps) {
                 <div key={doc.id} className="flex items-center justify-between p-4 border rounded-lg">
                   <div className="space-y-1 flex-1">
                     <div className="flex items-center gap-2">
-                      <p className="font-medium text-sm">{doc.documentType}</p>
+                      <p className="font-medium text-[15px]">{doc.documentType}</p>
                       <Badge className={getStatusColor(doc.status)}>{doc.status}</Badge>
                     </div>
-                    <p className="text-xs text-muted-foreground">{doc.property}</p>
-                    <p className="text-xs text-muted-foreground">By: {doc.landlordName}</p>
+                    <p className="text-sm text-muted-foreground">{doc.property}</p>
+                    <p className="text-sm text-muted-foreground">By: {doc.landlordName}</p>
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="text-xs text-muted-foreground">

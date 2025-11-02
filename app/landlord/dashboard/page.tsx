@@ -4,8 +4,9 @@ import { useState, useEffect } from "react"
 import { Navigation } from "@/components/navigation"
 import { Footer } from "@/components/footer"
 import { DashboardOverview } from "@/components/dashboard-overview"
+import { DashboardDocuments } from "@/components/dashboard-documents"
+import { DashboardProfile } from "@/components/dashboard-profile"
 import { DashboardNavigation } from "@/components/dashboard-navigation"
-import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { PageHeader } from "@/components/page-header"
 import { supabase } from "@/lib/supabase"
 
@@ -17,18 +18,10 @@ interface UserProfile {
   user_type: string
 }
 
-interface User {
-  id: string
-  email: string
-  user_metadata?: {
-    first_name?: string
-    last_name?: string
-  }
-}
-
 export default function LandlordDashboard() {
   const [user, setUser] = useState<UserProfile | null>(null)
   const [loading, setLoading] = useState(true)
+  const [activeTab, setActiveTab] = useState("dashboard")
 
   useEffect(() => {
     const getUser = async () => {
@@ -36,7 +29,7 @@ export default function LandlordDashboard() {
         // Check current session
         const { data: { session } } = await supabase.auth.getSession()
         console.log('Dashboard session check:', !!session)
-        
+
         if (session?.user) {
           // Try to fetch user profile first
           const { data: profile, error: profileError } = await supabase
@@ -44,9 +37,9 @@ export default function LandlordDashboard() {
             .select('*')
             .eq('id', session.user.id)
             .single()
-          
+
           console.log('Profile data:', profile, 'Profile error:', profileError)
-          
+
           if (profile) {
             setUser({
               user_id: profile.id,
@@ -80,6 +73,28 @@ export default function LandlordDashboard() {
     getUser()
   }, [])
 
+  const getPageTitle = () => {
+    switch (activeTab) {
+      case "documents":
+        return "Property Documents"
+      case "profile":
+        return `Welcome back, ${user?.first_name || 'User'} ${user?.last_name || ''}`
+      default:
+        return `Welcome back, ${user?.first_name || 'User'} ${user?.last_name || ''}`
+    }
+  }
+
+  const getPageSubtitle = () => {
+    switch (activeTab) {
+      case "documents":
+        return "Manage certificates and licenses for your properties"
+      case "profile":
+        return "Manage your account information and preferences"
+      default:
+        return "Manage your properties and applications"
+    }
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -109,13 +124,19 @@ export default function LandlordDashboard() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <PageHeader
             category="Landlord Dashboard"
-            title={`Welcome back, ${user.first_name} ${user.last_name}`}
-            subtitle="Manage your properties and applications"
+            title={getPageTitle()}
+            subtitle={getPageSubtitle()}
             variant="blue"
           />
 
-          <DashboardNavigation />
-          <DashboardOverview userId={user.user_id} />
+          <DashboardNavigation
+            activeTab={activeTab}
+            onTabChange={setActiveTab}
+          />
+
+          {activeTab === "dashboard" && <DashboardOverview userId={user.user_id} onTabChange={setActiveTab} />}
+          {activeTab === "documents" && <DashboardDocuments />}
+          {activeTab === "profile" && <DashboardProfile />}
         </div>
       </main>
       <Footer />

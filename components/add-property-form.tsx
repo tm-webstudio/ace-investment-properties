@@ -136,6 +136,7 @@ export function AddPropertyForm() {
   const [authTab, setAuthTab] = useState('signup')
   const [authLoading, setAuthLoading] = useState(false)
   const [pendingPropertyToken, setPendingPropertyToken] = useState<string | null>(null)
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   // Auth form states
   const [signupForm, setSignupForm] = useState({
@@ -175,7 +176,7 @@ export function AddPropertyForm() {
     }
     getSession()
     
-    // Listen for auth changes
+    // Listen for auth changes (but don't update if we're in the middle of submitting)
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setUserToken(session?.access_token || null)
       setIsLoggedIn(!!session?.access_token)
@@ -494,10 +495,11 @@ export function AddPropertyForm() {
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     if (!validateSignupForm()) return
 
     setAuthLoading(true)
+    setIsSubmitting(true)
     setAuthErrors({})
 
     try {
@@ -578,11 +580,7 @@ export function AddPropertyForm() {
         localStorage.setItem('accessToken', data.session.accessToken)
         localStorage.setItem('refreshToken', data.session.refreshToken)
 
-        // Update auth state
-        setIsLoggedIn(true)
-        setUserToken(data.session.accessToken)
-
-        // Now publish the property
+        // Now publish the property (don't update local state since we're navigating away)
         const publishResponse = await fetch('/api/properties/publish', {
           method: 'POST',
           headers: {
@@ -600,6 +598,9 @@ export function AddPropertyForm() {
           // Use hard navigation to ensure session is fully loaded on dashboard
           window.location.href = '/landlord/dashboard'
         } else {
+          // Only update state on error so user can see the error message
+          setIsLoggedIn(true)
+          setUserToken(data.session.accessToken)
           setAuthErrors({ general: 'Account created but failed to publish property: ' + publishResult.error })
         }
       }
@@ -607,6 +608,7 @@ export function AddPropertyForm() {
     } catch (error: any) {
       console.error('Signup error:', error)
       setAuthErrors({ general: error.message })
+      setIsSubmitting(false)
     } finally {
       setAuthLoading(false)
     }
@@ -618,6 +620,7 @@ export function AddPropertyForm() {
     if (!validateLoginForm()) return
 
     setAuthLoading(true)
+    setIsSubmitting(true)
     setAuthErrors({})
 
     try {
@@ -694,11 +697,7 @@ export function AddPropertyForm() {
         localStorage.setItem('accessToken', data.session.accessToken)
         localStorage.setItem('refreshToken', data.session.refreshToken)
 
-        // Update auth state
-        setIsLoggedIn(true)
-        setUserToken(data.session.accessToken)
-
-        // Now publish the property
+        // Now publish the property (don't update local state since we're navigating away)
         const publishResponse = await fetch('/api/properties/publish', {
           method: 'POST',
           headers: {
@@ -716,6 +715,9 @@ export function AddPropertyForm() {
           // Use hard navigation to ensure session is fully loaded on dashboard
           window.location.href = '/landlord/dashboard'
         } else {
+          // Only update state on error so user can see the error message
+          setIsLoggedIn(true)
+          setUserToken(data.session.accessToken)
           setAuthErrors({ general: 'Logged in but failed to publish property: ' + publishResult.error })
         }
       }
@@ -723,6 +725,7 @@ export function AddPropertyForm() {
     } catch (error: any) {
       console.error('Login error:', error)
       setAuthErrors({ general: error.message })
+      setIsSubmitting(false)
     } finally {
       setAuthLoading(false)
     }
@@ -940,7 +943,7 @@ export function AddPropertyForm() {
           formData.securityDeposit
         )
         // Only require available date if tenanted or upcoming
-        const availableDateValid = (formData.availability === 'vacant') || 
+        const availableDateValid = (formData.availability === 'vacant') ||
           (formData.availability && formData.availableDate)
         return step1Valid && availableDateValid
       case 2:
@@ -948,7 +951,8 @@ export function AddPropertyForm() {
       case 3:
         return formData.photos.length > 0
       case 4:
-        return formData.confirmPropertyAccuracy
+        // Only require confirmPropertyAccuracy checkbox when user is logged in
+        return isLoggedIn === true ? formData.confirmPropertyAccuracy : true
       default:
         return false
     }
@@ -1485,9 +1489,24 @@ export function AddPropertyForm() {
                     )}
                   </div>
                 </div>
-                
-                {/* Property Accuracy Confirmation - Full Width within container */}
-                <div className="mt-6 pt-4 border-t border-muted-foreground/20">
+              </div>
+
+              {/* Submitting State - Show while publishing */}
+              {isSubmitting && (
+                <div className="rounded-lg px-4 py-4 border border-accent/30 bg-accent/5">
+                  <div className="flex items-center justify-center gap-3 p-6">
+                    <Loader2 className="h-6 w-6 animate-spin text-accent" />
+                    <div className="text-center">
+                      <p className="font-medium text-lg">Publishing Your Property...</p>
+                      <p className="text-sm text-muted-foreground mt-1">Please wait while we process your listing</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Property Accuracy Confirmation - Show only when logged in and not submitting */}
+              {(isLoggedIn === true && !isSubmitting) && (
+                <div className="rounded-lg px-4 py-4 border">
                   <div className="flex items-center space-x-3 p-3 rounded-md border border-muted-foreground/20 hover:bg-muted/20 transition-colors">
                     <Checkbox
                       id="property-accuracy"
@@ -1500,10 +1519,10 @@ export function AddPropertyForm() {
                     </Label>
                   </div>
                 </div>
-              </div>
+              )}
 
-              {/* Auth Section - Show only if user is not logged in */}
-              {isLoggedIn === false && (
+              {/* Auth Section - Show only if user is not logged in and not submitting */}
+              {(isLoggedIn === false && !isSubmitting) && (
                 <Card>
                   <CardHeader className="pb-1">
                     <CardTitle>Create Your Account to Publish</CardTitle>

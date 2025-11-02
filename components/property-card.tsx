@@ -8,6 +8,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { PropertyTitle } from "@/components/property-title"
 import { Bed, Bath, MoreVertical, Edit, Eye, Trash2, CheckCircle, XCircle } from "lucide-react"
 import { SavePropertyButton } from "./save-property-button"
 import { format } from "date-fns"
@@ -26,32 +27,16 @@ export function PropertyCard({ property, variant = 'default', onPropertyDeleted,
   const [isDeleting, setIsDeleting] = useState(false)
   const router = useRouter()
 
-  // Helper function to generate property title
-  const getPropertyTitle = () => {
-    // If title is provided, use it
-    if (property.title) return property.title
-
-    // Otherwise, generate from address
-    const address = property.address || ''
-    const city = property.city || ''
-    const propertyType = property.property_type || property.propertyType || ''
-
-    if (!address || !city) {
-      return `${propertyType} in ${city || 'Unknown'}`
-    }
-
-    // Remove door number from the beginning of the address
-    const addressPart = address.split(',')[0].trim()
-    const roadName = addressPart.replace(/^\d+\s*/, '').trim()
-
-    // Format: "Road Name, City"
-    const title = `${roadName}, ${city}`.replace(/,\s*,/g, ',').replace(/^,\s*|,\s*$/g, '')
-
-    // Capitalize first letter of each word
-    return title.split(' ').map(word =>
-      word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
-    ).join(' ')
-  }
+  // Get formatted property title
+  const propertyTitle = property.address && property.city ? (
+    <PropertyTitle
+      address={property.address}
+      city={property.city}
+      postcode={property.postcode}
+    />
+  ) : (
+    property.title || `${property.property_type || property.propertyType} in ${property.city || 'Unknown'}`
+  )
 
   // Helper function to get licence display name
   const getLicenceDisplay = (licence: string) => {
@@ -145,7 +130,7 @@ export function PropertyCard({ property, variant = 'default', onPropertyDeleted,
         )}
         <Image
           src={(property.images || property.photos)?.[0] || "/placeholder.svg"}
-          alt={getPropertyTitle()}
+          alt={typeof propertyTitle === 'string' ? propertyTitle : property.title || 'Property'}
           width={400}
           height={250}
           className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
@@ -189,7 +174,7 @@ export function PropertyCard({ property, variant = 'default', onPropertyDeleted,
         <div className="space-y-2.5">
           <div className="mb-1.5">
             <h3 className="font-sans text-base font-medium text-card-foreground mb-1 line-clamp-1">
-              {getPropertyTitle()}
+              {propertyTitle}
             </h3>
             <div className="text-base font-semibold text-accent">
               £{(property.price || property.monthly_rent || 0).toLocaleString()} pcm

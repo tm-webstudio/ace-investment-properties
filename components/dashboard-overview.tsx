@@ -4,10 +4,12 @@ import { useState, useEffect, useRef } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { Progress } from "@/components/ui/progress"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { PropertyCard } from "@/components/property-card"
 import { ViewingRequests } from "@/components/viewing-requests"
 import { PropertyDocumentsModal } from "@/components/property-documents-modal"
+import { PropertyTitle } from "@/components/property-title"
 import { KeyRound as Pound, Home, FileText, TrendingUp, Eye, MessageSquare, Plus, Clock, ChevronLeft, ChevronRight } from "lucide-react"
 import Link from "next/link"
 import { supabase } from "@/lib/supabase"
@@ -35,6 +37,8 @@ interface PropertySummary {
   propertyId: string
   name: string
   address: string
+  city?: string
+  postcode?: string
   image: string
   completedDocs: number
   totalDocs: number
@@ -42,9 +46,10 @@ interface PropertySummary {
 
 interface DashboardOverviewProps {
   userId: string
+  onTabChange?: (tab: string) => void
 }
 
-export function DashboardOverview({ userId }: DashboardOverviewProps) {
+export function DashboardOverview({ userId, onTabChange }: DashboardOverviewProps) {
   const [properties, setProperties] = useState<Property[]>([])
   const [loading, setLoading] = useState(true)
   const [propertiesDocSummary, setPropertiesDocSummary] = useState<PropertySummary[]>([])
@@ -188,6 +193,12 @@ export function DashboardOverview({ userId }: DashboardOverviewProps) {
     if (percentage >= 80) return "text-green-600"
     if (percentage >= 50) return "text-yellow-600"
     return "text-red-600"
+  }
+
+  const getProgressBarColor = (percentage: number) => {
+    if (percentage >= 80) return "bg-green-500"
+    if (percentage >= 50) return "bg-yellow-500"
+    return "bg-red-500"
   }
 
   return (
@@ -337,11 +348,22 @@ export function DashboardOverview({ userId }: DashboardOverviewProps) {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle>Compliance & Documents</CardTitle>
-            <Link href="/landlord/property-documents">
-              <Button variant="outline" size="sm" className="bg-transparent">
+            {onTabChange ? (
+              <Button
+                variant="outline"
+                size="sm"
+                className="bg-transparent"
+                onClick={() => onTabChange('documents')}
+              >
                 View All
               </Button>
-            </Link>
+            ) : (
+              <Link href="/landlord/property-documents">
+                <Button variant="outline" size="sm" className="bg-transparent">
+                  View All
+                </Button>
+              </Link>
+            )}
           </CardHeader>
           <CardContent>
             {loadingDocs ? (
@@ -355,32 +377,58 @@ export function DashboardOverview({ userId }: DashboardOverviewProps) {
               </div>
             ) : propertiesDocSummary.length > 0 ? (
               <div className="space-y-3">
-                {propertiesDocSummary.slice(0, 4).map((property) => (
-                  <div
-                    key={property.propertyId}
-                    className="flex items-center justify-between p-4 border rounded-lg hover:shadow-md transition-shadow cursor-pointer group"
-                    onClick={() => handleViewDocuments(property)}
-                  >
-                    <div className="space-y-1 flex-1">
-                      <p className="font-medium text-sm group-hover:text-primary transition-colors">{property.name}</p>
-                      <div className="flex items-center text-xs text-muted-foreground">
-                        <Home className="h-3 w-3 mr-1" />
-                        {property.address}
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <div className="text-right">
-                        <p className={`font-semibold text-sm ${getProgressColor(property.completedDocs, property.totalDocs)}`}>
-                          {property.completedDocs}/{property.totalDocs}
+                {propertiesDocSummary.slice(0, 4).map((property) => {
+                  const percentage = (property.completedDocs / property.totalDocs) * 100
+                  return (
+                    <div
+                      key={property.propertyId}
+                      className="p-4 border rounded-lg hover:shadow-md transition-shadow"
+                    >
+                      <div className="mb-4">
+                        <p className="font-semibold text-[15px] mb-1 line-clamp-1">
+                          <PropertyTitle
+                            address={property.address}
+                            city={property.city}
+                            postcode={property.postcode}
+                          />
                         </p>
-                        <p className="text-xs text-muted-foreground">Documents</p>
+                        <p className="text-sm text-muted-foreground line-clamp-1">
+                          <PropertyTitle
+                            address={property.address}
+                            city={property.city}
+                            postcode={property.postcode}
+                            variant="full"
+                          />
+                        </p>
                       </div>
-                      <Button variant="ghost" size="sm" className="opacity-0 group-hover:opacity-100 transition-opacity">
-                        <FileText className="h-4 w-4" />
-                      </Button>
+
+                      <div className="flex items-end gap-3 sm:gap-6">
+                        <div className="flex-1 space-y-1">
+                          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-0.5 sm:gap-0 text-sm">
+                            <span className="text-muted-foreground">Documents:</span>
+                            <span className="font-semibold">{property.completedDocs}/{property.totalDocs} Complete</span>
+                          </div>
+                          <div className="relative">
+                            <Progress value={percentage} className="h-2" />
+                            <div
+                              className={`absolute top-0 left-0 h-2 rounded-full transition-all ${getProgressBarColor(percentage)}`}
+                              style={{ width: `${percentage}%` }}
+                            />
+                          </div>
+                        </div>
+                        <Button
+                          onClick={() => handleViewDocuments(property)}
+                          variant="outline"
+                          size="sm"
+                          className="min-w-[120px]"
+                        >
+                          <FileText className="h-4 w-4 mr-2" />
+                          View
+                        </Button>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  )
+                })}
               </div>
             ) : (
               <div className="text-center py-8 text-muted-foreground">

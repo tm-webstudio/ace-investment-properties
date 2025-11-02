@@ -83,7 +83,7 @@ export function Footer() {
           </div>
         </div>
 
-        <div className="border-t border-primary-foreground/20 mt-8 pt-8 text-center">
+        <div className="border-t border-primary-foreground/20 mt-8 md:mt-16 pt-8 text-center">
           <p className="text-primary-foreground/60">© 2025 Ace Investment Properties. All rights reserved.</p>
         </div>
       </div>

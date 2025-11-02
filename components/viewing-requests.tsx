@@ -7,16 +7,17 @@ import { Badge } from "@/components/ui/badge"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
-import { 
-  Calendar, 
-  Clock, 
-  Eye, 
-  MessageSquare, 
-  TrendingUp, 
-  CheckCircle, 
-  XCircle, 
-  Filter, 
-  ChevronDown, 
+import { PropertyTitle } from "@/components/property-title"
+import {
+  Calendar,
+  Clock,
+  Eye,
+  MessageSquare,
+  TrendingUp,
+  CheckCircle,
+  XCircle,
+  Filter,
+  ChevronDown,
   ChevronUp,
   Phone,
   Mail,
@@ -377,47 +378,16 @@ export function ViewingRequests({ variant = 'dashboard', limit }: ViewingRequest
               <div className="flex items-start justify-between">
                 <div className="space-y-2 flex-1">
                   <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-3">
-                    <h3 className="font-sans text-base font-medium">
-                      {(() => {
-                        if (!viewing.property?.address || !viewing.property?.city) {
-                          return `${viewing.property?.property_type} in ${viewing.property?.city}`
-                        }
-
-                        const address = viewing.property.address || ''
-                        const city = viewing.property.city || ''
-                        const postcode = viewing.property.postcode || ''
-
-                        // Remove door number from the beginning of the address
-                        const addressPart = address.split(',')[0].trim()
-                        const roadName = addressPart.replace(/^\d+\s*/, '').trim()
-
-                        // Extract outward postcode (first part before space) in uppercase
-                        const outwardPostcode = postcode ? postcode.split(' ')[0].toUpperCase() : ''
-
-                        // Format: "Road Name, City, OUTWARD_POSTCODE"
-                        let title = `${roadName}, ${city}`
-                        if (outwardPostcode) {
-                          title += `, ${outwardPostcode}`
-                        }
-
-                        // Clean up any double commas
-                        title = title.replace(/,\s*,/g, ',').replace(/^,\s*|,\s*$/g, '')
-
-                        // Capitalize first letter of each word (except the postcode part)
-                        const parts = title.split(',')
-                        const formattedParts = parts.map((part, index) => {
-                          const trimmedPart = part.trim()
-                          // Don't lowercase the postcode (last part if postcode exists)
-                          if (index === parts.length - 1 && outwardPostcode && trimmedPart === outwardPostcode) {
-                            return trimmedPart
-                          }
-                          return trimmedPart.split(' ').map(word =>
-                            word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
-                          ).join(' ')
-                        })
-
-                        return formattedParts.join(', ')
-                      })()}
+                    <h3 className="font-sans text-[15px] font-medium">
+                      {viewing.property?.address && viewing.property?.city ? (
+                        <PropertyTitle
+                          address={viewing.property.address}
+                          city={viewing.property.city}
+                          postcode={viewing.property.postcode}
+                        />
+                      ) : (
+                        `${viewing.property?.property_type} in ${viewing.property?.city}`
+                      )}
                     </h3>
                     <Badge className={getStatusColor(viewing.status)}>
                       {viewing.status === 'pending' ? 'awaiting approval' : viewing.status}

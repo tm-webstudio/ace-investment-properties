@@ -7,8 +7,8 @@ import { Footer } from "@/components/footer"
 import { PageHeader } from "@/components/page-header"
 import { InvestorDashboardNavigation } from "@/components/investor-dashboard-navigation"
 import { InvestorDashboardOverview } from "@/components/investor-dashboard-overview"
+import { InvestorDashboardProfile } from "@/components/investor-dashboard-profile"
 import { RecommendedProperties } from "@/components/recommended-properties"
-import { PreferencesWidget } from "@/components/preferences-widget"
 import { sampleInvestors } from "@/lib/sample-data"
 import { supabase } from "@/lib/supabase"
 
@@ -18,6 +18,7 @@ export default function InvestorDashboard() {
   const [user, setUser] = useState<any>(null)
   const [userProfile, setUserProfile] = useState<any>(null)
   const [preferences, setPreferences] = useState<any>(null)
+  const [activeTab, setActiveTab] = useState("dashboard")
 
   // In a real app, this would come from user data
   const currentInvestor = sampleInvestors[0]
@@ -29,7 +30,7 @@ export default function InvestorDashboard() {
   const checkAuthAndPreferences = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser()
-      
+
       if (!user) {
         router.push('/auth/signin')
         return
@@ -76,6 +77,15 @@ export default function InvestorDashboard() {
     }
   }
 
+  const getPageSubtitle = () => {
+    switch (activeTab) {
+      case "profile":
+        return "Manage your account information and preferences"
+      default:
+        return "Track your property investments and opportunities"
+    }
+  }
+
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -95,20 +105,22 @@ export default function InvestorDashboard() {
           <PageHeader
             category="Investor Dashboard"
             title={`Welcome back, ${userProfile?.full_name || 'Investor'}`}
-            subtitle="Track your property investments and opportunities"
+            subtitle={getPageSubtitle()}
             variant="green"
           />
 
-          <InvestorDashboardNavigation />
-          
-          {/* Main Dashboard Content */}
-          <div className="space-y-8">
-            {/* Recommended Properties */}
-            <RecommendedProperties preferences={preferences} />
-            
-            {/* Dashboard Overview */}
-            <InvestorDashboardOverview investor={currentInvestor} />
-          </div>
+          <InvestorDashboardNavigation
+            activeTab={activeTab}
+            onTabChange={setActiveTab}
+          />
+
+          {activeTab === "dashboard" && (
+            <div className="space-y-8">
+              <RecommendedProperties preferences={preferences} />
+              <InvestorDashboardOverview investor={currentInvestor} />
+            </div>
+          )}
+          {activeTab === "profile" && <InvestorDashboardProfile />}
         </div>
       </main>
       <Footer />

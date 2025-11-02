@@ -5,6 +5,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
+import { PropertyTitle } from "@/components/property-title"
 import { FileText, Upload, Download, Eye, Trash2, X, AlertTriangle } from "lucide-react"
 import { format } from "date-fns"
 import { supabase } from "@/lib/supabase"
@@ -14,6 +15,8 @@ interface PropertySummary {
   propertyId: string
   name: string
   address: string
+  city?: string
+  postcode?: string
   image: string
   completedDocs: number
   totalDocs: number
@@ -242,10 +245,21 @@ export function PropertyDocumentsModal({ property, open, onClose }: PropertyDocu
           <DialogHeader>
             <div className="flex items-center justify-between">
               <DialogTitle className="text-xl">
-                Documents - {property.name}
+                Documents - <PropertyTitle
+                  address={property.address}
+                  city={property.city}
+                  postcode={property.postcode}
+                />
               </DialogTitle>
             </div>
-            <p className="text-sm text-muted-foreground">{property.address}</p>
+            <p className="text-sm text-muted-foreground">
+              <PropertyTitle
+                address={property.address}
+                city={property.city}
+                postcode={property.postcode}
+                variant="full"
+              />
+            </p>
           </DialogHeader>
 
           <div className="space-y-4 mt-4">

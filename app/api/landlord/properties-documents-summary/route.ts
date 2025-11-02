@@ -65,7 +65,7 @@ export async function GET(request: NextRequest) {
     // Get landlord's properties
     const { data: properties, error: propertiesError } = await supabaseAdmin
       .from('properties')
-      .select('id, address, city, photos')
+      .select('id, address, city, postcode, photos')
       .eq('landlord_id', user.id)
       .order('created_at', { ascending: false })
 
@@ -90,7 +90,9 @@ export async function GET(request: NextRequest) {
         return {
           propertyId: property.id,
           name: property.address,
-          address: `${property.address}, ${property.city}`,
+          address: property.address,
+          city: property.city,
+          postcode: property.postcode,
           image: property.photos?.[0] || '/placeholder.svg',
           completedDocs,
           totalDocs: TOTAL_DOCUMENT_TYPES
