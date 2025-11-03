@@ -129,9 +129,9 @@ export function DashboardOverview({ userId, onTabChange }: DashboardOverviewProp
     }
   }, [userId])
 
-  const handlePropertyDeleted = () => {
+  const handlePropertyDeleted = async () => {
     // Refresh the properties list when a property is deleted
-    fetchProperties()
+    await fetchProperties()
   }
 
   const updateScrollButtons = () => {
@@ -328,10 +328,10 @@ export function DashboardOverview({ userId, onTabChange }: DashboardOverviewProp
               )}
             </div>
           ) : (
-            <div className="text-center py-8 text-muted-foreground">
-              <Home className="h-12 w-12 mx-auto mb-4 opacity-50" />
-              <p className="text-lg font-medium mb-2">No properties yet</p>
-              <p className="mb-4">Get started by adding your first property</p>
+            <div className="text-center py-16 text-muted-foreground min-h-[320px] flex flex-col items-center justify-center">
+              <Home className="h-10 w-10 mx-auto mb-3 opacity-50" />
+              <p className="text-base font-medium mb-1.5">No Properties Yet</p>
+              <p className="text-sm mb-4">Get started by adding your first property</p>
               <Link href="/landlord/add-property">
                 <Button className="bg-accent hover:bg-accent/90 text-accent-foreground">
                   <Plus className="h-4 w-4 mr-2" />
@@ -431,10 +431,10 @@ export function DashboardOverview({ userId, onTabChange }: DashboardOverviewProp
                 })}
               </div>
             ) : (
-              <div className="text-center py-8 text-muted-foreground">
-                <FileText className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                <p className="text-sm">No properties found</p>
-                <p className="text-xs mt-1">Add a property to start managing documents</p>
+              <div className="text-center py-16 text-muted-foreground min-h-[280px] flex flex-col items-center justify-center">
+                <FileText className="h-10 w-10 mx-auto mb-3 opacity-50" />
+                <p className="text-base font-medium mb-1.5">No Properties Found</p>
+                <p className="text-sm">Add a property to start managing documents</p>
               </div>
             )}
           </CardContent>

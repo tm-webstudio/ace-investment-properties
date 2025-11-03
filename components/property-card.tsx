@@ -8,6 +8,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { PropertyTitle } from "@/components/property-title"
 import { Bed, Bath, MoreVertical, Edit, Eye, Trash2, CheckCircle, XCircle } from "lucide-react"
 import { SavePropertyButton } from "./save-property-button"
@@ -25,6 +26,7 @@ interface PropertyCardProps {
 
 export function PropertyCard({ property, variant = 'default', onPropertyDeleted, onApprove, onReject }: PropertyCardProps) {
   const [isDeleting, setIsDeleting] = useState(false)
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false)
   const router = useRouter()
 
   // Get formatted property title
@@ -74,18 +76,19 @@ export function PropertyCard({ property, variant = 'default', onPropertyDeleted,
     router.push(`/properties/${property.id}`)
   }
 
-  const handleDeleteProperty = async () => {
-    if (!confirm('Are you sure you want to delete this property? This action cannot be undone.')) {
-      return
-    }
+  const handleDeleteProperty = () => {
+    setDeleteModalOpen(true)
+  }
 
+  const confirmDelete = async () => {
     setIsDeleting(true)
-    
+
     try {
       const { data: { session } } = await supabase.auth.getSession()
-      
+
       if (!session?.access_token) {
         alert('Please log in to delete properties')
+        setIsDeleting(false)
         return
       }
 
@@ -103,11 +106,12 @@ export function PropertyCard({ property, variant = 'default', onPropertyDeleted,
       }
 
       if (data.success) {
-        // Call the callback to refresh the property list
+        // Call the callback to refresh the property list immediately
         if (onPropertyDeleted) {
-          onPropertyDeleted()
+          await onPropertyDeleted()
         }
-        alert('Property deleted successfully')
+        // Close modal after refresh completes
+        setDeleteModalOpen(false)
       } else {
         throw new Error(data.error || 'Failed to delete property')
       }
@@ -257,11 +261,11 @@ export function PropertyCard({ property, variant = 'default', onPropertyDeleted,
         >
           <DropdownMenuItem asChild>
             <Link href={`/landlord/properties/${property.id}/edit`} className="cursor-pointer transition-colors duration-150">
-              <Edit className="mr-2 h-4 w-4" />
+              <Edit className="mr-2 h-4 w-4 text-current" />
               Edit Property
             </Link>
           </DropdownMenuItem>
-          <DropdownMenuItem 
+          <DropdownMenuItem
             className="text-red-600 cursor-pointer transition-colors duration-150 focus:text-red-700 focus:bg-red-50"
             onClick={(e) => {
               e.preventDefault()
@@ -269,14 +273,46 @@ export function PropertyCard({ property, variant = 'default', onPropertyDeleted,
             }}
             disabled={isDeleting}
           >
-            <Trash2 className="mr-2 h-4 w-4" />
-            {isDeleting ? 'Deleting...' : 'Delete Listing'}
+            <Trash2 className="mr-2 h-4 w-4 text-current" />
+            {isDeleting ? 'Deleting...' : 'Delete Property'}
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
     )
 
-    return <CardLayout topRightAction={dropdownAction}>{null}</CardLayout>
+    return (
+      <>
+        <CardLayout topRightAction={dropdownAction}>{null}</CardLayout>
+
+        {/* Delete Confirmation Modal */}
+        <Dialog open={deleteModalOpen} onOpenChange={setDeleteModalOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Delete Property</DialogTitle>
+              <DialogDescription>
+                Are you sure you want to delete this property? This action cannot be undone.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="flex gap-3 justify-end mt-4">
+              <Button
+                variant="outline"
+                onClick={() => setDeleteModalOpen(false)}
+                disabled={isDeleting}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={confirmDelete}
+                disabled={isDeleting}
+                variant="destructive"
+              >
+                {isDeleting ? 'Deleting...' : 'Delete Property'}
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+      </>
+    )
   }
 
   if (variant === 'admin') {
@@ -307,7 +343,39 @@ export function PropertyCard({ property, variant = 'default', onPropertyDeleted,
       </div>
     )
 
-    return <CardLayout topRightAction={adminActions}>{null}</CardLayout>
+    return (
+      <>
+        <CardLayout topRightAction={adminActions}>{null}</CardLayout>
+
+        {/* Delete Confirmation Modal */}
+        <Dialog open={deleteModalOpen} onOpenChange={setDeleteModalOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Delete Property</DialogTitle>
+              <DialogDescription>
+                Are you sure you want to delete this property? This action cannot be undone.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="flex gap-3 justify-end mt-4">
+              <Button
+                variant="outline"
+                onClick={() => setDeleteModalOpen(false)}
+                disabled={isDeleting}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={confirmDelete}
+                disabled={isDeleting}
+                variant="destructive"
+              >
+                {isDeleting ? 'Deleting...' : 'Delete Property'}
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+      </>
+    )
   }
 
   // Default variant with save button
@@ -321,8 +389,38 @@ export function PropertyCard({ property, variant = 'default', onPropertyDeleted,
   )
 
   return (
-    <div className="block">
-      <CardLayout topRightAction={saveAction}>{null}</CardLayout>
-    </div>
+    <>
+      <div className="block">
+        <CardLayout topRightAction={saveAction}>{null}</CardLayout>
+      </div>
+
+      {/* Delete Confirmation Modal */}
+      <Dialog open={deleteModalOpen} onOpenChange={setDeleteModalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Property</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete this property? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex gap-3 justify-end mt-4">
+            <Button
+              variant="outline"
+              onClick={() => setDeleteModalOpen(false)}
+              disabled={isDeleting}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={confirmDelete}
+              disabled={isDeleting}
+              variant="destructive"
+            >
+              {isDeleting ? 'Deleting...' : 'Delete Property'}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
   )
 }

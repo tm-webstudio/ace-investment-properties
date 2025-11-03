@@ -158,7 +158,7 @@ export async function PUT(
       postcode: updateData.postcode,
       monthly_rent: Math.round(updateData.monthly_rent * 100), // Convert to pence
       security_deposit: Math.round(updateData.security_deposit * 100), // Convert to pence
-      available_date: updateData.available_date,
+      available_date: updateData.available_date || null, // Convert empty string to null
       bedrooms: updateData.bedrooms,
       bathrooms: updateData.bathrooms,
       description: updateData.description,

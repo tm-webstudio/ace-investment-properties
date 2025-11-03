@@ -6,9 +6,13 @@ import { Footer } from "@/components/footer"
 import { DashboardOverview } from "@/components/dashboard-overview"
 import { DashboardDocuments } from "@/components/dashboard-documents"
 import { DashboardProfile } from "@/components/dashboard-profile"
+import { DashboardProperties } from "@/components/dashboard-properties"
+import { ViewingRequests } from "@/components/viewing-requests"
 import { DashboardNavigation } from "@/components/dashboard-navigation"
 import { PageHeader } from "@/components/page-header"
 import { supabase } from "@/lib/supabase"
+import { Button } from "@/components/ui/button"
+import { Edit3 } from "lucide-react"
 
 interface UserProfile {
   user_id: string
@@ -22,6 +26,7 @@ export default function LandlordDashboard() {
   const [user, setUser] = useState<UserProfile | null>(null)
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState("dashboard")
+  const [isEditingProfile, setIsEditingProfile] = useState(false)
 
   useEffect(() => {
     const getUser = async () => {
@@ -73,8 +78,19 @@ export default function LandlordDashboard() {
     getUser()
   }, [])
 
+  // Reset editing state when switching away from profile tab
+  useEffect(() => {
+    if (activeTab !== 'profile') {
+      setIsEditingProfile(false)
+    }
+  }, [activeTab])
+
   const getPageTitle = () => {
     switch (activeTab) {
+      case "properties":
+        return "My Properties"
+      case "viewings":
+        return "Viewing Requests"
       case "documents":
         return "Property Documents"
       case "profile":
@@ -86,6 +102,10 @@ export default function LandlordDashboard() {
 
   const getPageSubtitle = () => {
     switch (activeTab) {
+      case "properties":
+        return "View and manage all your listed properties"
+      case "viewings":
+        return "Manage viewing requests from potential tenants"
       case "documents":
         return "Manage certificates and licenses for your properties"
       case "profile":
@@ -132,11 +152,30 @@ export default function LandlordDashboard() {
           <DashboardNavigation
             activeTab={activeTab}
             onTabChange={setActiveTab}
+            customButton={
+              activeTab === "profile" && !isEditingProfile ? (
+                <Button
+                  onClick={() => setIsEditingProfile(true)}
+                  className="
+                    group bg-accent hover:bg-accent/90 text-accent-foreground
+                    transition-all duration-200 ease-out
+                    hover:scale-[1.02] hover:-translate-y-px
+                    hover:shadow-md hover:shadow-accent/15
+                    active:scale-[0.98] active:transition-none
+                  "
+                >
+                  <Edit3 className="mr-2 h-4 w-4 transition-all duration-200 ease-out group-hover:scale-105" />
+                  <span className="relative z-10 font-medium">Edit Profile</span>
+                </Button>
+              ) : activeTab === "dashboard" || activeTab === "properties" ? undefined : null
+            }
           />
 
           {activeTab === "dashboard" && <DashboardOverview userId={user.user_id} onTabChange={setActiveTab} />}
+          {activeTab === "properties" && <DashboardProperties userId={user.user_id} />}
+          {activeTab === "viewings" && <ViewingRequests variant="full" />}
           {activeTab === "documents" && <DashboardDocuments />}
-          {activeTab === "profile" && <DashboardProfile />}
+          {activeTab === "profile" && <DashboardProfile isEditing={isEditingProfile} setIsEditing={setIsEditingProfile} />}
         </div>
       </main>
       <Footer />

@@ -417,11 +417,15 @@ export function EditPropertyForm({ propertyId, initialData }: EditPropertyFormPr
 
       const result = await response.json()
 
+      console.log('Update response:', result)
+      console.log('Update data sent:', updateData)
+
       if (result.success) {
         // Redirect to dashboard with success message
         router.push('/landlord/dashboard?updated=true')
       } else {
-        alert(`Update failed: ${result.error}`)
+        console.error('Update failed:', result)
+        alert(`Update failed: ${result.error || 'Unknown error'}${result.details ? '\nDetails: ' + result.details : ''}`)
       }
     } catch (error) {
       console.error('Update error:', error)
@@ -438,15 +442,15 @@ export function EditPropertyForm({ propertyId, initialData }: EditPropertyFormPr
         <div className="max-w-4xl mx-auto">
           {/* Header */}
           <div className="mb-8">
-            <div className="flex items-center gap-4 mb-4">
+            <div className="flex items-center justify-between mb-2">
+              <h1 className="text-3xl font-bold">Edit Property</h1>
               <Link href="/landlord/dashboard">
-                <Button variant="ghost" size="sm">
+                <Button size="sm" className="bg-accent hover:bg-accent/90 text-accent-foreground">
                   <ArrowLeft className="h-4 w-4 mr-2" />
                   Back to Dashboard
                 </Button>
               </Link>
             </div>
-            <h1 className="text-3xl font-bold mb-2">Edit Property</h1>
             <p className="text-muted-foreground">Update your property information</p>
           </div>
 
@@ -464,7 +468,7 @@ export function EditPropertyForm({ propertyId, initialData }: EditPropertyFormPr
                 {/* Availability and Available Date Row */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
-                    <Label htmlFor="availability">Availability *</Label>
+                    <Label htmlFor="availability" className="mb-2 block">Availability *</Label>
                     <Select
                       value={formData.availability}
                       onValueChange={(value) => handleInputChange("availability", value)}
@@ -481,7 +485,7 @@ export function EditPropertyForm({ propertyId, initialData }: EditPropertyFormPr
                   </div>
 {(formData.availability === 'tenanted' || formData.availability === 'upcoming') && (
                     <div>
-                      <Label htmlFor="availableDate">Available Date *</Label>
+                      <Label htmlFor="availableDate" className="mb-2 block">Available Date *</Label>
                       <Input
                         id="availableDate"
                         type="date"
@@ -495,7 +499,7 @@ export function EditPropertyForm({ propertyId, initialData }: EditPropertyFormPr
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
-                    <Label htmlFor="propertyType">Property Type *</Label>
+                    <Label htmlFor="propertyType" className="mb-2 block">Property Type *</Label>
                     <Select value={formData.propertyType} onValueChange={(value) => handleInputChange("propertyType", value)}>
                       <SelectTrigger>
                         <SelectValue placeholder="Select property type" />
@@ -511,7 +515,7 @@ export function EditPropertyForm({ propertyId, initialData }: EditPropertyFormPr
                     </Select>
                   </div>
                   <div>
-                    <Label htmlFor="propertyLicence">Property Licence</Label>
+                    <Label htmlFor="propertyLicence" className="mb-2 block">Property Licence</Label>
                     <Select
                       value={formData.propertyLicence || ""}
                       onValueChange={(value) => handleInputChange("propertyLicence", value)}
@@ -534,7 +538,7 @@ export function EditPropertyForm({ propertyId, initialData }: EditPropertyFormPr
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
-                    <Label htmlFor="bedrooms">Bedrooms *</Label>
+                    <Label htmlFor="bedrooms" className="mb-2 block">Bedrooms *</Label>
                     <Select value={formData.bedrooms} onValueChange={(value) => handleInputChange("bedrooms", value)}>
                       <SelectTrigger>
                         <SelectValue placeholder="Select bedrooms" />
@@ -550,7 +554,7 @@ export function EditPropertyForm({ propertyId, initialData }: EditPropertyFormPr
                     </Select>
                   </div>
                   <div>
-                    <Label htmlFor="bathrooms">Bathrooms *</Label>
+                    <Label htmlFor="bathrooms" className="mb-2 block">Bathrooms *</Label>
                     <Select value={formData.bathrooms} onValueChange={(value) => handleInputChange("bathrooms", value)}>
                       <SelectTrigger>
                         <SelectValue placeholder="Select bathrooms" />
@@ -570,7 +574,7 @@ export function EditPropertyForm({ propertyId, initialData }: EditPropertyFormPr
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
-                    <Label htmlFor="propertyCondition">Property Condition</Label>
+                    <Label htmlFor="propertyCondition" className="mb-2 block">Property Condition</Label>
                     <Select
                       value={formData.propertyCondition || ""}
                       onValueChange={(value) => handleInputChange("propertyCondition", value)}
@@ -588,7 +592,7 @@ export function EditPropertyForm({ propertyId, initialData }: EditPropertyFormPr
                     </Select>
                   </div>
                   <div>
-                    <Label htmlFor="monthlyRent">Monthly Rent (£) *</Label>
+                    <Label htmlFor="monthlyRent" className="mb-2 block">Monthly Rent (£) *</Label>
                     <Input
                       id="monthlyRent"
                       type="number"
@@ -598,7 +602,7 @@ export function EditPropertyForm({ propertyId, initialData }: EditPropertyFormPr
                     />
                   </div>
                   <div>
-                    <Label htmlFor="securityDeposit">Security Deposit (£) *</Label>
+                    <Label htmlFor="securityDeposit" className="mb-2 block">Security Deposit (£) *</Label>
                     <Input
                       id="securityDeposit"
                       type="number"
@@ -610,7 +614,7 @@ export function EditPropertyForm({ propertyId, initialData }: EditPropertyFormPr
                 </div>
 
                 <div>
-                  <Label htmlFor="description">Property Description *</Label>
+                  <Label htmlFor="description" className="mb-2 block">Property Description *</Label>
                   <Textarea
                     id="description"
                     value={formData.description}
@@ -625,7 +629,7 @@ export function EditPropertyForm({ propertyId, initialData }: EditPropertyFormPr
                 </div>
 
                 <div>
-                  <Label>Features</Label>
+                  <Label className="mb-2 block">Features</Label>
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mt-2">
                     {amenityOptions.map((amenity) => (
                       <div key={amenity} className="flex items-center space-x-2 p-2 rounded-md hover:bg-muted/20 transition-colors">
@@ -656,7 +660,7 @@ export function EditPropertyForm({ propertyId, initialData }: EditPropertyFormPr
               <CardContent className="space-y-6 py-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="md:col-span-2">
-                    <Label htmlFor="address">Property Address *</Label>
+                    <Label htmlFor="address" className="mb-2 block">Property Address *</Label>
                     <Input
                       id="address"
                       value={formData.address}
@@ -665,7 +669,7 @@ export function EditPropertyForm({ propertyId, initialData }: EditPropertyFormPr
                     />
                   </div>
                   <div>
-                    <Label htmlFor="city">City/Town *</Label>
+                    <Label htmlFor="city" className="mb-2 block">City/Town *</Label>
                     <Input
                       id="city"
                       value={formData.city}
@@ -674,7 +678,7 @@ export function EditPropertyForm({ propertyId, initialData }: EditPropertyFormPr
                     />
                   </div>
                   <div>
-                    <Label htmlFor="state">County</Label>
+                    <Label htmlFor="state" className="mb-2 block">County</Label>
                     <Select value={formData.state} onValueChange={(value) => handleInputChange("state", value)}>
                       <SelectTrigger>
                         <SelectValue placeholder="Select county" />
@@ -708,7 +712,7 @@ export function EditPropertyForm({ propertyId, initialData }: EditPropertyFormPr
                 </div>
 
                 <div>
-                  <Label htmlFor="postcode">Postcode *</Label>
+                  <Label htmlFor="postcode" className="mb-2 block">Postcode *</Label>
                   <Input
                     id="postcode"
                     value={formData.postcode}
@@ -793,10 +797,10 @@ export function EditPropertyForm({ propertyId, initialData }: EditPropertyFormPr
 
             {/* Submit Section */}
             <Card>
-              <CardContent className="pt-6">
+              <CardContent className="py-3">
                 <div className="flex justify-between items-center">
                   <Link href="/landlord/dashboard">
-                    <Button variant="ghost">Cancel</Button>
+                    <Button variant="outline">Cancel</Button>
                   </Link>
                   <Button
                     onClick={handleSubmit}

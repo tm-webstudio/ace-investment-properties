@@ -14,8 +14,8 @@ import {
   Eye,
   MessageSquare,
   TrendingUp,
-  CheckCircle,
-  XCircle,
+  Check,
+  X,
   Filter,
   ChevronDown,
   ChevronUp,
@@ -271,8 +271,8 @@ export function ViewingRequests({ variant = 'dashboard', limit }: ViewingRequest
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center">
-              <div className="rounded-full bg-green-100 p-3">
-                <CheckCircle className="h-6 w-6 text-green-600" />
+              <div className="rounded-full bg-accent/10 p-3">
+                <Check className="h-6 w-6 text-accent" />
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">Approved This Week</p>
@@ -393,7 +393,7 @@ export function ViewingRequests({ variant = 'dashboard', limit }: ViewingRequest
                       {viewing.status === 'pending' ? 'awaiting approval' : viewing.status}
                     </Badge>
                   </div>
-                  
+
                   <div className="flex flex-col md:flex-row gap-1 md:gap-4 text-sm text-gray-600">
                     <div className="flex items-center">
                       <Calendar className="h-4 w-4 mr-2" />
@@ -412,16 +412,16 @@ export function ViewingRequests({ variant = 'dashboard', limit }: ViewingRequest
                       <Button
                         size="icon"
                         onClick={() => handleApprove(viewing)}
-                        className="bg-green-600 hover:bg-green-700 text-white h-9 w-9"
+                        className="bg-accent hover:bg-accent/90 text-accent-foreground h-9 w-9"
                       >
-                        <CheckCircle className="h-4 w-4" />
+                        <Check className="h-4 w-4" />
                       </Button>
                       <Button
                         size="icon"
                         onClick={() => handleReject(viewing)}
                         className="bg-red-600 hover:bg-red-700 text-white h-9 w-9"
                       >
-                        <XCircle className="h-4 w-4" />
+                        <X className="h-4 w-4" />
                       </Button>
                     </>
                   )}
@@ -514,10 +514,10 @@ export function ViewingRequests({ variant = 'dashboard', limit }: ViewingRequest
             </div>
           ))
         ) : (
-          <div className="text-center py-8 text-muted-foreground">
-            <Calendar className="h-12 w-12 mx-auto mb-4 opacity-50" />
-            <p className="text-lg font-medium mb-2">No viewing requests</p>
-            <p>No {filter === 'all' ? '' : filter + ' '}viewing requests at the moment</p>
+          <div className="text-center py-16 text-muted-foreground min-h-[280px] flex flex-col items-center justify-center">
+            <Calendar className="h-10 w-10 mx-auto mb-3 opacity-50" />
+            <p className="text-base font-medium mb-1.5">No Viewing Requests</p>
+            <p className="text-sm">No {filter === 'all' ? '' : filter + ' '}viewing requests at the moment</p>
           </div>
         )}
       </div>

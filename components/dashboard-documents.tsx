@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import { PropertyDocumentsCard } from "@/components/property-documents-card"
 import { PropertyDocumentsModal } from "@/components/property-documents-modal"
 import { supabase } from "@/lib/supabase"
+import { FileText } from "lucide-react"
 
 interface PropertySummary {
   propertyId: string
@@ -76,8 +77,10 @@ export function DashboardDocuments() {
   return (
     <div className="mt-8">
       {properties.length === 0 ? (
-        <div className="text-center py-12">
-          <p className="text-muted-foreground">No properties found. Add a property to get started.</p>
+        <div className="text-center py-16 text-muted-foreground min-h-[320px] flex flex-col items-center justify-center">
+          <FileText className="h-10 w-10 mx-auto mb-3 opacity-50" />
+          <p className="text-base font-medium mb-1.5">No Properties Found</p>
+          <p className="text-sm">Add a property to start managing documents</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
