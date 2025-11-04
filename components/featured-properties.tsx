@@ -10,7 +10,6 @@ interface Property {
   id: string
   title: string
   price: number
-  deposit: number
   address: string
   city: string
   county: string

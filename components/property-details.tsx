@@ -86,10 +86,6 @@ export function PropertyDetails({ property }: PropertyDetailsProps) {
                   <span className="text-muted-foreground">Monthly Rent</span>
                   <span className="font-medium">£{property.price.toLocaleString()}</span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Security Deposit</span>
-                  <span className="font-medium">£{property.deposit.toLocaleString()}</span>
-                </div>
               </div>
               <div className="space-y-4">
                 <div className="flex justify-between">

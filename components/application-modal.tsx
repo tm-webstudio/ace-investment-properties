@@ -58,7 +58,6 @@ export function ApplicationModal({ property, onBookViewing }: ApplicationModalPr
               <span className="text-2xl font-bold">£{property.price.toLocaleString()}</span>
               <span className="text-muted-foreground">/month</span>
             </div>
-            <p className="text-sm text-muted-foreground">Security deposit: £{property.deposit.toLocaleString()}</p>
           </div>
 
           <div className="space-y-3">
