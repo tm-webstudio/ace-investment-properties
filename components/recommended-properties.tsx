@@ -248,27 +248,15 @@ export function RecommendedProperties({ className, preferences }: RecommendedPro
 
   return (
     <Card className={className}>
-      <CardHeader className="flex flex-row items-center justify-between">
-        <div>
-          <CardTitle className="flex items-center gap-2">
-            <Heart className="h-5 w-5 text-primary" />
-            Recommended For You
-          </CardTitle>
-        </div>
-        <div className="flex items-center gap-2">
-          <Button variant="ghost" size="sm" onClick={handleRefresh}>
-            <RefreshCw className="h-4 w-4" />
-          </Button>
-          <PreferencesModal onPreferencesUpdate={() => {
-            fetchRecommendedProperties()
-            fetchSavedProperties()
-          }} />
-        </div>
-      </CardHeader>
-      <CardContent className="space-y-4">
+      <CardHeader className="space-y-4">
+        <CardTitle className="flex items-center gap-2">
+          <Heart className="h-5 w-5 text-primary" />
+          Recommended For You
+        </CardTitle>
+
         {/* Your Preferences Section */}
         {preferences && (
-          <div className="py-4 border rounded-lg bg-gray-50/50 max-w-md relative">
+          <div className="py-4 border rounded-lg bg-gray-50/50 w-full relative">
             <div className="flex justify-between items-center mb-3 px-4">
               <h3 className="text-base font-medium">Your Preferences</h3>
               <PreferencesModal onPreferencesUpdate={() => {
@@ -276,7 +264,7 @@ export function RecommendedProperties({ className, preferences }: RecommendedPro
                 fetchSavedProperties()
               }} />
             </div>
-            <div className="grid grid-cols-2 gap-3 text-sm px-4">
+            <div className="grid grid-cols-4 gap-3 text-sm px-4">
               <div>
                 <span className="text-gray-600">Budget:</span>
                 <div className="font-medium">
@@ -286,7 +274,7 @@ export function RecommendedProperties({ className, preferences }: RecommendedPro
               <div>
                 <span className="text-gray-600">Bedrooms:</span>
                 <div className="font-medium">
-                  {preferences.preference_data.bedrooms.min === preferences.preference_data.bedrooms.max 
+                  {preferences.preference_data.bedrooms.min === preferences.preference_data.bedrooms.max
                     ? `${preferences.preference_data.bedrooms.min} bedroom${preferences.preference_data.bedrooms.min !== 1 ? 's' : ''}`
                     : `${preferences.preference_data.bedrooms.min}-${preferences.preference_data.bedrooms.max} bedrooms`
                   }
@@ -295,8 +283,8 @@ export function RecommendedProperties({ className, preferences }: RecommendedPro
               <div>
                 <span className="text-gray-600">Property Types:</span>
                 <div className="font-medium">
-                  {preferences.preference_data.property_types?.length > 0 
-                    ? preferences.preference_data.property_types.slice(0, 2).join(', ') + 
+                  {preferences.preference_data.property_types?.length > 0
+                    ? preferences.preference_data.property_types.slice(0, 2).join(', ') +
                       (preferences.preference_data.property_types.length > 2 ? ` +${preferences.preference_data.property_types.length - 2} more` : '')
                     : 'Not specified'
                   }
@@ -305,7 +293,7 @@ export function RecommendedProperties({ className, preferences }: RecommendedPro
               <div>
                 <span className="text-gray-600">Locations:</span>
                 <div className="font-medium">
-                  {preferences.preference_data.locations?.length > 0 
+                  {preferences.preference_data.locations?.length > 0
                     ? preferences.preference_data.locations.map((loc: any) => loc.city).slice(0, 2).join(', ') +
                       (preferences.preference_data.locations.length > 2 ? ` +${preferences.preference_data.locations.length - 2} more` : '')
                     : 'Not specified'
@@ -315,6 +303,8 @@ export function RecommendedProperties({ className, preferences }: RecommendedPro
             </div>
           </div>
         )}
+      </CardHeader>
+      <CardContent className="space-y-4">
 
         {/* Properties Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
@@ -359,8 +349,8 @@ export function RecommendedProperties({ className, preferences }: RecommendedPro
         {/* Load More */}
         {hasMore && (
           <div className="flex justify-center pt-4">
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               onClick={handleLoadMore}
               disabled={loadingMore}
             >
