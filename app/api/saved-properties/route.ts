@@ -93,7 +93,6 @@ export async function GET(request: NextRequest) {
           bedrooms,
           bathrooms,
           monthly_rent,
-          security_deposit,
           available_date,
           description,
           address,

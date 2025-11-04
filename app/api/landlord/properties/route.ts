@@ -92,7 +92,6 @@ export async function GET(request: NextRequest) {
       return {
         ...property,
         monthly_rent: property.monthly_rent / 100, // Convert from pence to pounds
-        security_deposit: property.security_deposit / 100,
         availability: property.availability || 'vacant', // Default to vacant if not set
         photos: property.photos || [],
         amenities: property.amenities || [],

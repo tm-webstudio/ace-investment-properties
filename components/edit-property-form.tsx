@@ -29,7 +29,6 @@ interface PropertyFormData {
   state: string
   postcode: string
   monthlyRent: string
-  securityDeposit: string
   availableDate: string
 
   // Details
@@ -68,7 +67,6 @@ export function EditPropertyForm({ propertyId, initialData }: EditPropertyFormPr
     state: initialData?.county || "",
     postcode: initialData?.postcode || "",
     monthlyRent: initialData?.monthly_rent?.toString() || "",
-    securityDeposit: initialData?.security_deposit?.toString() || "",
     availableDate: initialData?.available_date || "",
     bedrooms: initialData?.bedrooms?.toString() || "",
     bathrooms: initialData?.bathrooms?.toString() || "",
@@ -94,7 +92,6 @@ export function EditPropertyForm({ propertyId, initialData }: EditPropertyFormPr
         state: initialData?.county || "",
         postcode: initialData?.postcode || "",
         monthlyRent: initialData?.monthly_rent?.toString() || "",
-        securityDeposit: initialData?.security_deposit?.toString() || "",
         availableDate: initialData?.available_date || "",
         bedrooms: initialData?.bedrooms?.toString() || "",
         bathrooms: initialData?.bathrooms?.toString() || "",
@@ -124,7 +121,6 @@ export function EditPropertyForm({ propertyId, initialData }: EditPropertyFormPr
       newFormData.state !== initialFormData.state ||
       newFormData.postcode !== initialFormData.postcode ||
       newFormData.monthlyRent !== initialFormData.monthlyRent ||
-      newFormData.securityDeposit !== initialFormData.securityDeposit ||
       newFormData.availableDate !== initialFormData.availableDate ||
       newFormData.bedrooms !== initialFormData.bedrooms ||
       newFormData.bathrooms !== initialFormData.bathrooms ||
@@ -345,7 +341,6 @@ export function EditPropertyForm({ propertyId, initialData }: EditPropertyFormPr
       formData.city &&
       formData.postcode &&
       formData.monthlyRent &&
-      formData.securityDeposit &&
       formData.bedrooms !== "" &&
       formData.bathrooms !== "" &&
       formData.description &&
@@ -366,7 +361,6 @@ export function EditPropertyForm({ propertyId, initialData }: EditPropertyFormPr
         city: !!formData.city,
         postcode: !!formData.postcode,
         monthlyRent: !!formData.monthlyRent,
-        securityDeposit: !!formData.securityDeposit,
         bedrooms: formData.bedrooms !== "",
         bathrooms: formData.bathrooms !== "",
         description: !!formData.description,
@@ -396,7 +390,6 @@ export function EditPropertyForm({ propertyId, initialData }: EditPropertyFormPr
         county: formData.state,
         postcode: formData.postcode,
         monthly_rent: parseFloat(formData.monthlyRent),
-        security_deposit: parseFloat(formData.securityDeposit),
         available_date: formData.availableDate,
         bedrooms: parseInt(formData.bedrooms),
         bathrooms: parseInt(formData.bathrooms),
@@ -598,16 +591,6 @@ export function EditPropertyForm({ propertyId, initialData }: EditPropertyFormPr
                       type="number"
                       value={formData.monthlyRent}
                       onChange={(e) => handleInputChange("monthlyRent", e.target.value)}
-                      placeholder="2500"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="securityDeposit" className="mb-2 block">Security Deposit (£) *</Label>
-                    <Input
-                      id="securityDeposit"
-                      type="number"
-                      value={formData.securityDeposit}
-                      onChange={(e) => handleInputChange("securityDeposit", e.target.value)}
                       placeholder="2500"
                     />
                   </div>

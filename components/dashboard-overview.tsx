@@ -275,7 +275,6 @@ export function DashboardOverview({ userId, onTabChange }: DashboardOverviewProp
                         price: property.monthly_rent, // API already converted from pence to pounds
                         monthly_rent: property.monthly_rent, // API already converted
                         monthlyRent: property.monthly_rent, // API already converted
-                        deposit: property.security_deposit, // API already converted
                         availableDate: property.available_date,
                         available_date: property.available_date, // Also include this field
                         availability: property.availability || 'vacant', // Ensure availability is set

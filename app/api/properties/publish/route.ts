@@ -122,7 +122,6 @@ export async function POST(request: NextRequest) {
       bedrooms: propertyData.bedrooms,
       bathrooms: propertyData.bathrooms,
       monthly_rent: propertyData.monthlyRent,
-      security_deposit: propertyData.securityDeposit,
       available_date: propertyData.availableDate,
       address: propertyData.address,
       city: propertyData.city,
@@ -145,7 +144,6 @@ export async function POST(request: NextRequest) {
         bedrooms: parseInt(propertyData.bedrooms) || 1,
         bathrooms: parseInt(propertyData.bathrooms) || 1,
         monthly_rent: Math.round(parseFloat(propertyData.monthlyRent) * 100), // Convert to pence
-        security_deposit: Math.round(parseFloat(propertyData.securityDeposit) * 100), // Convert to pence
         available_date: propertyData.availableDate === 'immediate' ? new Date().toISOString().split('T')[0] : propertyData.availableDate,
         description: propertyData.description,
         amenities: propertyData.amenities || [],

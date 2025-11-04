@@ -126,7 +126,6 @@ export const stepValidationSchemas = {
     bedrooms: z.string().min(1, 'Bedrooms is required'),
     bathrooms: z.string().min(1, 'Bathrooms is required'),
     monthlyRent: z.string().min(1, 'Monthly rent is required'),
-    securityDeposit: z.string().min(1, 'Security deposit is required'),
     availableDate: z.string().min(1, 'Available date is required'),
     description: z.string().min(1, 'Description is required'), // Reduced from 10 to 1 for drafts
     amenities: z.array(z.string()).optional().default([])

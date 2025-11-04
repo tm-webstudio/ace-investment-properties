@@ -13,7 +13,6 @@ export async function GET() {
         bedrooms,
         bathrooms,
         monthly_rent,
-        security_deposit,
         available_date,
         description,
         amenities,

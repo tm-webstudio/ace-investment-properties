@@ -14,7 +14,6 @@ interface Property {
   bedrooms: number
   bathrooms: number
   monthly_rent: number
-  security_deposit: number
   available_date: string
   description: string
   address: string

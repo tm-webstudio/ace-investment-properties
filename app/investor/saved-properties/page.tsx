@@ -172,7 +172,6 @@ export default function SavedPropertiesPage() {
       price: saved.property.monthly_rent, // Already in pounds from database
       monthly_rent: saved.property.monthly_rent,
       monthlyRent: saved.property.monthly_rent,
-      deposit: saved.property.security_deposit,
       availableDate: saved.property.available_date,
       available_date: saved.property.available_date,
       availability: saved.property.availability || 'vacant',

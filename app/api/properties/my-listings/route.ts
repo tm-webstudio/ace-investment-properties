@@ -56,7 +56,6 @@ export async function GET(request: NextRequest) {
     const formattedProperties = properties.map(property => ({
       ...property,
       monthly_rent: property.monthly_rent / 100,
-      security_deposit: property.security_deposit / 100,
       availability: property.availability || 'vacant' // Default to vacant if not set
     }))
     

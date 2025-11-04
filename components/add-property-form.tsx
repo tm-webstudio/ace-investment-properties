@@ -31,7 +31,6 @@ interface PropertyFormData {
   state: string
   postcode: string
   monthlyRent: string
-  securityDeposit: string
   availableDate: string
 
   // Details
@@ -71,7 +70,6 @@ export function AddPropertyForm() {
     state: "",
     postcode: "",
     monthlyRent: "",
-    securityDeposit: "",
     availableDate: "",
     bedrooms: "",
     bathrooms: "",
@@ -409,7 +407,6 @@ export function AddPropertyForm() {
           bedrooms: formData.bedrooms || '',
           bathrooms: formData.bathrooms || '',
           monthlyRent: formData.monthlyRent || '',
-          securityDeposit: formData.securityDeposit || '',
           availableDate: formData.availability === 'vacant' ? 'immediate' : (formData.availableDate || ''),
           description: formData.description || '',
           amenities: formData.amenities || []
@@ -520,7 +517,6 @@ export function AddPropertyForm() {
               bedrooms: formData.bedrooms,
               bathrooms: formData.bathrooms,
               monthlyRent: formData.monthlyRent,
-              securityDeposit: formData.securityDeposit,
               availableDate: formData.availableDate,
               description: formData.description,
               amenities: formData.amenities,
@@ -641,7 +637,6 @@ export function AddPropertyForm() {
               bedrooms: formData.bedrooms,
               bathrooms: formData.bathrooms,
               monthlyRent: formData.monthlyRent,
-              securityDeposit: formData.securityDeposit,
               availableDate: formData.availableDate,
               description: formData.description,
               amenities: formData.amenities,
@@ -742,7 +737,6 @@ export function AddPropertyForm() {
         { field: 'bedrooms', label: 'Bedrooms' },
         { field: 'bathrooms', label: 'Bathrooms' },
         { field: 'monthlyRent', label: 'Monthly Rent' },
-        { field: 'securityDeposit', label: 'Security Deposit' },
         { field: 'description', label: 'Description' },
         { field: 'address', label: 'Address' },
         { field: 'city', label: 'City' },
@@ -814,7 +808,6 @@ export function AddPropertyForm() {
                 bedrooms: formData.bedrooms,
                 bathrooms: formData.bathrooms,
                 monthlyRent: formData.monthlyRent,
-                securityDeposit: formData.securityDeposit,
                 availableDate: formData.availableDate,
                 description: formData.description,
                 amenities: formData.amenities,
@@ -939,8 +932,7 @@ export function AddPropertyForm() {
           formData.bedrooms &&
           formData.bathrooms &&
           formData.description &&
-          formData.monthlyRent &&
-          formData.securityDeposit
+          formData.monthlyRent
         )
         // Only require available date if tenanted or upcoming
         const availableDateValid = (formData.availability === 'vacant') ||
@@ -1136,16 +1128,6 @@ export function AddPropertyForm() {
                     type="number"
                     value={formData.monthlyRent}
                     onChange={(e) => handleInputChange("monthlyRent", e.target.value)}
-                    placeholder="2500"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="securityDeposit">Security Deposit *</Label>
-                  <Input
-                    id="securityDeposit"
-                    type="number"
-                    value={formData.securityDeposit}
-                    onChange={(e) => handleInputChange("securityDeposit", e.target.value)}
                     placeholder="2500"
                   />
                 </div>
@@ -1462,7 +1444,6 @@ export function AddPropertyForm() {
 
 
                     <div className="space-y-2 text-sm">
-                      <div><strong>Security Deposit:</strong> £{Number.parseInt(formData.securityDeposit || "0").toLocaleString()}</div>
                       {formData.availability !== 'vacant' && formData.availableDate && (
                         <div><strong>Available Date:</strong> {new Date(formData.availableDate).toLocaleDateString()}</div>
                       )}

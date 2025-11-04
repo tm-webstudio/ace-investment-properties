@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Validate required fields
-    const requiredFields = ['propertyType', 'bedrooms', 'bathrooms', 'monthlyRent', 'securityDeposit', 'description', 'address', 'city', 'postcode']
+    const requiredFields = ['propertyType', 'bedrooms', 'bathrooms', 'monthlyRent', 'description', 'address', 'city', 'postcode']
     
     for (const field of requiredFields) {
       if (!propertyData[field]) {
@@ -68,7 +68,6 @@ export async function POST(request: NextRequest) {
       bedrooms: propertyData.bedrooms,
       bathrooms: propertyData.bathrooms,
       monthlyRent: propertyData.monthlyRent,
-      securityDeposit: propertyData.securityDeposit,
       availableDate: propertyData.availableDate || 'immediate',
       description: propertyData.description,
       amenities: propertyData.amenities || [],

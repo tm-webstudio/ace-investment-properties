@@ -36,11 +36,9 @@ export async function GET(
     const formattedProperty = {
       ...property,
       monthly_rent: property.monthly_rent / 100, // Convert from pence to pounds
-      security_deposit: property.security_deposit / 100,
       availability: property.availability || 'vacant', // Default to vacant if not set
       // Add aliases for PropertyDetails component
       price: property.monthly_rent / 100, // Monthly rent alias
-      deposit: property.security_deposit / 100, // Security deposit alias
       availableDate: property.available_date, // Available date alias
       photos: property.photos || [],
       images: property.photos || [], // Add images alias
@@ -105,14 +103,14 @@ export async function PUT(
     
     // Only update provided fields
     const allowedFields = [
-      'property_type', 'bedrooms', 'bathrooms', 'monthly_rent', 'security_deposit',
+      'property_type', 'bedrooms', 'bathrooms', 'monthly_rent',
       'available_date', 'description', 'amenities', 'address', 'city', 'county',
       'postcode', 'photos', 'contact_name', 'contact_email', 'contact_phone', 'status'
     ]
-    
+
     for (const field of allowedFields) {
       if (body[field] !== undefined) {
-        if (field === 'monthly_rent' || field === 'security_deposit') {
+        if (field === 'monthly_rent') {
           updateData[field] = Math.round(parseFloat(body[field]) * 100) // Convert to pence
         } else {
           updateData[field] = body[field]

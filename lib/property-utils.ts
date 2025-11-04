@@ -36,7 +36,6 @@ export const formatPropertyForCard = (property: any) => {
     ...property,
     title: formatPropertyTitle(property),
     price: property.monthly_rent / 100, // Convert from pence to pounds
-    deposit: (property.security_deposit || 0) / 100,
     availability: property.availability || 'vacant',
     propertyType: property.bedrooms === 0 ? 'Studio' : 
                  property.bedrooms === 1 ? '1BR' :

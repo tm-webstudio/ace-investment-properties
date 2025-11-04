@@ -16,7 +16,6 @@ interface Property {
   county: string
   postcode: string
   monthly_rent: number
-  security_deposit: number
   available_date: string
   bedrooms: number
   bathrooms: number
