@@ -139,8 +139,15 @@ export const stepValidationSchemas = {
   }),
   
   step3: z.object({
-    photos: z.array(z.string()).min(1, 'At least one photo is required')
-  }),
+    photos: z.array(z.string()),
+    noPhotosYet: z.boolean().optional()
+  }).refine(
+    (data) => data.photos.length > 0 || data.noPhotosYet === true,
+    {
+      message: 'Either add at least one photo or check "I don\'t have photos at the moment"',
+      path: ['photos']
+    }
+  ),
   
   step4: z.object({
     contactName: z.string().optional(),

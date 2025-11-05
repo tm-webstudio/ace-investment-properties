@@ -28,16 +28,16 @@ function getSupabaseClient() {
 }
 
 const DOCUMENT_TYPES = [
+  { key: 'proof_of_ownership', label: 'Proof of Ownership' },
   { key: 'gas_safety', label: 'Gas Safety Certificate' },
   { key: 'epc', label: 'EPC Certificate' },
   { key: 'electrical_safety', label: 'Electrical Certificate' },
-  { key: 'insurance_policy', label: 'Insurance Policy' },
-  { key: 'hmo_license', label: 'HMO License' }
+  { key: 'hmo_license', label: 'Licenses' }
 ]
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const supabase = getSupabaseClient()
@@ -71,7 +71,7 @@ export async function GET(
       )
     }
 
-    const { id } = params
+    const { id } = await params
 
     // Verify property ownership
     const { data: property, error: propertyError } = await supabaseAdmin

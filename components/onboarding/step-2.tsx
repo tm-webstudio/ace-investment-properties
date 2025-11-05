@@ -23,6 +23,7 @@ interface OnboardingStep2Props {
 const propertyTypeOptions = [
   { id: "houses", label: "Houses" },
   { id: "flats", label: "Flats/Apartments" },
+  { id: "blocks", label: "Blocks" },
   { id: "hmo", label: "HMO" },
   { id: "studios", label: "Studios" },
   { id: "commercial", label: "Commercial to Residential" }

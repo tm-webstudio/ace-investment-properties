@@ -5,6 +5,7 @@ import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
+import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
 import { Calendar } from "@/components/ui/calendar"
@@ -22,7 +23,7 @@ interface Location {
 
 interface Step3Data {
   locations: Location[]
-  additionalPreferences: string[]
+  additionalPreferences: string
   availableFrom: Date | null
   immediateAvailability: boolean
 }
@@ -39,14 +40,6 @@ const radiusOptions = [
   { value: 10, label: "10 miles" },
   { value: 15, label: "15 miles" },
   { value: 20, label: "20+ miles" }
-]
-
-const additionalPreferenceOptions = [
-  { id: "parking", label: "Parking required" },
-  { id: "garden", label: "Garden/Outdoor space" },
-  { id: "pet_friendly", label: "Pet-friendly" },
-  { id: "furnished", label: "Furnished" },
-  { id: "bills_included", label: "Bills included" }
 ]
 
 export function OnboardingStep3({ data, onChange }: OnboardingStep3Props) {
@@ -80,18 +73,6 @@ export function OnboardingStep3({ data, onChange }: OnboardingStep3Props) {
     onChange({
       locations: data.locations.filter(loc => loc.id !== locationId)
     })
-  }
-
-  const handleAdditionalPreferenceChange = (preferenceId: string, checked: boolean) => {
-    let newPreferences = [...data.additionalPreferences]
-    
-    if (checked) {
-      newPreferences.push(preferenceId)
-    } else {
-      newPreferences = newPreferences.filter(id => id !== preferenceId)
-    }
-    
-    onChange({ additionalPreferences: newPreferences })
   }
 
   const handleDateSelect = (date: Date | undefined) => {
@@ -217,26 +198,16 @@ export function OnboardingStep3({ data, onChange }: OnboardingStep3Props) {
 
       {/* Additional Preferences */}
       <div>
-        <Label className="text-base font-medium text-gray-900 mb-4 block">
+        <Label htmlFor="additionalPreferences" className="text-base font-medium text-gray-900 mb-4 block">
           Additional preferences (optional)
         </Label>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          {additionalPreferenceOptions.map((option) => (
-            <div key={option.id} className="flex items-center space-x-3 p-3 border border-gray-200 rounded-lg hover:border-primary/50 transition-colors">
-              <Checkbox
-                id={option.id}
-                checked={data.additionalPreferences.includes(option.id)}
-                onCheckedChange={(checked) => handleAdditionalPreferenceChange(option.id, checked as boolean)}
-              />
-              <Label
-                htmlFor={option.id}
-                className="flex-1 cursor-pointer font-medium text-sm"
-              >
-                {option.label}
-              </Label>
-            </div>
-          ))}
-        </div>
+        <Textarea
+          id="additionalPreferences"
+          value={data.additionalPreferences}
+          onChange={(e) => onChange({ additionalPreferences: e.target.value })}
+          placeholder="e.g., Parking required, Garden/Outdoor space, Furnished, Bills included, Wheelchair accessible"
+          className="min-h-[100px]"
+        />
       </div>
 
       {/* Availability */}

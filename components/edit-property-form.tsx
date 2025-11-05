@@ -142,15 +142,10 @@ export function EditPropertyForm({ propertyId, initialData }: EditPropertyFormPr
     "Gym",
     "Pool",
     "Balcony",
-    "In-unit laundry",
     "Dishwasher",
     "Air conditioning",
-    "Carpet",
-    "Walk-in closet",
-    "Storage unit",
     "Elevator",
-    "Doorman",
-    "Security system",
+    "Concierge",
     "Garden access",
   ]
 

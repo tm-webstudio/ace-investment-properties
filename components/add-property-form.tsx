@@ -42,6 +42,7 @@ interface PropertyFormData {
   // Photos
   photos: (File | string)[]
   primaryPhotoIndex: number
+  noPhotosYet: boolean
 
   // Contact (optional)
   contactName?: string
@@ -77,6 +78,7 @@ export function AddPropertyForm() {
     amenities: [],
     photos: [],
     primaryPhotoIndex: 0,
+    noPhotosYet: false,
     contactName: "",
     contactEmail: "",
     contactPhone: "",
@@ -96,27 +98,27 @@ export function AddPropertyForm() {
     "Gym",
     "Pool",
     "Balcony",
-    "In-unit laundry",
     "Dishwasher",
     "Air conditioning",
-    "Carpet",
-    "Walk-in closet",
-    "Storage unit",
     "Elevator",
-    "Doorman",
-    "Security system",
+    "Concierge",
     "Garden access",
   ]
 
   const handleInputChange = (field: keyof PropertyFormData, value: any) => {
     setFormData((prev) => {
       const updated = { ...prev, [field]: value }
-      
+
       // Clear available date when vacant is selected
       if (field === 'availability' && value === 'vacant') {
         updated.availableDate = ''
       }
-      
+
+      // Clear photo errors when noPhotosYet is checked
+      if (field === 'noPhotosYet' && value === true) {
+        setFormErrors(prev => ({ ...prev, photos: '' }))
+      }
+
       return updated
     })
   }
@@ -420,9 +422,10 @@ export function AddPropertyForm() {
         }
       case 3:
         return {
-          photos: formData.photos.map(photo => 
+          photos: formData.photos.map(photo =>
             typeof photo === 'string' ? photo : URL.createObjectURL(photo)
-          )
+          ),
+          noPhotosYet: formData.noPhotosYet
         }
       case 4:
         return {
@@ -758,10 +761,10 @@ export function AddPropertyForm() {
         return
       }
       
-      if (formData.photos.length === 0) {
-        setFormErrors(prev => ({ 
-          ...prev, 
-          photos: 'Please add at least one photo of your property'
+      if (formData.photos.length === 0 && !formData.noPhotosYet) {
+        setFormErrors(prev => ({
+          ...prev,
+          photos: 'Please add at least one photo of your property or check the box below if you don\'t have photos yet'
         }))
         return
       }
@@ -941,7 +944,7 @@ export function AddPropertyForm() {
       case 2:
         return formData.address && formData.city && formData.postcode
       case 3:
-        return formData.photos.length > 0
+        return formData.photos.length > 0 || formData.noPhotosYet
       case 4:
         // Only require confirmPropertyAccuracy checkbox when user is logged in
         return isLoggedIn === true ? formData.confirmPropertyAccuracy : true
@@ -1249,15 +1252,17 @@ export function AddPropertyForm() {
                 />
               )}
 
-              <div 
+              <div
                 className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
-                  isDragOver 
-                    ? 'border-accent bg-accent/10' 
-                    : 'border-muted-foreground/25 hover:border-accent/50'
+                  formData.noPhotosYet
+                    ? 'border-gray-200 bg-slate-50 opacity-50'
+                    : isDragOver
+                      ? 'border-accent bg-accent/10'
+                      : 'border-muted-foreground/25 hover:border-accent/50'
                 }`}
-                onDragOver={handleDragOver}
-                onDragLeave={handleDragLeave}
-                onDrop={handleDrop}
+                onDragOver={formData.noPhotosYet ? undefined : handleDragOver}
+                onDragLeave={formData.noPhotosYet ? undefined : handleDragLeave}
+                onDrop={formData.noPhotosYet ? undefined : handleDrop}
               >
                 <Upload className={`h-12 w-12 mx-auto mb-4 transition-colors ${
                   isDragOver ? 'text-accent' : 'text-muted-foreground'
@@ -1266,8 +1271,8 @@ export function AddPropertyForm() {
                   {isDragOver ? 'Drop Photos Here' : 'Upload Property Photos'}
                 </h3>
                 <p className="text-muted-foreground mb-4">
-                  {isDragOver 
-                    ? 'Release to upload your images' 
+                  {isDragOver
+                    ? 'Release to upload your images'
                     : 'Drag and drop images here, or click to browse. Maximum 10 images, 10MB each. Supported formats: JPEG, PNG, WebP.'
                   }
                 </p>
@@ -1278,14 +1283,14 @@ export function AddPropertyForm() {
                   onChange={handlePhotoUpload}
                   className="hidden"
                   id="photo-upload"
-                  disabled={uploadingImages || formData.photos.length >= 10}
+                  disabled={uploadingImages || formData.photos.length >= 10 || formData.noPhotosYet}
                 />
                 <div className="flex justify-center">
                   <Label htmlFor="photo-upload">
-                    <Button 
-                      className="bg-accent hover:bg-accent/90 text-accent-foreground" 
+                    <Button
+                      className="bg-accent hover:bg-accent/90 text-accent-foreground"
                       asChild
-                      disabled={uploadingImages || formData.photos.length >= 10}
+                      disabled={uploadingImages || formData.photos.length >= 10 || formData.noPhotosYet}
                     >
                       <span>
                         {uploadingImages ? 'Uploading...' : formData.photos.length >= 10 ? 'Maximum reached' : 'Choose Photos'}
@@ -1299,7 +1304,7 @@ export function AddPropertyForm() {
                     <p className="text-sm text-muted-foreground mt-2">Uploading images...</p>
                   </div>
                 )}
-                
+
                 {formErrors.photos && (
                   <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-md">
                     <div className="flex">
@@ -1308,6 +1313,26 @@ export function AddPropertyForm() {
                     </div>
                   </div>
                 )}
+              </div>
+
+              <div className="flex items-start space-x-3 p-3 rounded-md border border-muted-foreground/20 hover:bg-slate-100 transition-colors">
+                <Checkbox
+                  id="noPhotosYet"
+                  checked={formData.noPhotosYet}
+                  onCheckedChange={(checked) => handleInputChange("noPhotosYet", checked as boolean)}
+                  className="border border-muted-foreground/40 data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+                />
+                <div className="flex-1">
+                  <Label
+                    htmlFor="noPhotosYet"
+                    className="text-sm font-medium cursor-pointer mb-0 leading-tight"
+                  >
+                    I don't have photos at the moment
+                  </Label>
+                  <p className="text-sm text-muted-foreground mt-1 leading-tight">
+                    You can add photos later after your property is listed
+                  </p>
+                </div>
               </div>
             </div>
           )}
@@ -1338,16 +1363,23 @@ export function AddPropertyForm() {
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    {formData.photos.length > 0 && (
+                    {formData.photos.length > 0 ? (
                       <div className="aspect-video relative rounded-lg overflow-hidden mb-4">
                         <Image
-                          src={typeof formData.photos[formData.primaryPhotoIndex] === 'string' 
+                          src={typeof formData.photos[formData.primaryPhotoIndex] === 'string'
                             ? formData.photos[formData.primaryPhotoIndex] as string
                             : URL.createObjectURL(formData.photos[formData.primaryPhotoIndex] as File)}
                           alt={`${formData.propertyType} in ${formData.city}`}
                           fill
                           className="object-cover"
                         />
+                      </div>
+                    ) : (
+                      <div className="aspect-video relative rounded-lg overflow-hidden mb-4 bg-slate-100 flex items-center justify-center">
+                        <div className="text-center text-muted-foreground">
+                          <Camera className="h-16 w-16 mx-auto mb-2 opacity-30" />
+                          <p className="text-sm">No photos yet</p>
+                        </div>
                       </div>
                     )}
                   </div>
@@ -1488,14 +1520,14 @@ export function AddPropertyForm() {
               {/* Property Accuracy Confirmation - Show only when logged in and not submitting */}
               {(isLoggedIn === true && !isSubmitting) && (
                 <div className="rounded-lg px-4 py-4 border">
-                  <div className="flex items-center space-x-3 p-3 rounded-md border border-muted-foreground/20 hover:bg-muted/20 transition-colors">
+                  <div className="flex items-center space-x-3 p-3 rounded-md border border-muted-foreground/20 hover:bg-slate-100 transition-colors">
                     <Checkbox
                       id="property-accuracy"
                       checked={formData.confirmPropertyAccuracy}
                       onCheckedChange={(checked) => handleInputChange("confirmPropertyAccuracy", checked as boolean)}
                       className="border border-muted-foreground/40 data-[state=checked]:bg-primary data-[state=checked]:border-primary"
                     />
-                    <Label htmlFor="property-accuracy" className="text-sm font-medium cursor-pointer flex-1 leading-relaxed mb-0">
+                    <Label htmlFor="property-accuracy" className="text-sm font-medium cursor-pointer flex-1 leading-tight mb-0">
                       I confirm that all property information provided is accurate and complete
                     </Label>
                   </div>
@@ -1604,14 +1636,14 @@ export function AddPropertyForm() {
                             </div>
                           </div>
 
-                          <div className="flex items-center space-x-3 p-3 rounded-md border border-muted-foreground/20 hover:bg-muted/20 transition-colors">
+                          <div className="flex items-center space-x-3 p-3 rounded-md border border-muted-foreground/20 hover:bg-slate-100 transition-colors">
                             <Checkbox
                               id="terms"
                               checked={signupForm.acceptedTerms}
                               onCheckedChange={(checked) => setSignupForm(prev => ({ ...prev, acceptedTerms: checked as boolean }))}
                               className={`border data-[state=checked]:bg-primary data-[state=checked]:border-primary ${authErrors.acceptedTerms ? 'border-red-500' : 'border-muted-foreground/40'}`}
                             />
-                            <Label htmlFor="terms" className="text-sm font-medium cursor-pointer flex-1 leading-relaxed mb-0">
+                            <Label htmlFor="terms" className="text-sm font-medium cursor-pointer flex-1 leading-tight mb-0">
                               I agree to the Terms of Service and Privacy Policy, and confirm that all information provided is accurate
                             </Label>
                           </div>

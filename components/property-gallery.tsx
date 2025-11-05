@@ -6,7 +6,7 @@ import { useState, useRef } from "react"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
-import { ChevronLeft, ChevronRight, Grid3X3, Share } from "lucide-react"
+import { ChevronLeft, ChevronRight, Grid3X3, Share, Camera } from "lucide-react"
 import { SavePropertyButton } from "./save-property-button"
 
 interface PropertyGalleryProps {
@@ -60,103 +60,127 @@ export function PropertyGallery({ images, title, propertyId }: PropertyGalleryPr
     <div className="space-y-4">
       {/* Mobile Gallery - Slideshow */}
       <div className="md:hidden">
-        <div
-          className="relative h-64 overflow-hidden"
-          onTouchStart={onTouchStart}
-          onTouchMove={onTouchMove}
-          onTouchEnd={onTouchEnd}
-          ref={slideRef}
-        >
+        {images.length > 0 ? (
           <div
-            className="flex transition-transform duration-300 ease-out h-full"
-            style={{ transform: `translateX(-${mobileCurrentImage * 100}%)` }}
+            className="relative h-64 overflow-hidden"
+            onTouchStart={onTouchStart}
+            onTouchMove={onTouchMove}
+            onTouchEnd={onTouchEnd}
+            ref={slideRef}
           >
-            {images.map((image, index) => (
-              <div key={index} className="w-full h-full flex-shrink-0 relative">
-                <Image
-                  src={image || "/placeholder.svg"}
-                  alt={`${title} - Image ${index + 1}`}
-                  fill
-                  className="object-cover"
+            <div
+              className="flex transition-transform duration-300 ease-out h-full"
+              style={{ transform: `translateX(-${mobileCurrentImage * 100}%)` }}
+            >
+              {images.map((image, index) => (
+                <div key={index} className="w-full h-full flex-shrink-0 relative">
+                  <Image
+                    src={image || "/placeholder.svg"}
+                    alt={`${title} - Image ${index + 1}`}
+                    fill
+                    className="object-cover"
+                  />
+                </div>
+              ))}
+            </div>
+
+            {/* Pagination dots for mobile */}
+            <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-2">
+              {images.map((_, index) => (
+                <button
+                  key={index}
+                  className={`w-2 h-2 rounded-full transition-colors ${
+                    index === mobileCurrentImage ? "bg-white" : "bg-white/50"
+                  }`}
+                  onClick={() => setMobileCurrentImage(index)}
                 />
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
-
-          {/* Pagination dots for mobile */}
-          <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-2">
-            {images.map((_, index) => (
-              <button
-                key={index}
-                className={`w-2 h-2 rounded-full transition-colors ${
-                  index === mobileCurrentImage ? "bg-white" : "bg-white/50"
-                }`}
-                onClick={() => setMobileCurrentImage(index)}
-              />
-            ))}
+        ) : (
+          <div className="relative h-64 bg-slate-100 flex items-center justify-center">
+            <div className="text-center text-muted-foreground">
+              <Camera className="h-16 w-16 mx-auto mb-2 opacity-30" />
+              <p className="text-sm opacity-60">No photos yet</p>
+            </div>
           </div>
-
-        </div>
+        )}
       </div>
 
       {/* Main Gallery */}
       <div className="hidden md:grid grid-cols-4 gap-4 h-[500px]">
-        {/* Main Image */}
-        <div className="col-span-3 relative group cursor-pointer" onClick={() => setIsLightboxOpen(true)}>
-          <Image src={images[0] || "/placeholder.svg"} alt={title} fill className="object-cover" />
-          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
-        </div>
+        {images.length > 0 ? (
+          <>
+            {/* Main Image */}
+            <div className="col-span-3 relative group cursor-pointer" onClick={() => setIsLightboxOpen(true)}>
+              <Image src={images[0] || "/placeholder.svg"} alt={title} fill className="object-cover" />
+              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
+            </div>
 
-        {/* Thumbnail Grid */}
-        <div className="flex flex-col gap-4">
-          {Array.from({ length: 2 }, (_, index) => {
-            const imageIndex = index + 1;
-            const image = images[imageIndex];
-            const hasImage = Boolean(image);
-            
-            return (
-              <div
-                key={index}
-                className={`relative flex-1 ${hasImage ? 'cursor-pointer group' : ''}`}
-                onClick={() => {
-                  if (hasImage) {
-                    setCurrentImage(imageIndex)
-                    setIsLightboxOpen(true)
-                  }
-                }}
-              >
-                <Image
-                  src={image || "/placeholder.svg"}
-                  alt={hasImage ? `${title} - Image ${imageIndex + 1}` : "No image available"}
-                  fill
-                  className={`object-cover ${!hasImage ? 'opacity-30' : ''}`}
-                />
-                {!hasImage && (
-                  <div className="absolute inset-0 bg-gray-100 flex items-center justify-center">
-                    <div className="text-gray-400 text-center">
-                      <div className="w-8 h-8 mx-auto mb-2 bg-gray-300 rounded"></div>
-                      <span className="text-xs">No Image</span>
-                    </div>
+            {/* Thumbnail Grid */}
+            <div className="flex flex-col gap-4">
+              {Array.from({ length: 2 }, (_, index) => {
+                const imageIndex = index + 1;
+                const image = images[imageIndex];
+                const hasImage = Boolean(image);
+
+                return (
+                  <div
+                    key={index}
+                    className={`relative flex-1 ${hasImage ? 'cursor-pointer group' : ''}`}
+                    onClick={() => {
+                      if (hasImage) {
+                        setCurrentImage(imageIndex)
+                        setIsLightboxOpen(true)
+                      }
+                    }}
+                  >
+                    <Image
+                      src={image || "/placeholder.svg"}
+                      alt={hasImage ? `${title} - Image ${imageIndex + 1}` : "No image available"}
+                      fill
+                      className={`object-cover ${!hasImage ? 'opacity-30' : ''}`}
+                    />
+                    {!hasImage && (
+                      <div className="absolute inset-0 bg-gray-100 flex items-center justify-center">
+                        <div className="text-gray-400 text-center">
+                          <div className="w-8 h-8 mx-auto mb-2 bg-gray-300 rounded"></div>
+                          <span className="text-xs">No Image</span>
+                        </div>
+                      </div>
+                    )}
+                    {hasImage && <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />}
+                    {index === 1 && images.length > 3 && (
+                      <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+                        <div className="text-white text-center">
+                          <Grid3X3 className="h-8 w-8 mx-auto mb-2" />
+                          <span className="text-lg font-semibold">+{images.length - 3} more</span>
+                        </div>
+                      </div>
+                    )}
                   </div>
-                )}
-                {hasImage && <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />}
-                {index === 1 && images.length > 3 && (
-                  <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
-                    <div className="text-white text-center">
-                      <Grid3X3 className="h-8 w-8 mx-auto mb-2" />
-                      <span className="text-lg font-semibold">+{images.length - 3} more</span>
-                    </div>
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
+                );
+              })}
+            </div>
+          </>
+        ) : (
+          <div className="col-span-4 relative bg-slate-100 flex items-center justify-center">
+            <div className="text-center text-muted-foreground">
+              <Camera className="h-20 w-20 mx-auto mb-3 opacity-30" />
+              <p className="text-base opacity-60">No photos yet</p>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Action Buttons */}
       <div className="flex justify-between items-center">
-        <Button variant="outline" onClick={() => setIsLightboxOpen(true)} className="bg-transparent rounded-none">
+        <Button
+          variant="outline"
+          onClick={() => setIsLightboxOpen(true)}
+          className="bg-transparent rounded-none"
+          disabled={images.length === 0}
+        >
           <Grid3X3 className="mr-2 h-4 w-4" />
           View All Photos ({images.length})
         </Button>
@@ -181,61 +205,72 @@ export function PropertyGallery({ images, title, propertyId }: PropertyGalleryPr
         <DialogContent className="max-w-4xl w-full h-[80vh] p-0">
           <DialogTitle className="sr-only">{title} - Image Gallery</DialogTitle>
           <div className="relative w-full h-full">
-            <Image
-              src={images[currentImage] || "/placeholder.svg"}
-              alt={`${title} - Image ${currentImage + 1}`}
-              fill
-              className="object-contain"
-            />
-
-            {/* Navigation Buttons */}
-            {images.length > 1 && (
+            {images.length > 0 ? (
               <>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white"
-                  onClick={prevImage}
-                >
-                  <ChevronLeft className="h-6 w-6" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white"
-                  onClick={nextImage}
-                >
-                  <ChevronRight className="h-6 w-6" />
-                </Button>
+                <Image
+                  src={images[currentImage] || "/placeholder.svg"}
+                  alt={`${title} - Image ${currentImage + 1}`}
+                  fill
+                  className="object-contain"
+                />
+
+                {/* Navigation Buttons */}
+                {images.length > 1 && (
+                  <>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white"
+                      onClick={prevImage}
+                    >
+                      <ChevronLeft className="h-6 w-6" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white"
+                      onClick={nextImage}
+                    >
+                      <ChevronRight className="h-6 w-6" />
+                    </Button>
+                  </>
+                )}
+
+                {/* Image Counter */}
+                <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black/70 text-white px-3 py-1 text-sm">
+                  {currentImage + 1} / {images.length}
+                </div>
+
+                {/* Thumbnail Strip */}
+                <div className="absolute bottom-4 left-4 right-4 flex justify-center">
+                  <div className="flex gap-2 max-w-md overflow-x-auto">
+                    {images.map((image, index) => (
+                      <button
+                        key={index}
+                        className={`relative w-16 h-12 flex-shrink-0 overflow-hidden ${
+                          index === currentImage ? "ring-2 ring-white" : ""
+                        }`}
+                        onClick={() => setCurrentImage(index)}
+                      >
+                        <Image
+                          src={image || "/placeholder.svg"}
+                          alt={`Thumbnail ${index + 1}`}
+                          fill
+                          className="object-cover"
+                        />
+                      </button>
+                    ))}
+                  </div>
+                </div>
               </>
-            )}
-
-            {/* Image Counter */}
-            <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black/70 text-white px-3 py-1 text-sm">
-              {currentImage + 1} / {images.length}
-            </div>
-
-            {/* Thumbnail Strip */}
-            <div className="absolute bottom-4 left-4 right-4 flex justify-center">
-              <div className="flex gap-2 max-w-md overflow-x-auto">
-                {images.map((image, index) => (
-                  <button
-                    key={index}
-                    className={`relative w-16 h-12 flex-shrink-0 overflow-hidden ${
-                      index === currentImage ? "ring-2 ring-white" : ""
-                    }`}
-                    onClick={() => setCurrentImage(index)}
-                  >
-                    <Image
-                      src={image || "/placeholder.svg"}
-                      alt={`Thumbnail ${index + 1}`}
-                      fill
-                      className="object-cover"
-                    />
-                  </button>
-                ))}
+            ) : (
+              <div className="w-full h-full bg-slate-100 flex items-center justify-center">
+                <div className="text-center text-muted-foreground">
+                  <Camera className="h-24 w-24 mx-auto mb-4 opacity-30" />
+                  <p className="text-lg opacity-60">No photos yet</p>
+                </div>
               </div>
-            </div>
+            )}
           </div>
         </DialogContent>
       </Dialog>

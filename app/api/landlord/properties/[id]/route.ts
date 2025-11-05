@@ -41,7 +41,29 @@ export async function GET(
     // Fetch the property from the database
     const { data: property, error: propertyError } = await supabase
       .from('properties')
-      .select('*')
+      .select(`
+        id,
+        property_type,
+        bedrooms,
+        bathrooms,
+        monthly_rent,
+        available_date,
+        description,
+        amenities,
+        address,
+        city,
+        county,
+        postcode,
+        photos,
+        status,
+        availability,
+        property_licence,
+        property_condition,
+        published_at,
+        landlord_id,
+        created_at,
+        updated_at
+      `)
       .eq('id', propertyId)
       .eq('landlord_id', user.id) // Ensure user owns this property
       .single()

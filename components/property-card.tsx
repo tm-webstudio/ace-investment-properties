@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { PropertyTitle } from "@/components/property-title"
-import { Bed, Bath, MoreVertical, Edit, Eye, Trash2, CheckCircle, XCircle } from "lucide-react"
+import { Bed, Bath, MoreVertical, Edit, Eye, Trash2, CheckCircle, XCircle, Camera } from "lucide-react"
 import { SavePropertyButton } from "./save-property-button"
 import { format } from "date-fns"
 import { supabase } from "@/lib/supabase"
@@ -132,13 +132,22 @@ export function PropertyCard({ property, variant = 'default', onPropertyDeleted,
         {isAwaitingApproval && (
           <div className="absolute inset-0 bg-gray-900/10 z-[5]" />
         )}
-        <Image
-          src={(property.images || property.photos)?.[0] || "/placeholder.svg"}
-          alt={typeof propertyTitle === 'string' ? propertyTitle : property.title || 'Property'}
-          width={400}
-          height={250}
-          className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
-        />
+        {(property.images || property.photos)?.[0] ? (
+          <Image
+            src={(property.images || property.photos)[0]}
+            alt={typeof propertyTitle === 'string' ? propertyTitle : property.title || 'Property'}
+            width={400}
+            height={250}
+            className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
+          />
+        ) : (
+          <div className="w-full h-48 bg-slate-100 flex items-center justify-center">
+            <div className="text-center text-muted-foreground">
+              <Camera className="h-12 w-12 mx-auto mb-2 opacity-30" />
+              <p className="text-sm opacity-60">No photo</p>
+            </div>
+          </div>
+        )}
 
         {/* Awaiting Approval Watermark */}
         {isAwaitingApproval && (

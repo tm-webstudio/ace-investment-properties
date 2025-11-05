@@ -38,7 +38,7 @@ interface Location {
 
 interface Step3Data {
   locations: Location[]
-  additionalPreferences: string[]
+  additionalPreferences: string
   availableFrom: Date | null
   immediateAvailability: boolean
 }
@@ -76,7 +76,7 @@ export default function InvestorSignup() {
 
   const [step3Data, setStep3Data] = useState<Step3Data>({
     locations: [],
-    additionalPreferences: [],
+    additionalPreferences: "",
     availableFrom: null,
     immediateAvailability: false
   })
@@ -111,10 +111,18 @@ export default function InvestorSignup() {
         const draft = JSON.parse(savedDraft)
         setStep1Data(draft.step1Data || step1Data)
         setStep2Data(draft.step2Data || step2Data)
+
+        // Handle conversion from old array format to new string format
+        const step3Draft = draft.step3Data || step3Data
+        const additionalPrefs = Array.isArray(step3Draft.additionalPreferences)
+          ? "" // Clear old checkbox data
+          : step3Draft.additionalPreferences || ""
+
         setStep3Data({
-          ...draft.step3Data,
-          availableFrom: draft.step3Data?.availableFrom ? new Date(draft.step3Data.availableFrom) : null
-        } || step3Data)
+          ...step3Draft,
+          additionalPreferences: additionalPrefs,
+          availableFrom: step3Draft?.availableFrom ? new Date(step3Draft.availableFrom) : null
+        })
         setStep4Data(draft.step4Data || step4Data)
         setCurrentStep(draft.currentStep || 1)
         setDraftId(draft.draftId || null)
