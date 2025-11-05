@@ -242,27 +242,20 @@ export function PropertyDocumentsModal({ property, open, onClose }: PropertyDocu
     <>
       <Dialog open={open} onOpenChange={onClose}>
         <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <div className="flex items-center justify-between">
-              <DialogTitle className="text-xl">
-                Documents - <PropertyTitle
-                  address={property.address}
-                  city={property.city}
-                  postcode={property.postcode}
-                />
-              </DialogTitle>
-            </div>
-            <p className="text-sm text-muted-foreground">
+          <DialogHeader className="space-y-1.5 pr-10">
+            <p className="text-sm font-medium text-muted-foreground">
+              Property Documents
+            </p>
+            <DialogTitle className="text-xl leading-tight tracking-tight">
               <PropertyTitle
                 address={property.address}
                 city={property.city}
                 postcode={property.postcode}
-                variant="full"
               />
-            </p>
+            </DialogTitle>
           </DialogHeader>
 
-          <div className="space-y-4 mt-4">
+          <div className="space-y-5 mt-6">
             {loading ? (
               <div className="text-center py-8">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
@@ -270,9 +263,9 @@ export function PropertyDocumentsModal({ property, open, onClose }: PropertyDocu
               </div>
             ) : (
               documents.map((docGroup) => (
-                <Card key={docGroup.type}>
+                <Card key={docGroup.type} className="py-0">
                   <CardContent className="p-4">
-                    <div className="flex items-start justify-between mb-3">
+                    <div className="flex items-start justify-between mb-4">
                       <div className="flex items-center gap-3">
                         <FileText className="h-5 w-5 text-muted-foreground" />
                         <div>
@@ -286,13 +279,13 @@ export function PropertyDocumentsModal({ property, open, onClose }: PropertyDocu
                     </div>
 
                     {docGroup.document ? (
-                      <div className="space-y-3">
+                      <div className="space-y-3 mt-2">
                         {docGroup.document.status === 'pending' && (
                           <p className="text-sm text-muted-foreground">Awaiting admin approval</p>
                         )}
                         {getExpiryText(docGroup.document)}
 
-                        <div className="flex gap-2 flex-wrap">
+                        <div className="flex gap-2 flex-wrap pt-1">
                           <Button
                             size="sm"
                             variant="outline"
@@ -329,7 +322,7 @@ export function PropertyDocumentsModal({ property, open, onClose }: PropertyDocu
                         </div>
                       </div>
                     ) : (
-                      <div className="space-y-2">
+                      <div className="space-y-3 mt-2">
                         <p className="text-sm text-muted-foreground flex items-center">
                           <AlertTriangle className="h-4 w-4 mr-1 text-orange-500" />
                           Not uploaded
@@ -337,6 +330,7 @@ export function PropertyDocumentsModal({ property, open, onClose }: PropertyDocu
                         <Button
                           size="sm"
                           onClick={() => handleUpload(docGroup.type, docGroup.label)}
+                          className="mt-1"
                         >
                           <Upload className="h-4 w-4 mr-1" />
                           Upload

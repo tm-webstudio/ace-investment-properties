@@ -122,7 +122,8 @@ export function UploadDocumentDialog({
           onClose()
         }, 500)
       } else {
-        setError(data.error || 'Failed to upload document')
+        const errorMsg = data.details ? `${data.error}: ${data.details}` : (data.error || 'Failed to upload document')
+        setError(errorMsg)
         setUploadProgress(0)
       }
     } catch (error) {

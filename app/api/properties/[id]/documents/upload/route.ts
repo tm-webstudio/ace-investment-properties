@@ -194,7 +194,7 @@ export async function POST(
         .remove([storagePath])
 
       return NextResponse.json(
-        { error: 'Failed to create document record' },
+        { error: 'Failed to create document record', details: docError.message },
         { status: 500 }
       )
     }
