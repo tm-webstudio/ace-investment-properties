@@ -1,6 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
+import { PropertyTitle } from "@/components/property-title"
 import { Bed, Bath, MapPin } from "lucide-react"
 import { format } from "date-fns"
 import type { Property } from "@/lib/sample-data"
@@ -15,7 +16,13 @@ export function PropertyDetails({ property }: PropertyDetailsProps) {
       {/* Header */}
       <div className="space-y-4">
         <div>
-          <h1 className="font-serif text-2xl md:text-4xl font-bold text-foreground">{property.title}</h1>
+          <h1 className="font-serif text-2xl md:text-4xl font-bold text-foreground">
+            <PropertyTitle
+              address={property.address}
+              city={property.city}
+              postcode={property.postcode}
+            />
+          </h1>
           <div className="text-xl md:text-2xl font-semibold text-accent mt-2">
             £{property.price.toLocaleString()} pcm
           </div>

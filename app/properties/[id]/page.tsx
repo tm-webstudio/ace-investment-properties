@@ -12,6 +12,7 @@ import { ApplicationModal } from "@/components/application-modal"
 import { BookViewingModal } from "@/components/book-viewing-modal"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { PropertyTitle } from "@/components/property-title"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
@@ -178,7 +179,9 @@ export default function PropertyPage({ params }: PropertyPageProps) {
               </DialogTrigger>
             <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
-                <DialogTitle className="text-2xl font-serif">Apply for {property.title}</DialogTitle>
+                <DialogTitle className="text-2xl font-serif">
+                  Apply for <PropertyTitle address={property.address} city={property.city} postcode={property.postcode} />
+                </DialogTitle>
               </DialogHeader>
 
               <form onSubmit={handleSubmit} className="space-y-6">
@@ -394,6 +397,8 @@ export default function PropertyPage({ params }: PropertyPageProps) {
           id: property.id,
           title: property.title,
           address: property.address,
+          city: property.city,
+          postcode: property.postcode,
           monthly_rent: property.price,
           photos: property.images,
           images: property.images

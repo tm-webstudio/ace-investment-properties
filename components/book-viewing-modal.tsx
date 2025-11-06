@@ -14,12 +14,15 @@ import { CalendarIcon, CheckCircle, AlertCircle, Loader2, Eye, EyeOff } from "lu
 import { format, addDays, isBefore, isAfter } from "date-fns"
 import { cn } from "@/lib/utils"
 import { supabase } from "@/lib/supabase"
+import { PropertyTitle } from "@/components/property-title"
 import Image from "next/image"
 
 interface PropertyData {
   id: string
   title: string
   address: string
+  city?: string
+  postcode?: string
   monthly_rent: number
   photos?: string[]
   images?: string[]
@@ -427,7 +430,7 @@ export function BookViewingModal({ isOpen, onClose, propertyId, propertyData }: 
         aria-modal="true"
       >
         <div id="book-viewing-description" className="sr-only">
-          Book a viewing for {propertyData.title} at {propertyData.address}
+          Book a viewing for <PropertyTitle address={propertyData.address} city={propertyData.city} postcode={propertyData.postcode} variant="full" />
         </div>
         {/* AUTH_CHECK State */}
         {modalState === 'AUTH_CHECK' && (
@@ -460,8 +463,13 @@ export function BookViewingModal({ isOpen, onClose, propertyId, propertyData }: 
                     className="rounded object-cover"
                   />
                   <div>
-                    <h4 className="font-semibold">{propertyData.title}</h4>
-                    <p className="text-sm text-gray-600">{propertyData.address}</p>
+                    <h4 className="font-semibold">
+                      <PropertyTitle
+                        address={propertyData.address}
+                        city={propertyData.city}
+                        postcode={propertyData.postcode}
+                      />
+                    </h4>
                     <p className="text-sm font-medium text-primary">
                       £{propertyData.monthly_rent.toLocaleString()}/month
                     </p>
@@ -702,8 +710,13 @@ export function BookViewingModal({ isOpen, onClose, propertyId, propertyData }: 
                   className="rounded object-cover"
                 />
                 <div>
-                  <h4 className="font-semibold">{propertyData.title}</h4>
-                  <p className="text-sm text-gray-600">{propertyData.address}</p>
+                  <h4 className="font-semibold">
+                    <PropertyTitle
+                      address={propertyData.address}
+                      city={propertyData.city}
+                      postcode={propertyData.postcode}
+                    />
+                  </h4>
                   <p className="text-sm font-medium text-primary">
                     £{propertyData.monthly_rent.toLocaleString()}/month
                   </p>
