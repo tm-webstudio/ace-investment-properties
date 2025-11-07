@@ -23,7 +23,7 @@ import {
   Mail,
   User,
   Home,
-  DollarSign
+  PoundSterling
 } from "lucide-react"
 import Link from "next/link"
 import { supabase } from "@/lib/supabase"
@@ -221,7 +221,7 @@ export function ViewingRequests({ variant = 'dashboard', limit }: ViewingRequest
       case "pending":
         return "bg-orange-100 text-orange-800"
       case "rejected":
-        return "bg-red-100 text-red-800"
+        return "bg-destructive/10 text-destructive"
       case "cancelled":
         return "bg-gray-100 text-gray-800"
       default:
@@ -234,8 +234,11 @@ export function ViewingRequests({ variant = 'dashboard', limit }: ViewingRequest
   }
 
   const formatTime = (timeStr: string) => {
-    // Remove seconds from time format (HH:MM:SS -> HH:MM)
-    return timeStr.substring(0, 5)
+    // Parse time and convert to 12-hour format with am/pm
+    const [hours, minutes] = timeStr.split(':').map(Number)
+    const period = hours >= 12 ? 'pm' : 'am'
+    const displayHours = hours % 12 || 12
+    return `${displayHours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')} ${period}`
   }
 
   const formatCurrency = (amount: number) => {
@@ -345,28 +348,30 @@ export function ViewingRequests({ variant = 'dashboard', limit }: ViewingRequest
     <>
       {variant === 'full' && renderStatsCards()}
       {variant === 'full' && renderFilterButtons()}
-      
-      <div className="space-y-4">
+
+      <div className="space-y-3">
         {loading ? (
           <>
             {[...Array(variant === 'dashboard' ? 3 : 5)].map((_, i) => (
               <div key={i} className="border rounded-lg p-4 space-y-3">
                 {/* Header skeleton */}
-                <div className="flex items-start justify-between">
-                  <div className="space-y-2 flex-1">
-                    <div className="flex items-center gap-3">
-                      <div className="h-5 bg-gray-200 rounded w-48 animate-pulse"></div>
-                      <div className="h-6 bg-gray-200 rounded w-20 animate-pulse"></div>
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="h-4 bg-gray-200 rounded w-32 animate-pulse"></div>
-                      <div className="h-4 bg-gray-200 rounded w-24 animate-pulse"></div>
-                    </div>
+                <div className="flex items-start justify-between mb-2">
+                  <div className="flex-1">
+                    <div className="h-5 bg-gray-200 rounded w-48 animate-pulse mb-2"></div>
+                    <div className="h-6 bg-gray-200 rounded w-32 animate-pulse"></div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <div className="h-9 bg-gray-200 rounded w-24 animate-pulse"></div>
-                    <div className="h-9 bg-gray-200 rounded w-24 animate-pulse"></div>
+                    <div className="h-9 w-9 bg-gray-200 rounded animate-pulse"></div>
+                    <div className="h-9 w-9 bg-gray-200 rounded animate-pulse"></div>
                   </div>
+                </div>
+                {/* Date/Time row skeleton */}
+                <div className="flex items-center justify-between">
+                  <div className="flex gap-4">
+                    <div className="h-4 bg-gray-200 rounded w-24 animate-pulse"></div>
+                    <div className="h-4 bg-gray-200 rounded w-20 animate-pulse"></div>
+                  </div>
+                  <div className="h-8 w-8 bg-gray-200 rounded animate-pulse"></div>
                 </div>
               </div>
             ))}
@@ -375,10 +380,13 @@ export function ViewingRequests({ variant = 'dashboard', limit }: ViewingRequest
           viewings.map((viewing) => (
             <div key={viewing.id} className="border rounded-lg p-4 space-y-3">
               {/* Main viewing info */}
-              <div className="flex items-start justify-between">
-                <div className="space-y-2 flex-1">
-                  <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-3">
-                    <h3 className="font-sans text-[15px] font-medium">
+              <div
+                className="cursor-pointer"
+                onClick={() => setExpandedCard(expandedCard === viewing.id ? null : viewing.id)}
+              >
+                <div className="flex items-start justify-between mb-2">
+                  <div className="flex-1">
+                    <h3 className="font-sans text-[15px] font-medium mb-2">
                       {viewing.property?.address && viewing.property?.city ? (
                         <PropertyTitle
                           address={viewing.property.address}
@@ -389,11 +397,34 @@ export function ViewingRequests({ variant = 'dashboard', limit }: ViewingRequest
                         `${viewing.property?.property_type} in ${viewing.property?.city}`
                       )}
                     </h3>
-                    <Badge className={getStatusColor(viewing.status)}>
+
+                    <Badge className={`${getStatusColor(viewing.status)} capitalize`}>
                       {viewing.status === 'pending' ? 'awaiting approval' : viewing.status}
                     </Badge>
                   </div>
 
+                  {viewing.status === 'pending' && (
+                    <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                      <Button
+                        size="icon"
+                        onClick={() => handleApprove(viewing)}
+                        className="bg-accent hover:bg-accent/90 text-accent-foreground h-9 w-9"
+                      >
+                        <Check className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        size="icon"
+                        variant="destructive"
+                        onClick={() => handleReject(viewing)}
+                        className="h-9 w-9"
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex items-center justify-between">
                   <div className="flex flex-col md:flex-row gap-1 md:gap-4 text-sm text-gray-600">
                     <div className="flex items-center">
                       <Calendar className="h-4 w-4 mr-2" />
@@ -404,36 +435,16 @@ export function ViewingRequests({ variant = 'dashboard', limit }: ViewingRequest
                       {formatTime(viewing.viewing_time)}
                     </div>
                   </div>
-                </div>
 
-                <div className="flex items-center gap-2">
-                  {viewing.status === 'pending' && (
-                    <>
-                      <Button
-                        size="icon"
-                        onClick={() => handleApprove(viewing)}
-                        className="bg-accent hover:bg-accent/90 text-accent-foreground h-9 w-9"
-                      >
-                        <Check className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        size="icon"
-                        onClick={() => handleReject(viewing)}
-                        className="bg-red-600 hover:bg-red-700 text-white h-9 w-9"
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
-                    </>
-                  )}
-
-                  <Button
-                    size="icon"
-                    variant="ghost"
-                    onClick={() => setExpandedCard(expandedCard === viewing.id ? null : viewing.id)}
-                    className="h-9 w-9"
+                  <button
+                    className="h-8 w-8 flex items-center justify-center text-gray-400 hover:text-gray-900 hover:bg-gray-100 transition-all"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      setExpandedCard(expandedCard === viewing.id ? null : viewing.id)
+                    }}
                   >
                     {expandedCard === viewing.id ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                  </Button>
+                  </button>
                 </div>
               </div>
 
@@ -469,7 +480,7 @@ export function ViewingRequests({ variant = 'dashboard', limit }: ViewingRequest
                           <span>{viewing.property?.address}</span>
                         </div>
                         <div className="flex items-center">
-                          <DollarSign className="h-4 w-4 mr-2 text-gray-400" />
+                          <PoundSterling className="h-4 w-4 mr-2 text-gray-400" />
                           <span>{viewing.property?.monthly_rent ? formatCurrency(viewing.property.monthly_rent) : 'N/A'} per month</span>
                         </div>
                       </div>
@@ -490,7 +501,7 @@ export function ViewingRequests({ variant = 'dashboard', limit }: ViewingRequest
                   {viewing.status === 'rejected' && viewing.rejection_reason && (
                     <div className="space-y-2">
                       <h4 className="font-semibold text-gray-900">Rejection Reason</h4>
-                      <p className="text-sm text-gray-600 bg-red-50 p-3 rounded">
+                      <p className="text-sm text-gray-600 bg-destructive/5 p-3 rounded">
                         {viewing.rejection_reason}
                       </p>
                     </div>

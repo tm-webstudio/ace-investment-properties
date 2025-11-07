@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { PropertyCard } from "@/components/property-card"
+import { InvestorViewingRequests } from "@/components/investor-viewing-requests"
 import { TrendingUp, Heart, Calendar, Bell, Search, BarChart3, Home, Eye, Clock } from "lucide-react"
 import Link from "next/link"
 import type { Investor } from "@/lib/sample-data"
@@ -227,61 +228,7 @@ export function InvestorDashboardOverview({ investor }: InvestorDashboardOvervie
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Upcoming Viewings */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle>Upcoming Viewings</CardTitle>
-            <Link href="/investor/viewings">
-              <Button variant="outline" size="sm" className="bg-transparent">
-                View All
-              </Button>
-            </Link>
-          </CardHeader>
-          <CardContent>
-            {viewingsLoading ? (
-              <div className="space-y-4">
-                {Array.from({ length: 3 }, (_, index) => (
-                  <div key={index} className="animate-pulse p-4 border rounded-lg">
-                    <div className="flex justify-between">
-                      <div className="space-y-2">
-                        <div className="h-4 w-40 bg-muted rounded"></div>
-                        <div className="h-3 w-32 bg-muted rounded"></div>
-                        <div className="h-3 w-24 bg-muted rounded"></div>
-                      </div>
-                      <div className="h-6 w-16 bg-muted rounded"></div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {upcomingViewings.map((viewing) => {
-                  const propertyTitle = viewing.property?.title || `${viewing.property?.property_type} in ${viewing.property?.city}`
-                  return (
-                    <div key={viewing.id} className="flex items-center justify-between p-4 border rounded-lg">
-                      <div className="space-y-1">
-                        <p className="font-medium text-sm">{propertyTitle}</p>
-                        <div className="flex items-center text-sm text-muted-foreground">
-                          <Calendar className="h-4 w-4 mr-1" />
-                          {new Date(viewing.viewing_date).toLocaleDateString('en-GB')}
-                        </div>
-                        <div className="flex items-center text-sm text-muted-foreground">
-                          <Clock className="h-4 w-4 mr-1" />
-                          {viewing.viewing_time}
-                        </div>
-                      </div>
-                      <Badge className="bg-orange-100 text-orange-800">
-                        ⏳ Pending
-                      </Badge>
-                    </div>
-                  )
-                })}
-                {!viewingsLoading && upcomingViewings.length === 0 && (
-                  <p className="text-muted-foreground text-center py-4">No upcoming viewings scheduled</p>
-                )}
-              </div>
-            )}
-          </CardContent>
-        </Card>
+        <InvestorViewingRequests variant="dashboard" limit={4} />
 
         {/* Recent Notifications */}
         <Card>

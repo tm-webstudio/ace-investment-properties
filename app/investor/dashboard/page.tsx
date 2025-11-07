@@ -9,6 +9,8 @@ import { InvestorDashboardNavigation } from "@/components/investor-dashboard-nav
 import { InvestorDashboardOverview } from "@/components/investor-dashboard-overview"
 import { InvestorDashboardProfile } from "@/components/investor-dashboard-profile"
 import { RecommendedProperties } from "@/components/recommended-properties"
+import { Button } from "@/components/ui/button"
+import { Edit3 } from "lucide-react"
 import { sampleInvestors } from "@/lib/sample-data"
 import { supabase } from "@/lib/supabase"
 
@@ -19,6 +21,7 @@ export default function InvestorDashboard() {
   const [userProfile, setUserProfile] = useState<any>(null)
   const [preferences, setPreferences] = useState<any>(null)
   const [activeTab, setActiveTab] = useState("dashboard")
+  const [isEditingProfile, setIsEditingProfile] = useState(false)
 
   // In a real app, this would come from user data
   const currentInvestor = sampleInvestors[0]
@@ -77,6 +80,13 @@ export default function InvestorDashboard() {
     }
   }
 
+  // Reset editing state when switching away from profile tab
+  useEffect(() => {
+    if (activeTab !== 'profile') {
+      setIsEditingProfile(false)
+    }
+  }, [activeTab])
+
   const getPageSubtitle = () => {
     switch (activeTab) {
       case "profile":
@@ -112,6 +122,23 @@ export default function InvestorDashboard() {
           <InvestorDashboardNavigation
             activeTab={activeTab}
             onTabChange={setActiveTab}
+            customButton={
+              activeTab === "profile" && !isEditingProfile ? (
+                <Button
+                  onClick={() => setIsEditingProfile(true)}
+                  className="
+                    group bg-accent hover:bg-accent/90 text-accent-foreground
+                    transition-all duration-200 ease-out
+                    hover:scale-[1.02] hover:-translate-y-px
+                    hover:shadow-md hover:shadow-accent/15
+                    active:scale-[0.98] active:transition-none
+                  "
+                >
+                  <Edit3 className="mr-2 h-4 w-4 transition-all duration-200 ease-out group-hover:scale-105" />
+                  <span className="relative z-10 font-medium">Edit Profile</span>
+                </Button>
+              ) : undefined
+            }
           />
 
           {activeTab === "dashboard" && (
@@ -120,7 +147,7 @@ export default function InvestorDashboard() {
               <InvestorDashboardOverview investor={currentInvestor} />
             </div>
           )}
-          {activeTab === "profile" && <InvestorDashboardProfile />}
+          {activeTab === "profile" && <InvestorDashboardProfile isEditing={isEditingProfile} setIsEditing={setIsEditingProfile} />}
         </div>
       </main>
       <Footer />

@@ -1,7 +1,6 @@
 import Image from "next/image"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Progress } from "@/components/ui/progress"
 import { PropertyTitle } from "@/components/property-title"
 import { FileText } from "lucide-react"
 
@@ -27,7 +26,7 @@ export function PropertyDocumentsCard({ property, onViewDocuments }: PropertyDoc
   const getProgressColor = () => {
     if (percentage >= 80) return "bg-green-500"
     if (percentage >= 50) return "bg-yellow-500"
-    return "bg-red-500"
+    return "bg-destructive"
   }
 
   return (
@@ -65,10 +64,9 @@ export function PropertyDocumentsCard({ property, onViewDocuments }: PropertyDoc
               <span className="text-muted-foreground">Documents:</span>
               <span className="font-semibold">{property.completedDocs}/{property.totalDocs} Complete</span>
             </div>
-            <div className="relative">
-              <Progress value={percentage} className="h-2" />
+            <div className="relative h-2 w-full overflow-hidden rounded-full bg-primary/20">
               <div
-                className={`absolute top-0 left-0 h-2 rounded-full transition-all ${getProgressColor()}`}
+                className={`h-full rounded-full transition-all ${getProgressColor()}`}
                 style={{ width: `${percentage}%` }}
               />
             </div>

@@ -4,7 +4,6 @@ import { useState, useEffect, useRef } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Progress } from "@/components/ui/progress"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { PropertyCard } from "@/components/property-card"
 import { ViewingRequests } from "@/components/viewing-requests"
@@ -198,7 +197,7 @@ export function DashboardOverview({ userId, onTabChange }: DashboardOverviewProp
   const getProgressBarColor = (percentage: number) => {
     if (percentage >= 80) return "bg-green-500"
     if (percentage >= 50) return "bg-yellow-500"
-    return "bg-red-500"
+    return "bg-destructive"
   }
 
   return (
@@ -367,10 +366,21 @@ export function DashboardOverview({ userId, onTabChange }: DashboardOverviewProp
           <CardContent>
             {loadingDocs ? (
               <div className="space-y-3">
-                {[...Array(3)].map((_, i) => (
-                  <div key={i} className="p-4 border rounded-lg animate-pulse">
-                    <div className="h-5 bg-gray-200 rounded w-3/4 mb-2"></div>
-                    <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+                {[...Array(4)].map((_, i) => (
+                  <div key={i} className="p-4 border rounded-lg">
+                    {/* Title and address skeleton */}
+                    <div className="mb-4">
+                      <div className="h-5 bg-gray-200 rounded animate-pulse w-3/4 mb-1"></div>
+                      <div className="h-4 bg-gray-200 rounded animate-pulse w-full"></div>
+                    </div>
+                    {/* Progress bar and button skeleton */}
+                    <div className="flex items-end gap-6">
+                      <div className="flex-1 space-y-1">
+                        <div className="h-4 bg-gray-200 rounded animate-pulse w-32 mb-1"></div>
+                        <div className="h-2 bg-gray-200 rounded animate-pulse w-full"></div>
+                      </div>
+                      <div className="h-9 bg-gray-200 rounded animate-pulse w-[120px]"></div>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -407,10 +417,9 @@ export function DashboardOverview({ userId, onTabChange }: DashboardOverviewProp
                             <span className="text-muted-foreground">Documents:</span>
                             <span className="font-semibold">{property.completedDocs}/{property.totalDocs} Complete</span>
                           </div>
-                          <div className="relative">
-                            <Progress value={percentage} className="h-2" />
+                          <div className="relative h-2 w-full overflow-hidden rounded-full bg-primary/20">
                             <div
-                              className={`absolute top-0 left-0 h-2 rounded-full transition-all ${getProgressBarColor(percentage)}`}
+                              className={`h-full rounded-full transition-all ${getProgressBarColor(percentage)}`}
                               style={{ width: `${percentage}%` }}
                             />
                           </div>
