@@ -404,11 +404,11 @@ export function ViewingRequests({ variant = 'dashboard', limit }: ViewingRequest
                   </div>
 
                   {viewing.status === 'pending' && (
-                    <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                    <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
                       <Button
                         size="icon"
                         onClick={() => handleApprove(viewing)}
-                        className="bg-accent hover:bg-accent/90 text-accent-foreground h-9 w-9"
+                        className="bg-accent hover:bg-accent/90 text-accent-foreground h-8 w-8"
                       >
                         <Check className="h-4 w-4" />
                       </Button>
@@ -416,7 +416,7 @@ export function ViewingRequests({ variant = 'dashboard', limit }: ViewingRequest
                         size="icon"
                         variant="destructive"
                         onClick={() => handleReject(viewing)}
-                        className="h-9 w-9"
+                        className="h-8 w-8"
                       >
                         <X className="h-4 w-4" />
                       </Button>

@@ -1,7 +1,7 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
-import { BarChart3, Users, Building, Settings, FileText, Eye } from "lucide-react"
+import { BarChart3, Users, Building, Settings, FileText, Eye, Clock, UserCheck, TrendingUp } from "lucide-react"
 
 interface AdminDashboardNavigationProps {
   activeTab: string
@@ -12,10 +12,12 @@ interface AdminDashboardNavigationProps {
 export function AdminDashboardNavigation({ activeTab, onTabChange, customButton }: AdminDashboardNavigationProps) {
   const navItems = [
     { id: "dashboard", label: "Dashboard", icon: BarChart3 },
-    { id: "properties", label: "Properties", icon: Building },
-    { id: "users", label: "Users", icon: Users },
+    { id: "properties", label: "All Properties", icon: Building },
+    { id: "pending-properties", label: "Pending Properties", icon: Clock },
+    { id: "landlords", label: "Landlords", icon: UserCheck },
+    { id: "investors", label: "Investors", icon: TrendingUp },
     { id: "viewings", label: "Viewings", icon: Eye },
-    { id: "reports", label: "Reports", icon: FileText },
+    { id: "documents", label: "Documents", icon: FileText },
     { id: "settings", label: "Settings", icon: Settings },
   ]
 

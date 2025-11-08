@@ -21,13 +21,17 @@ export default function AdminDashboard() {
   const getPageSubtitle = () => {
     switch (activeTab) {
       case "properties":
-        return "Manage and approve property listings"
-      case "users":
-        return "Manage landlords, tenants, and investors"
+        return "View and manage all property listings"
+      case "pending-properties":
+        return "Review and approve pending property submissions"
+      case "landlords":
+        return "Manage landlord accounts and profiles"
+      case "investors":
+        return "Manage investor accounts and profiles"
       case "viewings":
         return "Monitor and manage property viewings"
-      case "reports":
-        return "View analytics and generate reports"
+      case "documents":
+        return "Review and manage landlord documents"
       case "settings":
         return "Configure platform settings and preferences"
       default:
@@ -59,9 +63,11 @@ export default function AdminDashboard() {
 
           {activeTab === "dashboard" && <AdminDashboardOverview admin={currentAdmin} />}
           {activeTab === "properties" && <AdminDashboardProperties />}
-          {activeTab === "users" && <AdminDashboardUsers />}
+          {activeTab === "pending-properties" && <AdminDashboardProperties pendingOnly={true} />}
+          {activeTab === "landlords" && <AdminDashboardUsers userType="landlord" />}
+          {activeTab === "investors" && <AdminDashboardUsers userType="investor" />}
           {activeTab === "viewings" && <AdminDashboardViewings />}
-          {activeTab === "reports" && <AdminDashboardReports />}
+          {activeTab === "documents" && <AdminDashboardReports />}
           {activeTab === "settings" && <AdminDashboardSettings />}
         </div>
       </main>

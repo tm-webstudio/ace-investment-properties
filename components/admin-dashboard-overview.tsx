@@ -3,9 +3,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog"
 import { PropertyCard } from "@/components/property-card"
+import { PropertyTitle } from "@/components/property-title"
 import { ViewingRequests } from "@/components/viewing-requests"
-import { Settings, Eye, CheckCircle, XCircle, Clock, Calendar, Home, Users, BarChart3, Plus, Shield, Building } from "lucide-react"
+import { Settings, Eye, CheckCircle, XCircle, Clock, Calendar, Home, Users, BarChart3, Plus, Shield, Building, FileText } from "lucide-react"
 import Link from "next/link"
 import type { Admin } from "@/lib/sample-data"
 import { samplePendingProperties, sampleViewings, sampleProperties, sampleLandlords, sampleInvestors } from "@/lib/sample-data"
@@ -25,6 +27,12 @@ export function AdminDashboardOverview({ admin }: AdminDashboardOverviewProps) {
   })
   const [pendingPropertiesForDisplay, setPendingPropertiesForDisplay] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+  const [documentsLoading, setDocumentsLoading] = useState(true)
+  const [documentsForDisplay, setDocumentsForDisplay] = useState<any[]>([])
+  const [modalOpen, setModalOpen] = useState(false)
+  const [modalType, setModalType] = useState<'approve' | 'reject' | 'success' | 'error'>('approve')
+  const [modalMessage, setModalMessage] = useState('')
+  const [selectedPropertyId, setSelectedPropertyId] = useState<string | null>(null)
 
   useEffect(() => {
     const fetchAdminData = async () => {
@@ -140,7 +148,53 @@ export function AdminDashboardOverview({ admin }: AdminDashboardOverviewProps) {
       }
     }
 
+    const fetchDocuments = async () => {
+      try {
+        setDocumentsLoading(true)
+
+        const { data: { session } } = await supabase.auth.getSession()
+
+        if (!session?.access_token) {
+          console.error('No access token available')
+          setDocumentsLoading(false)
+          return
+        }
+
+        const response = await fetch('/api/admin/documents', {
+          headers: {
+            'Authorization': `Bearer ${session.access_token}`
+          }
+        })
+
+        const data = await response.json()
+
+        if (!response.ok) {
+          throw new Error(data.error || 'Failed to fetch documents')
+        }
+
+        if (data.success && data.documents) {
+          // Map the data to match the expected format
+          const formattedDocs = data.documents.map((doc: any) => ({
+            propertyId: doc.propertyId,
+            address: doc.address,
+            city: doc.city,
+            postcode: doc.postcode,
+            image: doc.photos?.[0] || '/placeholder.jpg',
+            completedDocs: doc.completedDocs,
+            totalDocs: doc.totalDocs
+          }))
+
+          setDocumentsForDisplay(formattedDocs)
+        }
+      } catch (error) {
+        console.error('Error fetching documents:', error)
+      } finally {
+        setDocumentsLoading(false)
+      }
+    }
+
     fetchAdminData()
+    fetchDocuments()
   }, [])
 
   const formatStatValue = (value: number, isLoading: boolean) => {
@@ -167,13 +221,29 @@ export function AdminDashboardOverview({ admin }: AdminDashboardOverviewProps) {
     }
   }
 
-  const handleApproveProperty = async (propertyId: string) => {
+  const handleApproveClick = (propertyId: string) => {
+    setSelectedPropertyId(propertyId)
+    setModalType('approve')
+    setModalMessage('Are you sure you want to approve this property?')
+    setModalOpen(true)
+  }
+
+  const handleRejectClick = (propertyId: string) => {
+    setSelectedPropertyId(propertyId)
+    setModalType('reject')
+    setModalMessage('Are you sure you want to reject this property?')
+    setModalOpen(true)
+  }
+
+  const confirmAction = async () => {
+    if (!selectedPropertyId) return
+
     try {
-      // Get session from Supabase
       const { data: { session } } = await supabase.auth.getSession()
 
       if (!session?.access_token) {
-        alert('Please log in to approve properties')
+        setModalType('error')
+        setModalMessage('Please log in to manage properties')
         return
       }
 
@@ -184,82 +254,47 @@ export function AdminDashboardOverview({ admin }: AdminDashboardOverviewProps) {
           'Authorization': `Bearer ${session.access_token}`
         },
         body: JSON.stringify({
-          propertyId,
-          action: 'approve'
+          propertyId: selectedPropertyId,
+          action: modalType === 'approve' ? 'approve' : 'reject'
         })
       })
 
       const data = await response.json()
-      
+
       if (data.success) {
         // Remove from pending list
-        setPendingPropertiesForDisplay(prev => 
-          prev.filter(property => property.id !== propertyId)
+        setPendingPropertiesForDisplay(prev =>
+          prev.filter(property => property.id !== selectedPropertyId)
         )
         // Update stats
         setStats(prev => ({
           ...prev,
           totalPendingProperties: prev.totalPendingProperties - 1,
-          totalProperties: prev.totalProperties + 1
+          ...(modalType === 'approve' ? { totalProperties: prev.totalProperties + 1 } : {})
         }))
-        alert('Property approved successfully')
+
+        setModalType('success')
+        setModalMessage(`Property ${modalType === 'approve' ? 'approved' : 'rejected'} successfully`)
       } else {
-        alert('Failed to approve property: ' + data.error)
+        setModalType('error')
+        setModalMessage(`Failed to ${modalType} property: ${data.error}`)
       }
     } catch (error) {
-      console.error('Error approving property:', error)
-      alert('Error approving property')
+      console.error('Error managing property:', error)
+      setModalType('error')
+      setModalMessage(`Error ${modalType === 'approve' ? 'approving' : 'rejecting'} property`)
     }
   }
 
-  const handleRejectProperty = async (propertyId: string) => {
-    try {
-      // Get session from Supabase
-      const { data: { session } } = await supabase.auth.getSession()
-
-      if (!session?.access_token) {
-        alert('Please log in to reject properties')
-        return
-      }
-
-      const response = await fetch('/api/admin/properties/approve', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session.access_token}`
-        },
-        body: JSON.stringify({
-          propertyId,
-          action: 'reject'
-        })
-      })
-
-      const data = await response.json()
-      
-      if (data.success) {
-        // Remove from pending list
-        setPendingPropertiesForDisplay(prev => 
-          prev.filter(property => property.id !== propertyId)
-        )
-        // Update stats
-        setStats(prev => ({
-          ...prev,
-          totalPendingProperties: prev.totalPendingProperties - 1
-        }))
-        alert('Property rejected successfully')
-      } else {
-        alert('Failed to reject property: ' + data.error)
-      }
-    } catch (error) {
-      console.error('Error rejecting property:', error)
-      alert('Error rejecting property')
-    }
+  const closeModal = () => {
+    setModalOpen(false)
+    setSelectedPropertyId(null)
   }
 
   return (
     <div className="space-y-8">
       {/* Overview Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Properties</CardTitle>
@@ -327,18 +362,41 @@ export function AdminDashboardOverview({ admin }: AdminDashboardOverviewProps) {
           </Link>
         </CardHeader>
         <CardContent>
-          {pendingPropertiesForDisplay.length === 0 ? (
-            <div className="text-center py-8">
-              <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-muted/30 flex items-center justify-center">
-                <Building className="w-5 h-5 text-muted-foreground/60" />
-              </div>
-              <h3 className="text-base font-medium text-muted-foreground mb-2">No Pending Approvals</h3>
-              <p className="text-sm text-muted-foreground/70 mb-3 max-w-sm mx-auto">
-                All submitted properties have been reviewed. New submissions will appear here.
-              </p>
-              <Badge variant="outline" className="text-xs text-muted-foreground/50 border-muted-foreground/20">
-                {loading ? 'Loading...' : 'All caught up!'}
-              </Badge>
+          {loading ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              {[...Array(4)].map((_, i) => (
+                <div key={i} className="space-y-2">
+                  <div className="border rounded-lg overflow-hidden">
+                    {/* Image skeleton */}
+                    <div className="h-48 bg-gray-200 animate-pulse"></div>
+                    {/* Content skeleton */}
+                    <div className="p-4 space-y-3">
+                      <div className="h-5 bg-gray-200 rounded animate-pulse w-3/4"></div>
+                      <div className="h-4 bg-gray-200 rounded animate-pulse w-1/2"></div>
+                      <div className="flex gap-2">
+                        <div className="h-4 bg-gray-200 rounded animate-pulse w-16"></div>
+                        <div className="h-4 bg-gray-200 rounded animate-pulse w-16"></div>
+                      </div>
+                      <div className="h-6 bg-gray-200 rounded animate-pulse w-24"></div>
+                      <div className="flex gap-2">
+                        <div className="h-9 bg-gray-200 rounded animate-pulse flex-1"></div>
+                        <div className="h-9 bg-gray-200 rounded animate-pulse flex-1"></div>
+                      </div>
+                    </div>
+                  </div>
+                  {/* Admin info skeleton */}
+                  <div className="flex items-center justify-between">
+                    <div className="h-3 bg-gray-200 rounded animate-pulse w-24"></div>
+                    <div className="h-3 bg-gray-200 rounded animate-pulse w-28"></div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : pendingPropertiesForDisplay.length === 0 ? (
+            <div className="text-center py-16 text-muted-foreground min-h-[320px] flex flex-col items-center justify-center">
+              <Building className="h-10 w-10 mx-auto mb-3 opacity-50" />
+              <p className="text-base font-medium mb-1.5">No Pending Approvals</p>
+              <p className="text-sm">All submitted properties have been reviewed</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -347,8 +405,8 @@ export function AdminDashboardOverview({ admin }: AdminDashboardOverviewProps) {
                 <PropertyCard
                   property={property}
                   variant="admin"
-                  onApprove={handleApproveProperty}
-                  onReject={handleRejectProperty}
+                  onApprove={handleApproveClick}
+                  onReject={handleRejectClick}
                 />
 
                 {/* Admin info below the card */}
@@ -379,49 +437,137 @@ export function AdminDashboardOverview({ admin }: AdminDashboardOverviewProps) {
             </Link>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              {[
-                { id: 1, landlordName: "John Smith", documentType: "Gas Safety Certificate", property: "Modern Studio Apartment", status: "pending", submittedDate: "2025-10-25" },
-                { id: 2, landlordName: "Emma Williams", documentType: "EPC Certificate", property: "Victorian Terrace", status: "approved", submittedDate: "2025-10-24" },
-                { id: 3, landlordName: "Oliver Davies", documentType: "Electrical Certificate", property: "Luxury Penthouse", status: "pending", submittedDate: "2025-10-23" },
-                { id: 4, landlordName: "Sarah Johnson", documentType: "Insurance Certificate", property: "Family Home", status: "rejected", submittedDate: "2025-10-22" },
-                { id: 5, landlordName: "Michael Brown", documentType: "HMO License", property: "Student Accommodation", status: "pending", submittedDate: "2025-10-21" }
-              ].map((doc) => (
-                <div key={doc.id} className="flex items-center justify-between p-4 border rounded-lg">
-                  <div className="space-y-1 flex-1">
-                    <div className="flex items-center gap-2">
-                      <p className="font-medium text-[15px]">{doc.documentType}</p>
-                      <Badge className={getStatusColor(doc.status)}>{doc.status}</Badge>
+            {documentsLoading ? (
+              <div className="space-y-3 max-h-[500px] overflow-y-auto pr-2">
+                {[...Array(4)].map((_, i) => (
+                  <div key={i} className="p-4 border rounded-lg">
+                    <div className="mb-4">
+                      <div className="h-5 bg-gray-200 rounded animate-pulse w-3/4 mb-1"></div>
+                      <div className="h-4 bg-gray-200 rounded animate-pulse w-full"></div>
                     </div>
-                    <p className="text-sm text-muted-foreground">{doc.property}</p>
-                    <p className="text-sm text-muted-foreground">By: {doc.landlordName}</p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs text-muted-foreground">
-                      {new Date(doc.submittedDate).toLocaleDateString('en-GB')}
-                    </span>
-                    <div className="flex gap-1">
-                      <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                        <Eye className="h-4 w-4" />
-                      </Button>
-                      {doc.status === 'pending' && (
-                        <>
-                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                            <CheckCircle className="h-4 w-4 text-green-600" />
-                          </Button>
-                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                            <XCircle className="h-4 w-4 text-red-600" />
-                          </Button>
-                        </>
-                      )}
+                    <div className="flex items-end gap-6">
+                      <div className="flex-1 space-y-1">
+                        <div className="h-4 bg-gray-200 rounded animate-pulse w-32 mb-1"></div>
+                        <div className="h-2 bg-gray-200 rounded animate-pulse w-full"></div>
+                      </div>
+                      <div className="h-9 bg-gray-200 rounded animate-pulse w-[120px]"></div>
                     </div>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            ) : documentsForDisplay.length > 0 ? (
+              <div className="space-y-3 max-h-[500px] overflow-y-auto pr-2">
+                {documentsForDisplay.map((property) => {
+                  const percentage = (property.completedDocs / property.totalDocs) * 100
+                  const getProgressBarColor = (percentage: number) => {
+                    if (percentage >= 80) return "bg-green-500"
+                    if (percentage >= 50) return "bg-yellow-500"
+                    return "bg-destructive"
+                  }
+
+                  return (
+                    <div
+                      key={property.propertyId}
+                      className="p-4 border rounded-lg hover:shadow-md transition-shadow"
+                    >
+                      <div className="mb-4">
+                        <p className="font-semibold text-[15px] mb-1 line-clamp-1">
+                          {property.address && property.city ? (
+                            <PropertyTitle
+                              address={property.address}
+                              city={property.city}
+                              postcode={property.postcode}
+                            />
+                          ) : (
+                            'Property Address Unavailable'
+                          )}
+                        </p>
+                        <p className="text-sm text-muted-foreground line-clamp-1">
+                          {property.address && property.city ? (
+                            <PropertyTitle
+                              address={property.address}
+                              city={property.city}
+                              postcode={property.postcode}
+                              variant="full"
+                            />
+                          ) : (
+                            'Details not available'
+                          )}
+                        </p>
+                      </div>
+
+                      <div className="flex items-end gap-3 sm:gap-6">
+                        <div className="flex-1 space-y-1">
+                          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-0.5 sm:gap-0 text-sm">
+                            <span className="text-muted-foreground">Documents:</span>
+                            <span className="font-semibold">{property.completedDocs}/{property.totalDocs} Complete</span>
+                          </div>
+                          <div className="relative h-2 w-full overflow-hidden rounded-full bg-primary/20">
+                            <div
+                              className={`h-full rounded-full transition-all ${getProgressBarColor(percentage)}`}
+                              style={{ width: `${percentage}%` }}
+                            />
+                          </div>
+                        </div>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="min-w-[120px]"
+                        >
+                          <FileText className="h-4 w-4 mr-2" />
+                          View
+                        </Button>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            ) : (
+              <div className="text-center py-16 text-muted-foreground min-h-[280px] flex flex-col items-center justify-center">
+                <FileText className="h-10 w-10 mx-auto mb-3 opacity-50" />
+                <p className="text-base font-medium mb-1.5">No Documents Found</p>
+                <p className="text-sm">Landlord documents will appear here</p>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
+
+      {/* Confirmation/Result Modal */}
+      <Dialog open={modalOpen} onOpenChange={setModalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              {modalType === 'approve' && 'Approve Property'}
+              {modalType === 'reject' && 'Reject Property'}
+              {modalType === 'success' && 'Success'}
+              {modalType === 'error' && 'Error'}
+            </DialogTitle>
+            <DialogDescription>
+              {modalMessage}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            {(modalType === 'approve' || modalType === 'reject') ? (
+              <>
+                <Button variant="outline" onClick={closeModal}>
+                  Cancel
+                </Button>
+                <Button
+                  onClick={confirmAction}
+                  className={modalType === 'approve' ? 'bg-accent hover:bg-accent/90 text-accent-foreground' : 'bg-destructive hover:bg-destructive/90 text-destructive-foreground'}
+                >
+                  {modalType === 'approve' ? 'Approve' : 'Reject'}
+                </Button>
+              </>
+            ) : (
+              <Button onClick={closeModal}>
+                Close
+              </Button>
+            )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
     </div>
   )

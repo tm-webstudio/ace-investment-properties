@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { PropertyTitle } from "@/components/property-title"
-import { Bed, Bath, MoreVertical, Edit, Eye, Trash2, CheckCircle, XCircle, Camera } from "lucide-react"
+import { Bed, Bath, MoreVertical, Edit, Eye, Trash2, CheckCircle, XCircle, Camera, Check, X } from "lucide-react"
 import { SavePropertyButton } from "./save-property-button"
 import { format } from "date-fns"
 import { supabase } from "@/lib/supabase"
@@ -336,7 +336,7 @@ export function PropertyCard({ property, variant = 'default', onPropertyDeleted,
           }}
           className="bg-green-600/90 hover:bg-green-700 shadow-lg border border-green-500/50 transition-all duration-200 hover:shadow-xl h-8 w-8"
         >
-          <CheckCircle className="h-4 w-4 text-white" />
+          <Check className="h-4 w-4 text-white" />
         </Button>
         <Button
           size="icon"
@@ -347,7 +347,7 @@ export function PropertyCard({ property, variant = 'default', onPropertyDeleted,
           }}
           className="bg-red-600/90 hover:bg-red-700 shadow-lg border border-red-500/50 transition-all duration-200 hover:shadow-xl h-8 w-8"
         >
-          <XCircle className="h-4 w-4 text-white" />
+          <X className="h-4 w-4 text-white" />
         </Button>
       </div>
     )
