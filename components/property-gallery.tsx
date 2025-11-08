@@ -186,13 +186,13 @@ export function PropertyGallery({ images, title, propertyId }: PropertyGalleryPr
         </Button>
 
         <div className="flex gap-2">
-          <Button variant="outline" size="icon" className="bg-transparent rounded-none">
+          <Button variant="outline" size="icon" className="bg-transparent rounded-none h-9 w-9">
             <Share className="h-4 w-4" />
           </Button>
           {propertyId && (
             <SavePropertyButton
               propertyId={propertyId}
-              size="medium"
+              size="icon"
               variant="outline"
               className="bg-transparent rounded-none"
             />

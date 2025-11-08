@@ -62,7 +62,7 @@ const toast = {
 interface SavePropertyButtonProps {
   propertyId: string
   initialSaved?: boolean
-  size?: 'small' | 'medium' | 'large'
+  size?: 'small' | 'medium' | 'large' | 'icon'
   showLabel?: boolean
   className?: string
   variant?: 'default' | 'ghost' | 'outline'
@@ -87,6 +87,11 @@ export function SavePropertyButton({
 
   // Size configurations
   const sizeConfig = {
+    icon: {
+      icon: 'h-4 w-4',
+      button: 'h-9 w-9 p-0',
+      text: 'text-xs'
+    },
     small: {
       icon: 'h-4 w-4',
       button: 'h-8 px-2',
@@ -309,12 +314,15 @@ export function SavePropertyButton({
     }
   }
 
+  // Determine button size - use 'icon' for shadcn Button when our size is 'icon'
+  const buttonSize = size === 'icon' ? 'icon' : 'sm'
+
   // Show loading state for initial check
   if (isCheckingInitialState) {
     return (
       <Button
         variant={variant}
-        size="sm"
+        size={buttonSize as any}
         className={cn(config.button, 'opacity-50 cursor-not-allowed', className)}
         disabled
       >
@@ -327,7 +335,7 @@ export function SavePropertyButton({
   return (
     <Button
       variant={variant}
-      size="sm"
+      size={buttonSize as any}
       onClick={handleSaveToggle}
       disabled={isLoading}
       className={cn(
@@ -338,12 +346,12 @@ export function SavePropertyButton({
       )}
       title={isSaved ? 'Remove from saved' : 'Save property'}
     >
-      <Heart 
+      <Heart
         className={cn(
           config.icon,
           'transition-all duration-150',
           isSaved ? 'fill-current' : 'stroke-current'
-        )} 
+        )}
       />
       {showLabel && (
         <span className={cn('ml-2', config.text)}>

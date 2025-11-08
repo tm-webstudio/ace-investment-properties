@@ -16,14 +16,14 @@ export function PropertyDetails({ property }: PropertyDetailsProps) {
       {/* Header */}
       <div className="space-y-4">
         <div>
-          <h1 className="font-serif text-2xl md:text-4xl font-bold text-foreground">
+          <h1 className="font-sans text-xl md:text-3xl font-semibold text-foreground">
             <PropertyTitle
               address={property.address}
               city={property.city}
               postcode={property.postcode}
             />
           </h1>
-          <div className="text-xl md:text-2xl font-semibold text-accent mt-2">
+          <div className="text-lg md:text-xl font-semibold text-accent mt-2">
             £{property.price.toLocaleString()} pcm
           </div>
           <div className="mt-3">
