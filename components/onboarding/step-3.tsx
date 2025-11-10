@@ -18,7 +18,6 @@ interface Location {
   id: string
   city: string
   areas: string[]
-  radius: number
 }
 
 interface Step3Data {
@@ -33,23 +32,88 @@ interface OnboardingStep3Props {
   onChange: (data: Partial<Step3Data>) => void
 }
 
-const radiusOptions = [
-  { value: 1, label: "1 mile" },
-  { value: 3, label: "3 miles" },
-  { value: 5, label: "5 miles" },
-  { value: 10, label: "10 miles" },
-  { value: 15, label: "15 miles" },
-  { value: 20, label: "20+ miles" }
-]
+const cityAreasMap: Record<string, string[]> = {
+  "London": [
+    "Barking and Dagenham", "Barnet", "Bexley", "Brent", "Bromley", "Camden", "Croydon",
+    "Ealing", "Enfield", "Greenwich", "Hackney", "Hammersmith and Fulham", "Haringey",
+    "Harrow", "Havering", "Hillingdon", "Hounslow", "Islington", "Kensington and Chelsea",
+    "Kingston upon Thames", "Lambeth", "Lewisham", "Merton", "Newham", "Redbridge",
+    "Richmond upon Thames", "Southwark", "Sutton", "Tower Hamlets", "Waltham Forest",
+    "Wandsworth", "Westminster"
+  ],
+  "Birmingham": [
+    "Aston", "Balsall Heath", "Bordesley Green", "Edgbaston", "Erdington", "Hall Green",
+    "Handsworth", "Harborne", "Kings Heath", "Ladywood", "Moseley", "Northfield",
+    "Perry Barr", "Quinton", "Saltley", "Selly Oak", "Small Heath", "Sparkbrook",
+    "Stirchley", "Sutton Coldfield", "Yardley"
+  ],
+  "Manchester": [
+    "Ancoats", "Ardwick", "Blackley", "Cheetham Hill", "Chorlton", "City Centre",
+    "Didsbury", "Fallowfield", "Gorton", "Hulme", "Levenshulme", "Moss Side",
+    "Old Trafford", "Rusholme", "Salford", "Stockport", "Stretford", "Withington",
+    "Wythenshawe"
+  ],
+  "Liverpool": [
+    "Aigburth", "Allerton", "Anfield", "Belle Vale", "Childwall", "City Centre",
+    "Crosby", "Everton", "Fairfield", "Kensington", "Kirkdale", "Mossley Hill",
+    "Old Swan", "Toxteth", "Walton", "Wavertree", "West Derby", "Woolton"
+  ],
+  "Leeds": [
+    "Armley", "Beeston", "Bramley", "Chapel Allerton", "City Centre", "Crossgates",
+    "Farnley", "Gipton", "Harehills", "Headingley", "Holbeck", "Horsforth",
+    "Hyde Park", "Kirkstall", "Meanwood", "Morley", "Pudsey", "Roundhay",
+    "Seacroft", "Wetherby"
+  ],
+  "Newcastle": [
+    "Benwell", "Byker", "City Centre", "Elswick", "Fenham", "Gosforth",
+    "Heaton", "Jesmond", "Kenton", "Newcastle", "Ouseburn", "Shieldfield",
+    "Walker", "Wallsend", "Westerhope"
+  ],
+  "Brighton": [
+    "Brighton Marina", "City Centre", "Hanover", "Hove", "Kemptown",
+    "Moulsecoomb", "Patcham", "Portslade", "Preston Park", "Saltdean",
+    "Shoreham", "Whitehawk", "Woodingdean"
+  ],
+  "Bristol": [
+    "Bedminster", "Bishopston", "Clifton", "City Centre", "Easton",
+    "Filton", "Fishponds", "Henleaze", "Horfield", "Kingswood",
+    "Knowle", "Redland", "Southville", "St Pauls", "Stoke Bishop",
+    "Westbury-on-Trym"
+  ],
+  "Coventry": [
+    "Canley", "Chapelfields", "City Centre", "Earlsdon", "Foleshill",
+    "Hillfields", "Holbrooks", "Radford", "Stoke", "Tile Hill",
+    "Walsgrave", "Whitley", "Wyken"
+  ],
+  "Leicester": [
+    "Aylestone", "Belgrave", "City Centre", "Clarendon Park", "Evington",
+    "Highfields", "Knighton", "Oadby", "Spinney Hills", "Stoneygate",
+    "West End", "Wigston"
+  ],
+  "Nottingham": [
+    "Beeston", "Bestwood", "Bulwell", "City Centre", "Clifton",
+    "Hucknall", "Hyson Green", "Lenton", "Mapperley", "Radford",
+    "Sherwood", "Sneinton", "West Bridgford", "Wollaton"
+  ],
+  "Oxford": [
+    "City Centre", "Cowley", "Headington", "Iffley", "Jericho",
+    "Littlemore", "Marston", "Summertown", "Wolvercote"
+  ],
+  "Cambridge": [
+    "Arbury", "Castle", "Cherry Hinton", "Chesterton", "City Centre",
+    "Coleridge", "Kings Hedges", "Newnham", "Petersfield", "Romsey",
+    "Trumpington"
+  ]
+}
 
 export function OnboardingStep3({ data, onChange }: OnboardingStep3Props) {
   const [newLocation, setNewLocation] = useState({
     city: "",
-    areas: "",
-    radius: 5
+    areas: [] as string[]
   })
   const [showLocationForm, setShowLocationForm] = useState(false)
   const [showCalendar, setShowCalendar] = useState(false)
+  const [selectedArea, setSelectedArea] = useState("")
 
   const handleAddLocation = () => {
     if (!newLocation.city.trim()) return
@@ -57,16 +121,29 @@ export function OnboardingStep3({ data, onChange }: OnboardingStep3Props) {
     const location: Location = {
       id: Date.now().toString(),
       city: newLocation.city.trim(),
-      areas: newLocation.areas ? newLocation.areas.split(",").map(area => area.trim()).filter(Boolean) : [],
-      radius: newLocation.radius
+      areas: newLocation.areas
     }
 
     onChange({
       locations: [...data.locations, location]
     })
 
-    setNewLocation({ city: "", areas: "", radius: 5 })
+    setNewLocation({ city: "", areas: [] })
     setShowLocationForm(false)
+  }
+
+  const handleAddArea = (area: string) => {
+    if (area && !newLocation.areas.includes(area)) {
+      setNewLocation(prev => ({ ...prev, areas: [...prev.areas, area] }))
+      setSelectedArea("")
+    }
+  }
+
+  const handleRemoveArea = (areaToRemove: string) => {
+    setNewLocation(prev => ({
+      ...prev,
+      areas: prev.areas.filter(a => a !== areaToRemove)
+    }))
   }
 
   const handleRemoveLocation = (locationId: string) => {
@@ -100,7 +177,7 @@ export function OnboardingStep3({ data, onChange }: OnboardingStep3Props) {
         
         {/* Added Locations */}
         {data.locations.length > 0 && (
-          <div className="mb-4 space-y-2">
+          <div className="mb-4 flex flex-wrap gap-2">
             {data.locations.map((location) => (
               <Badge
                 key={location.id}
@@ -110,7 +187,6 @@ export function OnboardingStep3({ data, onChange }: OnboardingStep3Props) {
                 <MapPin className="h-3 w-3" />
                 {location.city}
                 {location.areas.length > 0 && ` (${location.areas.join(", ")})`}
-                <span className="text-xs text-gray-500">• {location.radius} mi</span>
                 <button
                   onClick={() => handleRemoveLocation(location.id)}
                   className="ml-1 hover:bg-gray-200 rounded-full p-0.5"
@@ -129,47 +205,72 @@ export function OnboardingStep3({ data, onChange }: OnboardingStep3Props) {
               <Label htmlFor="city" className="text-sm font-medium text-gray-700 mb-2 block">
                 City/Town
               </Label>
-              <Input
-                id="city"
-                value={newLocation.city}
-                onChange={(e) => setNewLocation(prev => ({ ...prev, city: e.target.value }))}
-                placeholder="e.g., London, Manchester, Birmingham"
-                autoFocus
-              />
-            </div>
-            
-            <div>
-              <Label htmlFor="areas" className="text-sm font-medium text-gray-700 mb-2 block">
-                Specific areas (optional)
-              </Label>
-              <Input
-                id="areas"
-                value={newLocation.areas}
-                onChange={(e) => setNewLocation(prev => ({ ...prev, areas: e.target.value }))}
-                placeholder="e.g., Shoreditch, Camden, King's Cross (comma-separated)"
-              />
-            </div>
-            
-            <div>
-              <Label htmlFor="radius" className="text-sm font-medium text-gray-700 mb-2 block">
-                Search radius
-              </Label>
               <Select
-                value={newLocation.radius.toString()}
-                onValueChange={(value) => setNewLocation(prev => ({ ...prev, radius: parseInt(value) }))}
+                value={newLocation.city}
+                onValueChange={(value) => setNewLocation(prev => ({ ...prev, city: value, areas: [] }))}
               >
                 <SelectTrigger>
-                  <SelectValue />
+                  <SelectValue placeholder="Select a city" />
                 </SelectTrigger>
                 <SelectContent>
-                  {radiusOptions.map((option) => (
-                    <SelectItem key={option.value} value={option.value.toString()}>
-                      {option.label}
+                  {Object.keys(cityAreasMap).sort().map((city) => (
+                    <SelectItem key={city} value={city}>
+                      {city}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
+
+            {newLocation.city && cityAreasMap[newLocation.city] && (
+              <div>
+                <Label htmlFor="areas" className="text-sm font-medium text-gray-700 mb-2 block">
+                  Specific areas (optional)
+                </Label>
+
+                {/* Selected Areas */}
+                {newLocation.areas.length > 0 && (
+                  <div className="flex flex-wrap gap-2 mb-3">
+                    {newLocation.areas.map((area) => (
+                      <Badge
+                        key={area}
+                        variant="secondary"
+                        className="inline-flex items-center gap-1 px-2 py-1 text-xs"
+                      >
+                        {area}
+                        <button
+                          onClick={() => handleRemoveArea(area)}
+                          className="ml-1 hover:bg-gray-200 rounded-full p-0.5"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </Badge>
+                    ))}
+                  </div>
+                )}
+
+                {/* Area Dropdown */}
+                <Select
+                  value={selectedArea}
+                  onValueChange={(value) => {
+                    handleAddArea(value)
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select areas" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {cityAreasMap[newLocation.city]
+                      .filter(area => !newLocation.areas.includes(area))
+                      .map((area) => (
+                        <SelectItem key={area} value={area}>
+                          {area}
+                        </SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
             
             <div className="flex gap-2">
               <Button onClick={handleAddLocation} size="sm">

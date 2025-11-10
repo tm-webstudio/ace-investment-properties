@@ -12,6 +12,7 @@ import Link from "next/link"
 import { useAuth } from "@/contexts/auth-context"
 import { supabase } from "@/lib/supabase"
 import { InvestorDashboardNavigation } from "@/components/investor-dashboard-navigation"
+import { DashboardFooter } from "@/components/dashboard-footer"
 
 interface ViewingRequest {
   id: string
@@ -500,6 +501,7 @@ export default function MyViewingsPage() {
           </div>
         )}
       </div>
+      <DashboardFooter />
     </div>
   )
 }

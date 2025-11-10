@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { Navigation } from "@/components/navigation"
-import { Footer } from "@/components/footer"
+import { DashboardNavigationHeader } from "@/components/dashboard-navigation-header"
+import { DashboardFooter } from "@/components/dashboard-footer"
 import { PageHeader } from "@/components/page-header"
 import { InvestorDashboardNavigation } from "@/components/investor-dashboard-navigation"
 import { InvestorDashboardOverview } from "@/components/investor-dashboard-overview"
@@ -109,7 +109,7 @@ export default function InvestorDashboard() {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <Navigation />
+      <DashboardNavigationHeader />
       <main className="flex-1 bg-background">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <PageHeader
@@ -150,7 +150,7 @@ export default function InvestorDashboard() {
           {activeTab === "profile" && <InvestorDashboardProfile isEditing={isEditingProfile} setIsEditing={setIsEditingProfile} />}
         </div>
       </main>
-      <Footer />
+      <DashboardFooter />
     </div>
   )
 }

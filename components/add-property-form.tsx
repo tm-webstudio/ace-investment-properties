@@ -39,6 +39,10 @@ interface PropertyFormData {
   description: string
   amenities: string[]
 
+  // Block-specific fields
+  numberOfUnits?: string
+  totalFloors?: string
+
   // Photos
   photos: (File | string)[]
   primaryPhotoIndex: number
@@ -76,6 +80,8 @@ export function AddPropertyForm() {
     bathrooms: "",
     description: "",
     amenities: [],
+    numberOfUnits: "",
+    totalFloors: "",
     photos: [],
     primaryPhotoIndex: 0,
     noPhotosYet: false,
@@ -737,14 +743,25 @@ export function AddPropertyForm() {
       const requiredFields = [
         { field: 'availability', label: 'Availability' },
         { field: 'propertyType', label: 'Property Type' },
-        { field: 'bedrooms', label: 'Bedrooms' },
-        { field: 'bathrooms', label: 'Bathrooms' },
+        { field: 'propertyLicence', label: 'Property Licence' },
+        { field: 'propertyCondition', label: 'Property Condition' },
         { field: 'monthlyRent', label: 'Monthly Rent' },
         { field: 'description', label: 'Description' },
         { field: 'address', label: 'Address' },
         { field: 'city', label: 'City' },
         { field: 'postcode', label: 'Postcode' }
       ]
+
+      // Add bedrooms/bathrooms for non-Block properties
+      if (formData.propertyType !== 'Block') {
+        requiredFields.push({ field: 'bedrooms', label: 'Bedrooms' })
+        requiredFields.push({ field: 'bathrooms', label: 'Bathrooms' })
+      }
+
+      // Add Block-specific required fields
+      if (formData.propertyType === 'Block') {
+        requiredFields.push({ field: 'numberOfUnits', label: 'Number of Units/Flats' })
+      }
 
       // Only require available date if tenanted or upcoming
       if (formData.availability === 'tenanted' || formData.availability === 'upcoming') {
@@ -997,7 +1014,7 @@ export function AddPropertyForm() {
             )}
           </CardTitle>
         </CardHeader>
-        <CardContent className="p-6">
+        <CardContent className="p-4 sm:p-6">
           {/* Step 1: Basic Information */}
           {currentStep === 1 && (
             <div className="space-y-6">
@@ -1047,11 +1064,12 @@ export function AddPropertyForm() {
                       <SelectItem value="Studio">Studio</SelectItem>
                       <SelectItem value="House">House</SelectItem>
                       <SelectItem value="Flat">Flat</SelectItem>
+                      <SelectItem value="Block">Block</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
                 <div>
-                  <Label htmlFor="propertyLicence">Property Licence</Label>
+                  <Label htmlFor="propertyLicence">Property Licence *</Label>
                   <Select
                     value={formData.propertyLicence || ""}
                     onValueChange={(value) => handleInputChange("propertyLicence", value)}
@@ -1072,42 +1090,72 @@ export function AddPropertyForm() {
                 <div></div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                  <Label htmlFor="bedrooms">Bedrooms *</Label>
-                  <Select value={formData.bedrooms} onValueChange={(value) => handleInputChange("bedrooms", value)}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="0">Studio</SelectItem>
-                      <SelectItem value="1">1 Bedroom</SelectItem>
-                      <SelectItem value="2">2 Bedrooms</SelectItem>
-                      <SelectItem value="3">3 Bedrooms</SelectItem>
-                      <SelectItem value="4">4+ Bedrooms</SelectItem>
-                    </SelectContent>
-                  </Select>
+              {formData.propertyType !== "Block" && (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <Label htmlFor="bedrooms">Bedrooms *</Label>
+                    <Select value={formData.bedrooms} onValueChange={(value) => handleInputChange("bedrooms", value)}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="0">Studio</SelectItem>
+                        <SelectItem value="1">1 Bedroom</SelectItem>
+                        <SelectItem value="2">2 Bedrooms</SelectItem>
+                        <SelectItem value="3">3 Bedrooms</SelectItem>
+                        <SelectItem value="4">4+ Bedrooms</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label htmlFor="bathrooms">Bathrooms *</Label>
+                    <Select value={formData.bathrooms} onValueChange={(value) => handleInputChange("bathrooms", value)}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="1">1 Bathroom</SelectItem>
+                        <SelectItem value="1.5">1.5 Bathrooms</SelectItem>
+                        <SelectItem value="2">2 Bathrooms</SelectItem>
+                        <SelectItem value="2.5">2.5 Bathrooms</SelectItem>
+                        <SelectItem value="3">3+ Bathrooms</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
-                <div>
-                  <Label htmlFor="bathrooms">Bathrooms *</Label>
-                  <Select value={formData.bathrooms} onValueChange={(value) => handleInputChange("bathrooms", value)}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="1">1 Bathroom</SelectItem>
-                      <SelectItem value="1.5">1.5 Bathrooms</SelectItem>
-                      <SelectItem value="2">2 Bathrooms</SelectItem>
-                      <SelectItem value="2.5">2.5 Bathrooms</SelectItem>
-                      <SelectItem value="3">3+ Bathrooms</SelectItem>
-                    </SelectContent>
-                  </Select>
+              )}
+
+              {formData.propertyType === "Block" && (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <Label htmlFor="numberOfUnits">Number of Units/Flats *</Label>
+                    <Input
+                      id="numberOfUnits"
+                      type="number"
+                      min="1"
+                      placeholder="e.g., 10"
+                      value={formData.numberOfUnits}
+                      onChange={(e) => handleInputChange("numberOfUnits", e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="totalFloors">Total Floors</Label>
+                    <Input
+                      id="totalFloors"
+                      type="number"
+                      min="1"
+                      placeholder="e.g., 5"
+                      value={formData.totalFloors}
+                      onChange={(e) => handleInputChange("totalFloors", e.target.value)}
+                    />
+                  </div>
+                  <div></div>
                 </div>
-              </div>
+              )}
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
-                  <Label htmlFor="propertyCondition">Property Condition</Label>
+                  <Label htmlFor="propertyCondition">Property Condition *</Label>
                   <Select
                     value={formData.propertyCondition || ""}
                     onValueChange={(value) => handleInputChange("propertyCondition", value)}
@@ -1137,6 +1185,29 @@ export function AddPropertyForm() {
               </div>
 
               <div>
+                <Label>Features</Label>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mt-2">
+                  {amenityOptions.map((amenity) => (
+                    <div
+                      key={amenity}
+                      className="flex items-center space-x-3 px-3 py-2 border rounded-md cursor-pointer transition-colors"
+                      onClick={() => handleAmenityChange(amenity, !formData.amenities.includes(amenity))}
+                    >
+                      <Checkbox
+                        id={amenity}
+                        checked={formData.amenities.includes(amenity)}
+                        onCheckedChange={(checked) => handleAmenityChange(amenity, checked as boolean)}
+                        className="data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+                      />
+                      <Label htmlFor={amenity} className="text-sm font-normal cursor-pointer flex-1 mb-0">
+                        {amenity}
+                      </Label>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
                 <Label htmlFor="description">Property Description *</Label>
                 <Textarea
                   id="description"
@@ -1146,25 +1217,6 @@ export function AddPropertyForm() {
                   rows={8}
                   className="min-h-[150px] resize-y"
                 />
-              </div>
-
-              <div>
-                <Label>Features</Label>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mt-2">
-                  {amenityOptions.map((amenity) => (
-                    <div key={amenity} className="flex items-center space-x-2 p-2 rounded-md hover:bg-muted/20 transition-colors">
-                      <Checkbox
-                        id={amenity}
-                        checked={formData.amenities.includes(amenity)}
-                        onCheckedChange={(checked) => handleAmenityChange(amenity, checked as boolean)}
-                        className="border border-muted-foreground/40 data-[state=checked]:bg-primary data-[state=checked]:border-primary"
-                      />
-                      <Label htmlFor={amenity} className="text-sm font-normal cursor-pointer flex-1 mb-0">
-                        {amenity}
-                      </Label>
-                    </div>
-                  ))}
-                </div>
               </div>
             </div>
           )}

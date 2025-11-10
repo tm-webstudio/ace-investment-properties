@@ -1,9 +1,9 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Navigation } from "@/components/navigation"
-import { Footer } from "@/components/footer"
-import { DashboardNavigation } from "@/components/dashboard-navigation"
+import { DashboardDashboardNavigationHeaderHeader } from "@/components/dashboard-navigation-header"
+import { DashboardFooter } from "@/components/dashboard-footer"
+import { DashboardDashboardNavigationHeader } from "@/components/dashboard-navigation"
 import { MyPropertiesGrid } from "@/components/my-properties-grid"
 import { supabase } from '@/lib/supabase'
 
@@ -84,7 +84,7 @@ export default function MyPropertiesPage() {
   if (loading) {
     return (
       <div className="min-h-screen flex flex-col">
-        <Navigation />
+        <DashboardNavigationHeader />
         <main className="flex-1 bg-background">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <div className="mb-8">
@@ -92,7 +92,7 @@ export default function MyPropertiesPage() {
               <div className="h-5 bg-gray-200 rounded w-48 animate-pulse"></div>
             </div>
 
-            {/* Dashboard Navigation Skeleton */}
+            {/* Dashboard DashboardNavigationHeader Skeleton */}
             <div className="mb-8">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
                 <nav className="flex flex-wrap gap-2">
@@ -137,7 +137,7 @@ export default function MyPropertiesPage() {
             </div>
           </div>
         </main>
-        <Footer />
+        <DashboardFooter />
       </div>
     )
   }
@@ -145,13 +145,13 @@ export default function MyPropertiesPage() {
   if (error) {
     return (
       <div className="min-h-screen flex flex-col">
-        <Navigation />
+        <DashboardNavigationHeader />
         <main className="flex-1 bg-background">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <div className="text-center py-12">
               <h2 className="text-2xl font-bold text-red-600 mb-4">Error</h2>
               <p className="text-muted-foreground mb-4">{error}</p>
-              <button 
+              <button
                 onClick={fetchProperties}
                 className="bg-accent hover:bg-accent/90 text-white px-4 py-2 rounded-md"
               >
@@ -160,33 +160,33 @@ export default function MyPropertiesPage() {
             </div>
           </div>
         </main>
-        <Footer />
+        <DashboardFooter />
       </div>
     )
   }
 
   return (
     <div className="min-h-screen flex flex-col">
-      <Navigation />
+      <DashboardNavigationHeader />
       <main className="flex-1 bg-background">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="mb-8">
             <h1 className="font-serif text-3xl md:text-4xl font-bold text-foreground mb-2">My Properties</h1>
             <p className="text-muted-foreground text-md">
-              {properties.length > 0 
+              {properties.length > 0
                 ? `You have ${properties.length} ${properties.length === 1 ? 'property' : 'properties'} listed`
                 : 'Manage your rental listings'
               }
             </p>
           </div>
 
-          <DashboardNavigation />
-          
+          <DashboardDashboardNavigationHeader />
+
           {properties.length === 0 ? (
             <div className="text-center py-12">
               <h3 className="text-xl font-semibold mb-4">No Properties Yet</h3>
               <p className="text-muted-foreground mb-6">Start by adding your first rental property</p>
-              <a 
+              <a
                 href="/landlord/add-property"
                 className="bg-accent hover:bg-accent/90 text-white px-6 py-3 rounded-md inline-block"
               >
@@ -198,7 +198,7 @@ export default function MyPropertiesPage() {
           )}
         </div>
       </main>
-      <Footer />
+      <DashboardFooter />
     </div>
   )
 }

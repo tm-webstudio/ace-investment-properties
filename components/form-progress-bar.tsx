@@ -33,7 +33,7 @@ export function FormProgressBar({ currentStep, totalSteps, steps }: FormProgress
 
   return (
     <Card>
-      <CardContent className="px-6">
+      <CardContent className="px-4 sm:px-6">
         <div className="space-y-4">
           <div className="flex justify-between text-sm text-muted-foreground">
             <span>
@@ -43,16 +43,16 @@ export function FormProgressBar({ currentStep, totalSteps, steps }: FormProgress
           </div>
           <div className="space-y-4">
             {/* Progress container using CSS Grid */}
-            <div className={`grid gap-8 relative px-4`} style={{ gridTemplateColumns: `repeat(${totalSteps}, 1fr)` }}>
+            <div className={`grid gap-3 sm:gap-8 relative px-2 sm:px-4`} style={{ gridTemplateColumns: `repeat(${totalSteps}, 1fr)` }}>
               {/* Background progress line connecting through dots */}
-              <div className="absolute h-2 bg-muted-foreground/20 rounded-full left-2 right-2" style={{ top: '5px' }}></div>
+              <div className="absolute h-2 bg-muted-foreground/20 rounded-full left-1 right-1 sm:left-2 sm:right-2" style={{ top: '5px' }}></div>
 
               {/* Active progress line */}
               <div
                 className="absolute h-2 bg-primary rounded-full transition-all duration-300"
                 style={{
                   top: '5px',
-                  left: '0.5rem',
+                  left: '0.25rem',
                   width: getProgressWidth()
                 }}
               ></div>
@@ -65,7 +65,7 @@ export function FormProgressBar({ currentStep, totalSteps, steps }: FormProgress
                     <div className={`w-4 h-4 rounded-full border-2 bg-white ${currentStep >= stepNumber ? 'border-primary' : 'border-muted-foreground/30'} relative z-10 mb-2`}>
                       {currentStep >= stepNumber && <div className="w-full h-full rounded-full bg-primary scale-50"></div>}
                     </div>
-                    <span className="text-xs text-muted-foreground text-center">{step.label}</span>
+                    <span className="text-xs text-muted-foreground text-center whitespace-nowrap">{step.label}</span>
                   </div>
                 )
               })}

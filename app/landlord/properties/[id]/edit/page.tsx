@@ -3,8 +3,8 @@
 import { useEffect, useState } from "react"
 import { useParams } from "next/navigation"
 import { EditPropertyForm } from "@/components/edit-property-form"
-import { Navigation } from "@/components/navigation"
-import { Footer } from "@/components/footer"
+import { DashboardNavigationHeader } from "@/components/navigation"
+import { DashboardDashboardFooter } from "@/components/dashboard-footer"
 import { supabase } from '@/lib/supabase'
 
 interface Property {
@@ -84,7 +84,7 @@ export default function EditPropertyPage() {
   if (loading) {
     return (
       <div className="min-h-screen flex flex-col">
-        <Navigation />
+        <DashboardNavigationHeader />
         <main className="flex-1 bg-background">
           <div className="container mx-auto px-4 py-8">
             <div className="max-w-4xl mx-auto">
@@ -107,7 +107,7 @@ export default function EditPropertyPage() {
             </div>
           </div>
         </main>
-        <Footer />
+        <DashboardFooter />
       </div>
     )
   }
@@ -115,7 +115,7 @@ export default function EditPropertyPage() {
   if (error) {
     return (
       <div className="min-h-screen flex flex-col">
-        <Navigation />
+        <DashboardNavigationHeader />
         <main className="flex-1 bg-background">
           <div className="container mx-auto px-4 py-8">
             <div className="max-w-4xl mx-auto text-center">
@@ -130,7 +130,7 @@ export default function EditPropertyPage() {
             </div>
           </div>
         </main>
-        <Footer />
+        <DashboardFooter />
       </div>
     )
   }
@@ -138,7 +138,7 @@ export default function EditPropertyPage() {
   if (!property) {
     return (
       <div className="min-h-screen flex flex-col">
-        <Navigation />
+        <DashboardNavigationHeader />
         <main className="flex-1 bg-background">
           <div className="container mx-auto px-4 py-8">
             <div className="max-w-4xl mx-auto text-center">
@@ -153,18 +153,18 @@ export default function EditPropertyPage() {
             </div>
           </div>
         </main>
-        <Footer />
+        <DashboardFooter />
       </div>
     )
   }
 
   return (
     <div className="min-h-screen flex flex-col">
-      <Navigation />
+      <DashboardNavigationHeader />
       <main className="flex-1 bg-background">
         <EditPropertyForm propertyId={propertyId} initialData={property} />
       </main>
-      <Footer />
+      <DashboardFooter />
     </div>
   )
 }

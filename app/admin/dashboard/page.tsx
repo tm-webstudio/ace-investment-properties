@@ -1,8 +1,8 @@
 "use client"
 
 import { useState } from "react"
-import { Navigation } from "@/components/navigation"
-import { Footer } from "@/components/footer"
+import { DashboardNavigationHeader } from "@/components/dashboard-navigation-header"
+import { DashboardFooter } from "@/components/dashboard-footer"
 import { AdminDashboardOverview } from "@/components/admin-dashboard-overview"
 import { AdminDashboardProperties } from "@/components/admin-dashboard-properties"
 import { AdminDashboardUsers } from "@/components/admin-dashboard-users"
@@ -41,7 +41,7 @@ export default function AdminDashboard() {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <Navigation />
+      <DashboardNavigationHeader />
       <main className="flex-1 bg-background">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <Card className="mb-8 bg-gradient-to-r from-red-50 via-red-100/50 to-red-50 border-red-200/30">
@@ -71,7 +71,7 @@ export default function AdminDashboard() {
           {activeTab === "settings" && <AdminDashboardSettings />}
         </div>
       </main>
-      <Footer />
+      <DashboardFooter />
     </div>
   )
 }

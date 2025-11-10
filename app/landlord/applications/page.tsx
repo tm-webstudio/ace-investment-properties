@@ -1,12 +1,12 @@
-import { Navigation } from "@/components/navigation"
-import { Footer } from "@/components/footer"
+import { DashboardNavigationHeader } from "@/components/dashboard-navigation-header"
+import { DashboardFooter } from "@/components/dashboard-footer"
 import { DashboardNavigation } from "@/components/dashboard-navigation"
 import { ApplicationsTable } from "@/components/applications-table"
 
 export default function ApplicationsPage() {
   return (
     <div className="min-h-screen flex flex-col">
-      <Navigation />
+      <DashboardNavigationHeader />
       <main className="flex-1 bg-background">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="mb-8">
@@ -18,7 +18,7 @@ export default function ApplicationsPage() {
           <ApplicationsTable />
         </div>
       </main>
-      <Footer />
+      <DashboardFooter />
     </div>
   )
 }

@@ -1,8 +1,8 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Navigation } from "@/components/navigation"
-import { Footer } from "@/components/footer"
+import { DashboardNavigationHeader } from "@/components/dashboard-navigation-header"
+import { DashboardFooter } from "@/components/dashboard-footer"
 import { DashboardOverview } from "@/components/dashboard-overview"
 import { DashboardDocuments } from "@/components/dashboard-documents"
 import { DashboardProfile } from "@/components/dashboard-profile"
@@ -139,7 +139,7 @@ export default function LandlordDashboard() {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <Navigation />
+      <DashboardNavigationHeader />
       <main className="flex-1 bg-background">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <PageHeader
@@ -178,7 +178,7 @@ export default function LandlordDashboard() {
           {activeTab === "profile" && <DashboardProfile isEditing={isEditingProfile} setIsEditing={setIsEditingProfile} />}
         </div>
       </main>
-      <Footer />
+      <DashboardFooter />
     </div>
   )
 }

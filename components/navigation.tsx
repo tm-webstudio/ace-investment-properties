@@ -214,11 +214,13 @@ export function Navigation() {
                 {user ? (
                   <>
                     <UserDropdown />
-                    <Link href="/investor/signup">
-                      <Button className="bg-accent hover:bg-accent/80 border-accent border text-accent-foreground rounded-none transition-all duration-300 ease-in-out">
-                        Join as Investor
-                      </Button>
-                    </Link>
+                    {user.user_metadata?.user_type !== 'investor' && (
+                      <Link href="/investor/signup">
+                        <Button className="bg-accent hover:bg-accent/80 border-accent border text-accent-foreground rounded-none transition-all duration-300 ease-in-out">
+                          Join as Investor
+                        </Button>
+                      </Link>
+                    )}
                   </>
                 ) : (
                   <>
@@ -416,14 +418,16 @@ export function Navigation() {
                     Dashboard
                   </Button>
                 </Link>
-                <Link href="/investor/signup">
-                  <Button
-                    className="w-full bg-accent hover:bg-accent/80 border-accent border text-accent-foreground py-3 rounded-none text-sm transition-all duration-300 ease-in-out mb-3"
-                    onClick={() => setIsOpen(false)}
-                  >
-                    Join as Investor
-                  </Button>
-                </Link>
+                {user.user_metadata?.user_type !== 'investor' && (
+                  <Link href="/investor/signup">
+                    <Button
+                      className="w-full bg-accent hover:bg-accent/80 border-accent border text-accent-foreground py-3 rounded-none text-sm transition-all duration-300 ease-in-out mb-3"
+                      onClick={() => setIsOpen(false)}
+                    >
+                      Join as Investor
+                    </Button>
+                  </Link>
+                )}
                 <Button
                   variant="ghost"
                   className="w-full text-primary-foreground hover:bg-red-50 hover:text-red-600 text-sm justify-center border-red-300 border rounded-none py-3 transition-all duration-300 ease-in-out"

@@ -350,9 +350,9 @@ export default function InvestorSignup() {
     <div className="min-h-screen flex flex-col">
       <Navigation />
       <main className="flex-1 bg-background">
-        <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
           {/* Header */}
-          <Card className="mb-8 bg-gradient-to-r from-primary/5 via-primary/3 to-accent/5 border-primary/10">
+          <Card className="mb-4 bg-gradient-to-r from-primary/5 via-primary/3 to-accent/5 border-primary/10">
             <CardHeader className="pb-4 pt-4">
               <p className="text-sm font-bold text-primary/70 uppercase tracking-wide mb-1">
                 Investor Signup
@@ -365,7 +365,7 @@ export default function InvestorSignup() {
           </Card>
 
           {/* Progress */}
-          <div className="mb-8">
+          <div className="mb-4">
             <FormProgressBar
               currentStep={currentStep}
               totalSteps={4}
@@ -383,7 +383,7 @@ export default function InvestorSignup() {
           <CardHeader>
             <CardTitle>{stepTitles[currentStep as keyof typeof stepTitles]}</CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-4 sm:p-6">
             {error && (
               <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-md">
                 <p className="text-sm text-red-700">{error}</p>
