@@ -5,8 +5,8 @@ import Link from "next/link"
 
 export function HeroSection() {
   return (
-    <section className="relative bg-primary text-primary-foreground py-28 lg:py-40 2xl:py-52">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section className="relative bg-primary text-primary-foreground min-h-[500px] lg:py-40 2xl:py-52 flex items-end lg:items-center">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full pb-8 lg:pb-0">
         <div className="text-left space-y-6 max-w-xl">
           {/* Hero Content */}
           <div className="space-y-4">

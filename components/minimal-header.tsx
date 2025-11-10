@@ -7,7 +7,7 @@ export function MinimalHeader() {
         <div className="flex justify-center items-center h-16">
           {/* Logo - centered */}
           <Link href="/" className="flex items-center">
-            <span className="font-sans font-black text-lg md:text-xl tracking-wide uppercase">
+            <span className="font-sans font-black text-md sm:text-lg tracking-wide uppercase">
               ACE INVESTMENT PROPERTIES
             </span>
           </Link>
