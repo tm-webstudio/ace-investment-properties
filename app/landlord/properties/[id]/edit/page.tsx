@@ -3,8 +3,8 @@
 import { useEffect, useState } from "react"
 import { useParams } from "next/navigation"
 import { EditPropertyForm } from "@/components/edit-property-form"
-import { DashboardNavigationHeader } from "@/components/navigation"
-import { DashboardDashboardFooter } from "@/components/dashboard-footer"
+import { DashboardNavigationHeader } from "@/components/dashboard-navigation-header"
+import { DashboardFooter } from "@/components/dashboard-footer"
 import { supabase } from '@/lib/supabase'
 
 interface Property {

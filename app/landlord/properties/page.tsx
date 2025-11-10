@@ -1,9 +1,9 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { DashboardDashboardNavigationHeaderHeader } from "@/components/dashboard-navigation-header"
+import { DashboardNavigationHeader } from "@/components/dashboard-navigation-header"
 import { DashboardFooter } from "@/components/dashboard-footer"
-import { DashboardDashboardNavigationHeader } from "@/components/dashboard-navigation"
+import { DashboardNavigation } from "@/components/dashboard-navigation"
 import { MyPropertiesGrid } from "@/components/my-properties-grid"
 import { supabase } from '@/lib/supabase'
 
