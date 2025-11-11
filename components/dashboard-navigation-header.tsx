@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
+import { usePathname } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Menu, X } from "lucide-react"
 import { useAuth } from "@/contexts/auth-context"
@@ -10,6 +11,7 @@ import { UserDropdown } from "@/components/user-dropdown"
 export function DashboardNavigationHeader() {
   const [isOpen, setIsOpen] = useState(false)
   const { user, loading, signOut } = useAuth()
+  const pathname = usePathname()
 
   // Prevent body scroll when mobile menu is open
   useEffect(() => {
@@ -62,14 +64,16 @@ export function DashboardNavigationHeader() {
           {/* Menu header */}
           <div className="flex items-center justify-between pl-6 pr-4 py-6 border-b border-primary-foreground/20">
             <span className="font-serif font-bold text-lg text-primary-foreground">Menu</span>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setIsOpen(false)}
-              className="text-primary-foreground hover:bg-primary/20"
-            >
-              <X className="h-6 w-6" />
-            </Button>
+            <Link href="/">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setIsOpen(false)}
+                className="text-primary-foreground hover:bg-primary/20"
+              >
+                <X className="h-6 w-6" />
+              </Button>
+            </Link>
           </div>
 
           {/* Menu content */}
@@ -86,15 +90,36 @@ export function DashboardNavigationHeader() {
                 <div className="text-primary-foreground text-sm mb-3">
                   Welcome, {user.user_metadata?.first_name || user.email?.split("@")[0] || "User"}
                 </div>
-                <Link href={user.user_metadata?.user_type === 'admin' ? '/admin/dashboard' : user.user_metadata?.user_type === 'landlord' ? '/landlord/dashboard' : '/investor/dashboard'}>
-                  <Button
-                    variant="ghost"
-                    className="w-full text-primary-foreground hover:bg-white hover:text-primary text-sm justify-center border-white border rounded-none py-3 transition-all duration-300 ease-in-out mb-3"
-                    onClick={() => setIsOpen(false)}
-                  >
-                    Dashboard
-                  </Button>
-                </Link>
+                {(() => {
+                  const dashboardPath = user.user_metadata?.user_type === 'admin' ? '/admin/dashboard' : user.user_metadata?.user_type === 'landlord' ? '/landlord/dashboard' : '/investor/dashboard'
+                  const isOnDashboard = pathname === dashboardPath
+
+                  if (isOnDashboard) {
+                    return (
+                      <Button
+                        variant="ghost"
+                        className="w-full text-primary-foreground hover:bg-white hover:text-primary text-sm justify-center border-white border rounded-none py-3 transition-all duration-300 ease-in-out mb-3"
+                        onClick={() => setIsOpen(false)}
+                      >
+                        Dashboard
+                      </Button>
+                    )
+                  }
+
+                  return (
+                    <Link
+                      href={dashboardPath}
+                      onClick={() => setIsOpen(false)}
+                    >
+                      <Button
+                        variant="ghost"
+                        className="w-full text-primary-foreground hover:bg-white hover:text-primary text-sm justify-center border-white border rounded-none py-3 transition-all duration-300 ease-in-out mb-3"
+                      >
+                        Dashboard
+                      </Button>
+                    </Link>
+                  )
+                })()}
                 <Button
                   variant="ghost"
                   className="w-full text-primary-foreground hover:bg-red-50 hover:text-red-600 text-sm justify-center border-red-300 border rounded-none py-3 transition-all duration-300 ease-in-out"

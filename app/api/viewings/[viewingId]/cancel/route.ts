@@ -21,10 +21,16 @@ export async function PUT(
       return req // Return auth error response
     }
 
-    // Get viewing to check permissions
+    // Get viewing and property to check permissions
     const { data: viewing, error: viewingError } = await supabase
       .from('property_viewings')
-      .select('*')
+      .select(`
+        *,
+        property:properties (
+          id,
+          landlord_id
+        )
+      `)
       .eq('id', viewingId)
       .single()
 
@@ -35,10 +41,21 @@ export async function PUT(
       )
     }
 
-    // Check if user owns this viewing request
-    if (viewing.user_id !== req.user.id) {
+    // Get user profile to check if admin
+    const { data: userProfile } = await supabase
+      .from('user_profiles')
+      .select('user_type')
+      .eq('id', req.user.id)
+      .single()
+
+    // Check if user is either the viewing requester (investor), the property owner (landlord), or an admin
+    const isInvestor = viewing.user_id === req.user.id
+    const isLandlord = viewing.property?.landlord_id === req.user.id
+    const isAdmin = userProfile?.user_type === 'admin'
+
+    if (!isInvestor && !isLandlord && !isAdmin) {
       return NextResponse.json(
-        { success: false, error: 'Permission denied. You can only cancel your own viewing requests.' },
+        { success: false, error: 'Permission denied. You can only cancel your own viewing requests or viewings for your properties.' },
         { status: 403 }
       )
     }

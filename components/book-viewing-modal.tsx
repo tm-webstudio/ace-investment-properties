@@ -908,7 +908,7 @@ export function BookViewingModal({ isOpen, onClose, propertyId, propertyData }: 
                 <Button onClick={handleClose} className="flex-1">
                   Close
                 </Button>
-                <Button variant="outline" onClick={() => window.location.href = '/viewings'}>
+                <Button variant="outline" onClick={() => window.location.href = '/investor/dashboard'}>
                   View My Viewings
                 </Button>
               </div>

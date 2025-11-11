@@ -66,10 +66,9 @@ export async function GET(request: NextRequest) {
       query = query.order('viewing_date', { ascending: true })
       query = query.order('viewing_time', { ascending: true })
     } else if (status === 'all') {
-      // Show pending first, then others by date desc
-      query = query.order('status', { ascending: true }) // pending comes first alphabetically
-      query = query.order('viewing_date', { ascending: false })
-      query = query.order('viewing_time', { ascending: false })
+      // Show pending and approved first, ordered by date
+      query = query.in('status', ['pending', 'approved', 'rejected', 'cancelled', 'completed'])
+      query = query.order('created_at', { ascending: false })
     } else {
       query = query.eq('status', status)
       query = query.order('viewing_date', { ascending: false })

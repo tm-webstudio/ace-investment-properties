@@ -76,10 +76,11 @@ export function ViewingRequests({ variant = 'dashboard', limit }: ViewingRequest
     completed: 0
   })
   const [loading, setLoading] = useState(true)
-  const [filter, setFilter] = useState<string>('pending')
+  const [filter, setFilter] = useState<string>(variant === 'dashboard' ? 'pending,approved,rejected,cancelled' : 'pending')
   const [expandedCard, setExpandedCard] = useState<string | null>(null)
   const [approveModalOpen, setApproveModalOpen] = useState(false)
   const [rejectModalOpen, setRejectModalOpen] = useState(false)
+  const [cancelModalOpen, setCancelModalOpen] = useState(false)
   const [selectedViewing, setSelectedViewing] = useState<ViewingRequest | null>(null)
   const [rejectionReason, setRejectionReason] = useState('')
   const [actionLoading, setActionLoading] = useState(false)
@@ -87,31 +88,58 @@ export function ViewingRequests({ variant = 'dashboard', limit }: ViewingRequest
   const fetchViewings = async () => {
     try {
       setLoading(true)
-      
+
       const { data: { session } } = await supabase.auth.getSession()
       if (!session?.access_token) {
         console.error('No access token available')
         return
       }
 
-      const queryParams = new URLSearchParams({
-        status: filter,
-        limit: limit ? limit.toString() : '20'
-      })
+      // For dashboard variant with pending,approved,rejected,cancelled filter, fetch all and filter client-side
+      if (variant === 'dashboard' && filter === 'pending,approved,rejected,cancelled') {
+        const queryParams = new URLSearchParams({
+          status: 'all',
+          limit: limit ? limit.toString() : '50'
+        })
 
-      const response = await fetch(`/api/viewings/for-my-properties?${queryParams}`, {
-        headers: {
-          'Authorization': `Bearer ${session.access_token}`
+        const response = await fetch(`/api/viewings/for-my-properties?${queryParams}`, {
+          headers: {
+            'Authorization': `Bearer ${session.access_token}`
+          }
+        })
+
+        const result = await response.json()
+
+        if (result.success) {
+          // Filter to only show pending, approved, rejected, and cancelled
+          const filteredViewings = (result.viewings || []).filter(
+            (v: ViewingRequest) => v.status === 'pending' || v.status === 'approved' || v.status === 'rejected' || v.status === 'cancelled'
+          )
+          setViewings(filteredViewings)
+          setStats(result.summary || stats)
+        } else {
+          console.error('Error fetching viewing requests:', result.error)
         }
-      })
-
-      const result = await response.json()
-
-      if (result.success) {
-        setViewings(result.viewings || [])
-        setStats(result.summary || stats)
       } else {
-        console.error('Error fetching viewing requests:', result.error)
+        const queryParams = new URLSearchParams({
+          status: filter,
+          limit: limit ? limit.toString() : '20'
+        })
+
+        const response = await fetch(`/api/viewings/for-my-properties?${queryParams}`, {
+          headers: {
+            'Authorization': `Bearer ${session.access_token}`
+          }
+        })
+
+        const result = await response.json()
+
+        if (result.success) {
+          setViewings(result.viewings || [])
+          setStats(result.summary || stats)
+        } else {
+          console.error('Error fetching viewing requests:', result.error)
+        }
       }
     } catch (error) {
       console.error('Error:', error)
@@ -177,7 +205,7 @@ export function ViewingRequests({ variant = 'dashboard', limit }: ViewingRequest
 
     try {
       setActionLoading(true)
-      
+
       const { data: { session } } = await supabase.auth.getSession()
       if (!session?.access_token) {
         console.error('No access token available')
@@ -209,6 +237,49 @@ export function ViewingRequests({ variant = 'dashboard', limit }: ViewingRequest
     } catch (error) {
       console.error('Error:', error)
       alert('Error rejecting viewing')
+    } finally {
+      setActionLoading(false)
+    }
+  }
+
+  const handleCancel = async (viewing: ViewingRequest) => {
+    setSelectedViewing(viewing)
+    setCancelModalOpen(true)
+  }
+
+  const confirmCancel = async () => {
+    if (!selectedViewing) return
+
+    try {
+      setActionLoading(true)
+
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session?.access_token) {
+        console.error('No access token available')
+        return
+      }
+
+      const response = await fetch(`/api/viewings/${selectedViewing.id}/cancel`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+          'Content-Type': 'application/json'
+        }
+      })
+
+      const result = await response.json()
+
+      if (result.success) {
+        setCancelModalOpen(false)
+        setSelectedViewing(null)
+        fetchViewings() // Refresh the list
+      } else {
+        console.error('Error cancelling viewing:', result.error)
+        alert('Error cancelling viewing: ' + result.error)
+      }
+    } catch (error) {
+      console.error('Error:', error)
+      alert('Error cancelling viewing')
     } finally {
       setActionLoading(false)
     }
@@ -247,6 +318,21 @@ export function ViewingRequests({ variant = 'dashboard', limit }: ViewingRequest
       currency: 'GBP'
     }).format(amount / 100)
   }
+
+  const isViewingPast = (viewing: ViewingRequest) => {
+    const viewingDateTime = new Date(`${viewing.viewing_date}T${viewing.viewing_time}`)
+    return viewingDateTime < new Date()
+  }
+
+  // Filter out only past pending viewings (keep approved/rejected viewings visible)
+  const upcomingViewings = viewings.filter(viewing => {
+    // Always show approved, rejected, or cancelled viewings
+    if (viewing.status !== 'pending') {
+      return true
+    }
+    // For pending viewings, only show if not past
+    return !isViewingPast(viewing)
+  })
 
   // Stats cards for full variant
   const renderStatsCards = () => {
@@ -376,8 +462,8 @@ export function ViewingRequests({ variant = 'dashboard', limit }: ViewingRequest
               </div>
             ))}
           </>
-        ) : viewings.length > 0 ? (
-          viewings.map((viewing) => (
+        ) : upcomingViewings.length > 0 ? (
+          upcomingViewings.map((viewing) => (
             <div key={viewing.id} className="border rounded-lg p-4 space-y-3">
               {/* Main viewing info */}
               <div
@@ -399,7 +485,11 @@ export function ViewingRequests({ variant = 'dashboard', limit }: ViewingRequest
                     </h3>
 
                     <Badge className={`${getStatusColor(viewing.status)} capitalize`}>
-                      {viewing.status === 'pending' ? 'awaiting approval' : viewing.status}
+                      {viewing.status === 'pending' ? 'awaiting approval' :
+                       viewing.status === 'approved' ? 'Approved' :
+                       viewing.status === 'rejected' ? 'Rejected' :
+                       viewing.status === 'cancelled' ? 'Cancelled' :
+                       viewing.status}
                     </Badge>
                   </div>
 
@@ -508,15 +598,22 @@ export function ViewingRequests({ variant = 'dashboard', limit }: ViewingRequest
                   )}
 
                   {/* Actions for approved/rejected viewings */}
-                  {viewing.status !== 'pending' && (
+                  {viewing.status !== 'pending' && viewing.status !== 'cancelled' && (
                     <div className="flex gap-2 pt-2">
                       <Button size="sm" variant="outline">
-                        <MessageSquare className="h-4 w-4 mr-1" />
-                        Message Investor
+                        <Calendar className="h-4 w-4 mr-1" />
+                        Change Viewing
                       </Button>
-                      <Button size="sm" variant="outline">
-                        <Eye className="h-4 w-4 mr-1" />
-                        View Property
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          handleCancel(viewing)
+                        }}
+                      >
+                        <X className="h-4 w-4 mr-1" />
+                        Cancel Viewing
                       </Button>
                     </div>
                   )}
@@ -590,12 +687,43 @@ export function ViewingRequests({ variant = 'dashboard', limit }: ViewingRequest
               <Button variant="outline" onClick={() => setRejectModalOpen(false)}>
                 Cancel
               </Button>
-              <Button 
+              <Button
                 onClick={confirmReject}
                 disabled={actionLoading}
                 variant="destructive"
               >
                 {actionLoading ? 'Rejecting...' : 'Reject Viewing'}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Cancel Modal */}
+      <Dialog open={cancelModalOpen} onOpenChange={setCancelModalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Cancel Viewing</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p>
+              Are you sure you want to cancel the viewing for{" "}
+              <strong>{selectedViewing?.property?.property_type} in {selectedViewing?.property?.city}</strong>{" "}
+              on {selectedViewing && formatDate(selectedViewing.viewing_date)} at {selectedViewing && formatTime(selectedViewing.viewing_time)}?
+            </p>
+            <p className="text-sm text-gray-600">
+              The investor will be notified that this viewing has been cancelled.
+            </p>
+            <div className="flex gap-3 justify-end">
+              <Button variant="outline" onClick={() => setCancelModalOpen(false)}>
+                Keep Viewing
+              </Button>
+              <Button
+                onClick={confirmCancel}
+                disabled={actionLoading}
+                variant="destructive"
+              >
+                {actionLoading ? 'Cancelling...' : 'Cancel Viewing'}
               </Button>
             </div>
           </div>

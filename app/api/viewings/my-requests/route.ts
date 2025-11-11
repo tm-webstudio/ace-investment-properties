@@ -27,14 +27,15 @@ export async function GET(request: NextRequest) {
       .from('property_viewings')
       .select('*')
       .eq('user_id', req.user.id)
-      .order('viewing_date', { ascending: false })
-      .order('viewing_time', { ascending: false })
-      .range(offset, offset + limit - 1)
 
     // Filter by status if provided
     if (status && status !== 'all') {
       query = query.eq('status', status)
     }
+
+    // Order by created_at descending to show newest requests first
+    query = query.order('created_at', { ascending: false })
+    query = query.range(offset, offset + limit - 1)
 
     const { data: viewings, error: viewingsError } = await query
 
@@ -52,10 +53,10 @@ export async function GET(request: NextRequest) {
         if (viewing.property_id) {
           const { data: property } = await supabase
             .from('properties')
-            .select('id, property_type, address, city, monthly_rent, photos')
+            .select('id, property_type, address, city, postcode, monthly_rent, photos')
             .eq('id', viewing.property_id)
             .single()
-          
+
           // Attach the property data to the viewing
           viewing.property = property
         }

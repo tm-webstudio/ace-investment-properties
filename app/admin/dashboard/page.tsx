@@ -1,6 +1,8 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
+import Link from "next/link"
 import { DashboardNavigationHeader } from "@/components/dashboard-navigation-header"
 import { DashboardFooter } from "@/components/dashboard-footer"
 import { AdminDashboardOverview } from "@/components/admin-dashboard-overview"
@@ -12,11 +14,51 @@ import { AdminDashboardSettings } from "@/components/admin-dashboard-settings"
 import { Card, CardHeader } from "@/components/ui/card"
 import { sampleAdmins } from "@/lib/sample-data"
 import { AdminDashboardNavigation } from "@/components/admin-dashboard-navigation"
+import { supabase } from "@/lib/supabase"
 
 export default function AdminDashboard() {
+  const router = useRouter()
+  const [isLoading, setIsLoading] = useState(true)
+  const [user, setUser] = useState<any>(null)
+  const [userProfile, setUserProfile] = useState<any>(null)
   // In a real app, this would come from authentication
   const currentAdmin = sampleAdmins[0]
   const [activeTab, setActiveTab] = useState("dashboard")
+
+  useEffect(() => {
+    checkAuth()
+  }, [])
+
+  const checkAuth = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+
+      if (!user) {
+        setIsLoading(false)
+        return
+      }
+
+      setUser(user)
+
+      // Check if user is an admin
+      const { data: profile } = await supabase
+        .from('user_profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single()
+
+      if (profile?.user_type !== 'admin') {
+        setIsLoading(false)
+        return
+      }
+
+      setUserProfile(profile)
+      setIsLoading(false)
+    } catch (error) {
+      console.error('Error checking auth:', error)
+      setIsLoading(false)
+    }
+  }
 
   const getPageSubtitle = () => {
     switch (activeTab) {
@@ -37,6 +79,67 @@ export default function AdminDashboard() {
       default:
         return "Manage properties, viewings, and platform operations"
     }
+  }
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading dashboard...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (!user || !userProfile) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8 relative">
+        {/* Header with Logo */}
+        <div className="absolute top-4 left-4 right-4 flex items-center justify-center z-10">
+          <Link href="/" className="flex justify-center">
+            <span className="font-serif font-bold text-xl text-primary">
+              Ace Investment Properties
+            </span>
+          </Link>
+        </div>
+
+        <div className="mx-auto w-full max-w-md">
+          <div className="text-center">
+            <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+              </svg>
+            </div>
+            <h2 className="mt-6 text-3xl font-bold tracking-tight text-gray-900">
+              Admin Access Required
+            </h2>
+            <p className="mt-2 text-sm text-gray-600">
+              You need administrator privileges to access this dashboard.
+            </p>
+          </div>
+        </div>
+
+        <div className="mt-8 mx-auto w-full max-w-md">
+          <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
+            <div className="space-y-4">
+              <a
+                href="/auth/signin"
+                className="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-colors"
+              >
+                Sign In
+              </a>
+              <a
+                href="/"
+                className="w-full flex justify-center py-3 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-colors"
+              >
+                Back to Home
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   return (

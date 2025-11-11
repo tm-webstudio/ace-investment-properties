@@ -26,15 +26,6 @@ export function Footer() {
               <Link href="/landlord/add-property" className="block hover:text-accent transition-colors">
                 List Your Property
               </Link>
-              <Link href="/landlord/dashboard" className="block hover:text-accent transition-colors">
-                Landlord Dashboard
-              </Link>
-              <Link href="/investor/dashboard" className="block hover:text-accent transition-colors">
-                Investor Dashboard
-              </Link>
-              <Link href="/admin/dashboard" className="block hover:text-accent transition-colors">
-                Admin Dashboard
-              </Link>
               <Link href="/about" className="block hover:text-accent transition-colors">
                 About Us
               </Link>

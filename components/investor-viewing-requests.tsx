@@ -80,9 +80,11 @@ export function InvestorViewingRequests({ variant = 'dashboard', limit }: Invest
       const result = await response.json()
 
       if (result.success) {
-        // Filter for only pending viewings if dashboard variant
+        // Filter for pending, approved, rejected, and cancelled viewings if dashboard variant
         const filteredViewings = variant === 'dashboard'
-          ? (result.viewings || []).filter((v: ViewingRequest) => v.status === 'pending')
+          ? (result.viewings || []).filter((v: ViewingRequest) =>
+              v.status === 'pending' || v.status === 'approved' || v.status === 'rejected' || v.status === 'cancelled'
+            )
           : result.viewings || []
 
         setViewings(filteredViewings)
@@ -182,7 +184,11 @@ export function InvestorViewingRequests({ variant = 'dashboard', limit }: Invest
                     </h3>
 
                     <Badge className={`${getStatusColor(viewing.status)} capitalize`}>
-                      {viewing.status === 'pending' ? 'awaiting approval' : viewing.status}
+                      {viewing.status === 'pending' ? 'awaiting approval' :
+                       viewing.status === 'approved' ? 'Approved' :
+                       viewing.status === 'rejected' ? 'Rejected' :
+                       viewing.status === 'cancelled' ? 'Cancelled' :
+                       viewing.status}
                     </Badge>
                   </div>
                 </div>
