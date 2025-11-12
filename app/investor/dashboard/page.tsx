@@ -9,6 +9,9 @@ import { PageHeader } from "@/components/page-header"
 import { InvestorDashboardNavigation } from "@/components/investor-dashboard-navigation"
 import { InvestorDashboardOverview } from "@/components/investor-dashboard-overview"
 import { InvestorDashboardProfile } from "@/components/investor-dashboard-profile"
+import { InvestorDashboardPreferences } from "@/components/investor-dashboard-preferences"
+import { InvestorDashboardSavedProperties } from "@/components/investor-dashboard-saved-properties"
+import { InvestorDashboardViewings } from "@/components/investor-dashboard-viewings"
 import { RecommendedProperties } from "@/components/recommended-properties"
 import { Button } from "@/components/ui/button"
 import { Edit3 } from "lucide-react"
@@ -92,6 +95,12 @@ export default function InvestorDashboard() {
     switch (activeTab) {
       case "profile":
         return "Manage your account information and preferences"
+      case "preferences":
+        return "Set your investment criteria and property preferences"
+      case "saved-properties":
+        return "View and manage your saved properties"
+      case "viewings":
+        return "Track your property viewing appointments"
       default:
         return "Track your property investments and opportunities"
     }
@@ -198,6 +207,9 @@ export default function InvestorDashboard() {
               <InvestorDashboardOverview investor={currentInvestor} />
             </div>
           )}
+          {activeTab === "preferences" && <InvestorDashboardPreferences preferences={preferences} />}
+          {activeTab === "saved-properties" && <InvestorDashboardSavedProperties />}
+          {activeTab === "viewings" && <InvestorDashboardViewings />}
           {activeTab === "profile" && <InvestorDashboardProfile isEditing={isEditingProfile} setIsEditing={setIsEditingProfile} />}
         </div>
       </main>

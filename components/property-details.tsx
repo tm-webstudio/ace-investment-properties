@@ -53,13 +53,13 @@ export function PropertyDetails({ property }: PropertyDetailsProps) {
         <div className="flex flex-wrap gap-6 text-muted-foreground">
           <div className="flex items-center">
             <Bed className="h-5 w-5 mr-2" />
-            <span className="font-medium">
+            <span>
               {property.bedrooms} bedroom{property.bedrooms !== 1 ? "s" : ""}
             </span>
           </div>
           <div className="flex items-center">
             <Bath className="h-5 w-5 mr-2" />
-            <span className="font-medium">
+            <span>
               {property.bathrooms} bathroom{property.bathrooms !== 1 ? "s" : ""}
             </span>
           </div>

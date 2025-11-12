@@ -734,7 +734,7 @@ export function ViewingRequests({ variant = 'dashboard', limit }: ViewingRequest
 
   if (variant === 'dashboard') {
     return (
-      <Card>
+      <Card className="max-h-[600px] overflow-hidden flex flex-col">
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>Viewing Requests</CardTitle>
           <Link href="/landlord/viewings">
@@ -743,7 +743,7 @@ export function ViewingRequests({ variant = 'dashboard', limit }: ViewingRequest
             </Button>
           </Link>
         </CardHeader>
-        <CardContent>
+        <CardContent className="overflow-y-auto flex-1">
           {cardContent}
         </CardContent>
       </Card>

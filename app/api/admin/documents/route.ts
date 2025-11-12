@@ -64,18 +64,27 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // Fetch all active properties
+    // Fetch all properties (admins need to see all documents regardless of status)
     const { data: properties, error: propertiesError } = await supabaseAdmin
       .from('properties')
-      .select('id, address, city, postcode, photos')
-      .eq('status', 'active')
+      .select('id, address, city, postcode, photos, status')
 
     if (propertiesError) {
       console.error('Error fetching properties:', propertiesError)
       return NextResponse.json(
-        { error: 'Failed to fetch properties' },
+        { error: 'Failed to fetch properties', details: propertiesError.message },
         { status: 500 }
       )
+    }
+
+    console.log('Properties found:', properties?.length || 0)
+
+    if (!properties || properties.length === 0) {
+      console.log('No properties in database')
+      return NextResponse.json({
+        success: true,
+        documents: []
+      })
     }
 
     // Fetch documents for each property and calculate completion
@@ -87,7 +96,7 @@ export async function GET(request: NextRequest) {
           .eq('property_id', property.id)
 
         const totalDocs = 5
-        const completedDocs = documents?.filter(doc => doc.file_url).length || 0
+        const completedDocs = documents?.filter(doc => doc.storage_path).length || 0
 
         return {
           propertyId: property.id,
@@ -107,6 +116,8 @@ export async function GET(request: NextRequest) {
       const bPercentage = (b.completedDocs / b.totalDocs) * 100
       return aPercentage - bPercentage
     })
+
+    console.log('Returning documents for properties:', sortedProperties.length)
 
     return NextResponse.json({
       success: true,

@@ -7,7 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { PropertyCard } from "@/components/property-card"
 import { PropertyTitle } from "@/components/property-title"
 import { ViewingRequests } from "@/components/viewing-requests"
-import { Settings, Eye, CheckCircle, XCircle, Clock, Calendar, Home, Users, BarChart3, Plus, Shield, Building, FileText } from "lucide-react"
+import { Settings, Eye, CheckCircle, XCircle, Clock, Calendar, Home, Users, BarChart3, Plus, Shield, Building, FileText, Download, ExternalLink } from "lucide-react"
 import Link from "next/link"
 import type { Admin } from "@/lib/sample-data"
 import { samplePendingProperties, sampleViewings, sampleProperties, sampleLandlords, sampleInvestors } from "@/lib/sample-data"
@@ -33,6 +33,10 @@ export function AdminDashboardOverview({ admin }: AdminDashboardOverviewProps) {
   const [modalType, setModalType] = useState<'approve' | 'reject' | 'success' | 'error'>('approve')
   const [modalMessage, setModalMessage] = useState('')
   const [selectedPropertyId, setSelectedPropertyId] = useState<string | null>(null)
+  const [documentsModalOpen, setDocumentsModalOpen] = useState(false)
+  const [selectedPropertyForDocs, setSelectedPropertyForDocs] = useState<any>(null)
+  const [propertyDocuments, setPropertyDocuments] = useState<any[]>([])
+  const [loadingDocuments, setLoadingDocuments] = useState(false)
 
   useEffect(() => {
     const fetchAdminData = async () => {
@@ -168,11 +172,15 @@ export function AdminDashboardOverview({ admin }: AdminDashboardOverviewProps) {
 
         const data = await response.json()
 
+        console.log('Documents API Response:', data)
+
         if (!response.ok) {
+          console.error('Documents API Error:', data.error)
           throw new Error(data.error || 'Failed to fetch documents')
         }
 
         if (data.success && data.documents) {
+          console.log('Documents received:', data.documents.length)
           // Map the data to match the expected format
           const formattedDocs = data.documents.map((doc: any) => ({
             propertyId: doc.propertyId,
@@ -184,7 +192,11 @@ export function AdminDashboardOverview({ admin }: AdminDashboardOverviewProps) {
             totalDocs: doc.totalDocs
           }))
 
+          console.log('Formatted docs:', formattedDocs)
+          console.log('First doc example:', formattedDocs[0])
           setDocumentsForDisplay(formattedDocs)
+        } else {
+          console.log('No documents data in response')
         }
       } catch (error) {
         console.error('Error fetching documents:', error)
@@ -291,10 +303,66 @@ export function AdminDashboardOverview({ admin }: AdminDashboardOverviewProps) {
     setSelectedPropertyId(null)
   }
 
+  const handleViewDocuments = async (property: any) => {
+    setSelectedPropertyForDocs(property)
+    setDocumentsModalOpen(true)
+    setLoadingDocuments(true)
+    setPropertyDocuments([])
+
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session?.access_token) {
+        console.error('No access token available')
+        return
+      }
+
+      const response = await fetch(`/api/admin/properties/${property.propertyId}/documents`, {
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`
+        }
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        if (data.success && data.documents) {
+          setPropertyDocuments(data.documents)
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching property documents:', error)
+    } finally {
+      setLoadingDocuments(false)
+    }
+  }
+
+  const handleDownloadDocument = async (fileUrl: string, fileName: string) => {
+    try {
+      const response = await fetch(fileUrl)
+      const blob = await response.blob()
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = fileName
+      document.body.appendChild(a)
+      a.click()
+      window.URL.revokeObjectURL(url)
+      document.body.removeChild(a)
+    } catch (error) {
+      console.error('Error downloading document:', error)
+      alert('Failed to download document')
+    }
+  }
+
+  const closeDocumentsModal = () => {
+    setDocumentsModalOpen(false)
+    setSelectedPropertyForDocs(null)
+    setPropertyDocuments([])
+  }
+
   return (
     <div className="space-y-8">
       {/* Overview Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-5 gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Properties</CardTitle>
@@ -427,7 +495,7 @@ export function AdminDashboardOverview({ admin }: AdminDashboardOverviewProps) {
         <ViewingRequests variant="dashboard" limit={5} />
 
         {/* Landlord Documents */}
-        <Card>
+        <Card className="max-h-[600px] overflow-hidden flex flex-col">
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle>Landlord Documents</CardTitle>
             <Link href="/admin/documents">
@@ -436,9 +504,9 @@ export function AdminDashboardOverview({ admin }: AdminDashboardOverviewProps) {
               </Button>
             </Link>
           </CardHeader>
-          <CardContent>
+          <CardContent className="overflow-y-auto flex-1">
             {documentsLoading ? (
-              <div className="space-y-3 max-h-[500px] overflow-y-auto pr-2">
+              <div className="space-y-3">
                 {[...Array(4)].map((_, i) => (
                   <div key={i} className="p-4 border rounded-lg">
                     <div className="mb-4">
@@ -456,7 +524,7 @@ export function AdminDashboardOverview({ admin }: AdminDashboardOverviewProps) {
                 ))}
               </div>
             ) : documentsForDisplay.length > 0 ? (
-              <div className="space-y-3 max-h-[500px] overflow-y-auto pr-2">
+              <div className="space-y-3">
                 {documentsForDisplay.map((property) => {
                   const percentage = (property.completedDocs / property.totalDocs) * 100
                   const getProgressBarColor = (percentage: number) => {
@@ -472,27 +540,10 @@ export function AdminDashboardOverview({ admin }: AdminDashboardOverviewProps) {
                     >
                       <div className="mb-4">
                         <p className="font-semibold text-[15px] mb-1 line-clamp-1">
-                          {property.address && property.city ? (
-                            <PropertyTitle
-                              address={property.address}
-                              city={property.city}
-                              postcode={property.postcode}
-                            />
-                          ) : (
-                            'Property Address Unavailable'
-                          )}
+                          {property.address}, {property.city}
                         </p>
                         <p className="text-sm text-muted-foreground line-clamp-1">
-                          {property.address && property.city ? (
-                            <PropertyTitle
-                              address={property.address}
-                              city={property.city}
-                              postcode={property.postcode}
-                              variant="full"
-                            />
-                          ) : (
-                            'Details not available'
-                          )}
+                          {property.postcode}
                         </p>
                       </div>
 
@@ -513,6 +564,7 @@ export function AdminDashboardOverview({ admin }: AdminDashboardOverviewProps) {
                           variant="outline"
                           size="sm"
                           className="min-w-[120px]"
+                          onClick={() => handleViewDocuments(property)}
                         >
                           <FileText className="h-4 w-4 mr-2" />
                           View
@@ -565,6 +617,120 @@ export function AdminDashboardOverview({ admin }: AdminDashboardOverviewProps) {
                 Close
               </Button>
             )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Documents Modal */}
+      <Dialog open={documentsModalOpen} onOpenChange={setDocumentsModalOpen}>
+        <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Property Documents</DialogTitle>
+            <DialogDescription>
+              {selectedPropertyForDocs && (
+                <PropertyTitle
+                  address={selectedPropertyForDocs.address}
+                  city={selectedPropertyForDocs.city}
+                  postcode={selectedPropertyForDocs.postcode}
+                  variant="full"
+                />
+              )}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-4">
+            {loadingDocuments ? (
+              <div className="space-y-3">
+                {[...Array(5)].map((_, i) => (
+                  <div key={i} className="p-4 border rounded-lg">
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1 space-y-2">
+                        <div className="h-5 bg-gray-200 rounded animate-pulse w-1/3"></div>
+                        <div className="h-4 bg-gray-200 rounded animate-pulse w-1/4"></div>
+                      </div>
+                      <div className="h-9 bg-gray-200 rounded animate-pulse w-24"></div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : propertyDocuments.length > 0 ? (
+              <div className="space-y-3">
+                {propertyDocuments.map((docType) => (
+                  <div
+                    key={docType.type}
+                    className={`p-4 border rounded-lg ${
+                      docType.document ? 'bg-green-50 border-green-200' : 'bg-gray-50 border-gray-200'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <h4 className="font-semibold text-gray-900">{docType.label}</h4>
+                          {docType.document ? (
+                            <Badge className="bg-green-100 text-green-800 text-xs">
+                              <CheckCircle className="h-3 w-3 mr-1" />
+                              Uploaded
+                            </Badge>
+                          ) : (
+                            <Badge variant="secondary" className="bg-gray-100 text-gray-600 text-xs">
+                              <XCircle className="h-3 w-3 mr-1" />
+                              Missing
+                            </Badge>
+                          )}
+                        </div>
+                        {docType.document && (
+                          <div className="text-sm text-gray-600">
+                            <p>File: {docType.document.file_name}</p>
+                            <p>Uploaded: {new Date(docType.document.uploaded_at).toLocaleDateString('en-GB')}</p>
+                            {docType.document.expiry_date && (
+                              <p className={
+                                new Date(docType.document.expiry_date) < new Date()
+                                  ? 'text-red-600 font-medium'
+                                  : new Date(docType.document.expiry_date) < new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+                                  ? 'text-orange-600 font-medium'
+                                  : ''
+                              }>
+                                Expires: {new Date(docType.document.expiry_date).toLocaleDateString('en-GB')}
+                              </p>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                      {docType.document && (
+                        <div className="flex gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => window.open(docType.document.file_url, '_blank')}
+                          >
+                            <ExternalLink className="h-4 w-4 mr-1" />
+                            View
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleDownloadDocument(docType.document.file_url, docType.document.file_name)}
+                          >
+                            <Download className="h-4 w-4 mr-1" />
+                            Download
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-12 text-muted-foreground">
+                <FileText className="h-12 w-12 mx-auto mb-3 opacity-50" />
+                <p className="text-base font-medium mb-1.5">No Documents Found</p>
+                <p className="text-sm">No documents have been uploaded for this property yet</p>
+              </div>
+            )}
+          </div>
+
+          <DialogFooter>
+            <Button onClick={closeDocumentsModal}>Close</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

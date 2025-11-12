@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { User, BarChart3, Settings } from "lucide-react"
+import { User, BarChart3, Settings, Heart, Calendar } from "lucide-react"
 
 interface InvestorDashboardNavigationProps {
   activeTab: string
@@ -13,6 +13,9 @@ interface InvestorDashboardNavigationProps {
 export function InvestorDashboardNavigation({ activeTab, onTabChange, customButton }: InvestorDashboardNavigationProps) {
   const navItems = [
     { id: "dashboard", label: "Dashboard", icon: BarChart3 },
+    { id: "preferences", label: "Preferences", icon: Settings },
+    { id: "saved-properties", label: "Saved Properties", icon: Heart },
+    { id: "viewings", label: "Viewings", icon: Calendar },
     { id: "profile", label: "Profile", icon: User },
   ]
 
@@ -42,20 +45,7 @@ export function InvestorDashboardNavigation({ activeTab, onTabChange, customButt
           ))}
         </nav>
 
-        {customButton || (
-          <Link href="/investor/preferences">
-            <Button className="
-              group bg-accent hover:bg-accent/90 text-accent-foreground
-              transition-all duration-200 ease-out
-              hover:scale-[1.02] hover:-translate-y-px
-              hover:shadow-md hover:shadow-accent/15
-              active:scale-[0.98] active:transition-none
-            ">
-              <Settings className="mr-2 h-4 w-4 transition-all duration-200 ease-out group-hover:scale-105" />
-              <span className="relative z-10 font-medium">Edit Preferences</span>
-            </Button>
-          </Link>
-        )}
+        {customButton}
       </div>
     </div>
   )
