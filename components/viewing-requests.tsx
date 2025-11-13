@@ -62,7 +62,7 @@ interface ViewingStats {
 }
 
 interface ViewingRequestsProps {
-  variant?: 'dashboard' | 'full'
+  variant?: 'dashboard' | 'full' | 'admin'
   limit?: number
 }
 
@@ -76,7 +76,11 @@ export function ViewingRequests({ variant = 'dashboard', limit }: ViewingRequest
     completed: 0
   })
   const [loading, setLoading] = useState(true)
-  const [filter, setFilter] = useState<string>(variant === 'dashboard' ? 'pending,approved,rejected,cancelled' : 'pending')
+  const [filter, setFilter] = useState<string>(
+    variant === 'dashboard' ? 'pending,approved,rejected,cancelled' :
+    variant === 'admin' ? 'all' :
+    'pending'
+  )
   const [expandedCard, setExpandedCard] = useState<string | null>(null)
   const [approveModalOpen, setApproveModalOpen] = useState(false)
   const [rejectModalOpen, setRejectModalOpen] = useState(false)
@@ -95,6 +99,11 @@ export function ViewingRequests({ variant = 'dashboard', limit }: ViewingRequest
         return
       }
 
+      // Determine which API endpoint to use
+      const apiEndpoint = variant === 'admin'
+        ? '/api/admin/viewings'
+        : '/api/viewings/for-my-properties'
+
       // For dashboard variant with pending,approved,rejected,cancelled filter, fetch all and filter client-side
       if (variant === 'dashboard' && filter === 'pending,approved,rejected,cancelled') {
         const queryParams = new URLSearchParams({
@@ -102,7 +111,7 @@ export function ViewingRequests({ variant = 'dashboard', limit }: ViewingRequest
           limit: limit ? limit.toString() : '50'
         })
 
-        const response = await fetch(`/api/viewings/for-my-properties?${queryParams}`, {
+        const response = await fetch(`${apiEndpoint}?${queryParams}`, {
           headers: {
             'Authorization': `Bearer ${session.access_token}`
           }
@@ -123,10 +132,10 @@ export function ViewingRequests({ variant = 'dashboard', limit }: ViewingRequest
       } else {
         const queryParams = new URLSearchParams({
           status: filter,
-          limit: limit ? limit.toString() : '20'
+          limit: limit ? limit.toString() : (variant === 'admin' ? '100' : '20')
         })
 
-        const response = await fetch(`/api/viewings/for-my-properties?${queryParams}`, {
+        const response = await fetch(`${apiEndpoint}?${queryParams}`, {
           headers: {
             'Authorization': `Bearer ${session.access_token}`
           }

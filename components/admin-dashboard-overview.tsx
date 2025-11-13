@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -7,7 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { PropertyCard } from "@/components/property-card"
 import { PropertyTitle } from "@/components/property-title"
 import { ViewingRequests } from "@/components/viewing-requests"
-import { Settings, Eye, CheckCircle, XCircle, Clock, Calendar, Home, Users, BarChart3, Plus, Shield, Building, FileText, Download, ExternalLink } from "lucide-react"
+import { Settings, Eye, CheckCircle, XCircle, Clock, Calendar, Home, Users, BarChart3, Plus, Shield, Building, FileText, Download, ExternalLink, ChevronLeft, ChevronRight } from "lucide-react"
 import Link from "next/link"
 import type { Admin } from "@/lib/sample-data"
 import { samplePendingProperties, sampleViewings, sampleProperties, sampleLandlords, sampleInvestors } from "@/lib/sample-data"
@@ -37,6 +37,9 @@ export function AdminDashboardOverview({ admin }: AdminDashboardOverviewProps) {
   const [selectedPropertyForDocs, setSelectedPropertyForDocs] = useState<any>(null)
   const [propertyDocuments, setPropertyDocuments] = useState<any[]>([])
   const [loadingDocuments, setLoadingDocuments] = useState(false)
+  const scrollRef = useRef<HTMLDivElement>(null)
+  const [canScrollLeft, setCanScrollLeft] = useState(false)
+  const [canScrollRight, setCanScrollRight] = useState(false)
 
   useEffect(() => {
     const fetchAdminData = async () => {
@@ -359,6 +362,47 @@ export function AdminDashboardOverview({ admin }: AdminDashboardOverviewProps) {
     setPropertyDocuments([])
   }
 
+  const updateScrollButtons = () => {
+    if (scrollRef.current) {
+      const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current
+      setCanScrollLeft(scrollLeft > 0)
+      setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 1)
+    }
+  }
+
+  const scrollLeft = () => {
+    if (scrollRef.current) {
+      const cardWidth = scrollRef.current.children[0]?.clientWidth || 0
+      const gap = 16 // gap-4 = 1rem = 16px
+      scrollRef.current.scrollBy({ left: -(cardWidth + gap), behavior: 'smooth' })
+    }
+  }
+
+  const scrollRight = () => {
+    if (scrollRef.current) {
+      const cardWidth = scrollRef.current.children[0]?.clientWidth || 0
+      const gap = 16 // gap-4 = 1rem = 16px
+      scrollRef.current.scrollBy({ left: cardWidth + gap, behavior: 'smooth' })
+    }
+  }
+
+  useEffect(() => {
+    const scrollContainer = scrollRef.current
+
+    if (scrollContainer) {
+      updateScrollButtons()
+      scrollContainer.addEventListener('scroll', updateScrollButtons)
+      window.addEventListener('resize', updateScrollButtons)
+    }
+
+    return () => {
+      if (scrollContainer) {
+        scrollContainer.removeEventListener('scroll', updateScrollButtons)
+        window.removeEventListener('resize', updateScrollButtons)
+      }
+    }
+  }, [pendingPropertiesForDisplay])
+
   return (
     <div className="space-y-8">
       {/* Overview Cards */}
@@ -431,34 +475,36 @@ export function AdminDashboardOverview({ admin }: AdminDashboardOverviewProps) {
         </CardHeader>
         <CardContent>
           {loading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              {[...Array(4)].map((_, i) => (
-                <div key={i} className="space-y-2">
-                  <div className="border rounded-lg overflow-hidden">
-                    {/* Image skeleton */}
-                    <div className="h-48 bg-gray-200 animate-pulse"></div>
-                    {/* Content skeleton */}
-                    <div className="p-4 space-y-3">
-                      <div className="h-5 bg-gray-200 rounded animate-pulse w-3/4"></div>
-                      <div className="h-4 bg-gray-200 rounded animate-pulse w-1/2"></div>
-                      <div className="flex gap-2">
-                        <div className="h-4 bg-gray-200 rounded animate-pulse w-16"></div>
-                        <div className="h-4 bg-gray-200 rounded animate-pulse w-16"></div>
-                      </div>
-                      <div className="h-6 bg-gray-200 rounded animate-pulse w-24"></div>
-                      <div className="flex gap-2">
-                        <div className="h-9 bg-gray-200 rounded animate-pulse flex-1"></div>
-                        <div className="h-9 bg-gray-200 rounded animate-pulse flex-1"></div>
+            <div className="relative">
+              <div className="flex overflow-x-hidden gap-4 pb-4">
+                {[...Array(4)].map((_, i) => (
+                  <div key={i} className="flex-none w-4/5 sm:w-1/2 lg:w-[23.5%] space-y-2">
+                    <div className="border rounded-lg overflow-hidden">
+                      {/* Image skeleton */}
+                      <div className="h-48 bg-gray-200 animate-pulse"></div>
+                      {/* Content skeleton */}
+                      <div className="p-4 space-y-3">
+                        <div className="h-5 bg-gray-200 rounded animate-pulse w-3/4"></div>
+                        <div className="h-4 bg-gray-200 rounded animate-pulse w-1/2"></div>
+                        <div className="flex gap-2">
+                          <div className="h-4 bg-gray-200 rounded animate-pulse w-16"></div>
+                          <div className="h-4 bg-gray-200 rounded animate-pulse w-16"></div>
+                        </div>
+                        <div className="h-6 bg-gray-200 rounded animate-pulse w-24"></div>
+                        <div className="flex gap-2">
+                          <div className="h-9 bg-gray-200 rounded animate-pulse flex-1"></div>
+                          <div className="h-9 bg-gray-200 rounded animate-pulse flex-1"></div>
+                        </div>
                       </div>
                     </div>
+                    {/* Admin info skeleton */}
+                    <div className="flex items-center justify-between">
+                      <div className="h-3 bg-gray-200 rounded animate-pulse w-24"></div>
+                      <div className="h-3 bg-gray-200 rounded animate-pulse w-28"></div>
+                    </div>
                   </div>
-                  {/* Admin info skeleton */}
-                  <div className="flex items-center justify-between">
-                    <div className="h-3 bg-gray-200 rounded animate-pulse w-24"></div>
-                    <div className="h-3 bg-gray-200 rounded animate-pulse w-28"></div>
-                  </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
           ) : pendingPropertiesForDisplay.length === 0 ? (
             <div className="text-center py-16 text-muted-foreground min-h-[320px] flex flex-col items-center justify-center">
@@ -467,23 +513,63 @@ export function AdminDashboardOverview({ admin }: AdminDashboardOverviewProps) {
               <p className="text-sm">All submitted properties have been reviewed</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              {pendingPropertiesForDisplay.map((property) => (
-              <div key={property.id} className="space-y-2">
-                <PropertyCard
-                  property={property}
-                  variant="admin"
-                  onApprove={handleApproveClick}
-                  onReject={handleRejectClick}
-                />
+            <div className="relative">
+              <div
+                ref={scrollRef}
+                className="flex overflow-x-auto gap-4 pb-4 scroll-smooth"
+                style={{
+                  scrollbarWidth: 'none',
+                  msOverflowStyle: 'none',
+                  scrollSnapType: 'x mandatory'
+                }}
+              >
+                {pendingPropertiesForDisplay.map((property) => (
+                  <div
+                    key={property.id}
+                    className="flex-none w-4/5 sm:w-1/2 lg:w-[23.5%] space-y-2"
+                    style={{ scrollSnapAlign: 'start' }}
+                  >
+                    <PropertyCard
+                      property={property}
+                      variant="admin"
+                      onApprove={handleApproveClick}
+                      onReject={handleRejectClick}
+                    />
 
-                {/* Admin info below the card */}
-                <div className="flex items-center justify-between text-xs text-muted-foreground">
-                  <span className="font-medium">By: {property._pendingInfo.landlordName}</span>
-                  <span>Submitted: {new Date(property._pendingInfo.submittedDate).toLocaleDateString('en-GB')}</span>
-                </div>
+                    {/* Admin info below the card */}
+                    <div className="flex items-center justify-between text-xs text-muted-foreground">
+                      <span className="font-medium">By: {property._pendingInfo.landlordName}</span>
+                      <span>Submitted: {new Date(property._pendingInfo.submittedDate).toLocaleDateString('en-GB')}</span>
+                    </div>
+                  </div>
+                ))}
               </div>
-            ))}
+
+              <style jsx>{`
+                div::-webkit-scrollbar {
+                  display: none;
+                }
+              `}</style>
+
+              {!loading && canScrollLeft && (
+                <button
+                  onClick={scrollLeft}
+                  className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 bg-white shadow-lg p-2 hover:bg-gray-50 transition-colors z-10"
+                  aria-label="Scroll left"
+                >
+                  <ChevronLeft className="h-6 w-6" />
+                </button>
+              )}
+
+              {!loading && canScrollRight && (
+                <button
+                  onClick={scrollRight}
+                  className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 bg-white shadow-lg p-2 hover:bg-gray-50 transition-colors z-10"
+                  aria-label="Scroll right"
+                >
+                  <ChevronRight className="h-6 w-6" />
+                </button>
+              )}
             </div>
           )}
         </CardContent>
