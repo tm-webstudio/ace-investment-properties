@@ -122,19 +122,24 @@ export default function PropertyPage({ params }: PropertyPageProps) {
               <PropertyDetails property={property} />
             </div>
 
-            {/* Sidebar */}
-            <div className="space-y-6">
-              <ApplicationModal property={property} onBookViewing={handleBookViewing} />
-              <LandlordCard
-                name={property.landlordName}
-                phone={property.landlordPhone}
-                email={property.landlordEmail}
-              />
+            {/* Sidebar - Sticky on desktop */}
+            <div className="lg:sticky lg:top-24 lg:self-start">
+              <div className="space-y-4 lg:max-h-[calc(100vh-7rem)] lg:overflow-auto">
+                <ApplicationModal property={property} onBookViewing={handleBookViewing} />
+                <LandlordCard
+                  name={property.landlordName}
+                  phone={property.landlordPhone}
+                  email={property.landlordEmail}
+                />
+              </div>
             </div>
           </div>
 
           {/* Similar Properties */}
-          <SimilarProperties currentPropertyId={property.id} propertyType={property.propertyType} />
+          <SimilarProperties
+            currentPropertyId={property.id}
+            propertyType={property.propertyType || property.property_type}
+          />
         </div>
         
         {/* Mobile Sticky Book Viewing Button */}

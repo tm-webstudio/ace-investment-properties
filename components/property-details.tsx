@@ -5,6 +5,23 @@ import { PropertyTitle } from "@/components/property-title"
 import { Bed, Bath, MapPin } from "lucide-react"
 import { format } from "date-fns"
 import type { Property } from "@/lib/sample-data"
+import dynamic from 'next/dynamic'
+
+// Dynamically import PropertyMap (Leaflet requires window object)
+const PropertyMap = dynamic(
+  () => import('@/components/PropertyMap').then(mod => ({ default: mod.PropertyMap })),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="bg-muted h-[300px] flex items-center justify-center rounded-lg">
+        <div className="text-center text-muted-foreground">
+          <MapPin className="h-12 w-12 mx-auto mb-2 animate-pulse" />
+          <p className="text-sm">Loading map...</p>
+        </div>
+      </div>
+    )
+  }
+)
 
 interface PropertyDetailsProps {
   property: Property
@@ -16,7 +33,7 @@ export function PropertyDetails({ property }: PropertyDetailsProps) {
       {/* Header */}
       <div className="space-y-4">
         <div>
-          <h1 className="font-sans text-xl md:text-3xl font-semibold text-foreground">
+          <h1 className="font-sans text-xl md:text-2xl font-semibold text-foreground">
             <PropertyTitle
               address={property.address}
               city={property.city}
@@ -68,84 +85,87 @@ export function PropertyDetails({ property }: PropertyDetailsProps) {
 
       <Separator />
 
+      {/* Property Details */}
+      <div className="space-y-6">
+        <h2 className="text-xl font-serif font-semibold">Property Details</h2>
+
+        <div>
+          <h3 className="font-medium text-foreground mb-3">Features</h3>
+          <ul className="grid grid-cols-1 md:grid-cols-2 gap-2 mb-6">
+            {property.amenities.map((amenity) => (
+              <li key={amenity} className="flex items-start">
+                <span className="text-accent mr-2">•</span>
+                <span className="text-muted-foreground">{amenity}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
+          <div className="flex justify-between py-3 border-b border-border">
+            <span className="text-muted-foreground">Property Type</span>
+            <span className="font-medium">{property.propertyType}</span>
+          </div>
+          <div className="flex justify-between py-3 border-b border-border">
+            <span className="text-muted-foreground">Bedrooms</span>
+            <span className="font-medium">{property.bedrooms}</span>
+          </div>
+          <div className="flex justify-between py-3 border-b border-border">
+            <span className="text-muted-foreground">Monthly Rent</span>
+            <span className="font-medium">£{property.price.toLocaleString()}</span>
+          </div>
+          <div className="flex justify-between py-3 border-b border-border">
+            <span className="text-muted-foreground">Bathrooms</span>
+            <span className="font-medium">{property.bathrooms}</span>
+          </div>
+          <div className="flex justify-between py-3 border-b border-border">
+            <span className="text-muted-foreground">Available Date</span>
+            <span className="font-medium">{format(new Date(property.availableDate), 'dd/MM/yyyy')}</span>
+          </div>
+          <div className="flex justify-between py-3 border-b border-border">
+            <span className="text-muted-foreground">Pet Policy</span>
+            <span className="font-medium">
+              {property.amenities.includes("Pet-friendly") ? "Pet Friendly" : "No Pets"}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <Separator />
+
       {/* Description */}
       <div className="space-y-4">
         <h2 className="text-xl font-serif font-semibold">Description</h2>
         <p className="text-muted-foreground leading-relaxed">{property.description}</p>
       </div>
 
-      <Separator />
 
-      {/* Property Details */}
-      <Card className="rounded-none">
-        <CardHeader>
-          <CardTitle>Property Details</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-              <div className="space-y-4">
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Property Type</span>
-                  <span className="font-medium">{property.propertyType}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Monthly Rent</span>
-                  <span className="font-medium">£{property.price.toLocaleString()}</span>
-                </div>
-              </div>
-              <div className="space-y-4">
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Bedrooms</span>
-                  <span className="font-medium">{property.bedrooms}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Bathrooms</span>
-                  <span className="font-medium">{property.bathrooms}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Available Date</span>
-                  <span className="font-medium">{format(new Date(property.availableDate), 'dd/MM/yyyy')}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Pet Policy</span>
-                  <span className="font-medium">
-                    {property.amenities.includes("Pet-friendly") ? "Pet Friendly" : "No Pets"}
-                  </span>
-                </div>
-              </div>
-            </div>
-            
-            <div>
-              <h4 className="font-medium text-foreground mb-3">Amenities</h4>
-              <div className="flex flex-wrap gap-2">
-                {property.amenities.map((amenity) => (
-                  <Badge key={amenity} variant="secondary" className="py-2">
-                    {amenity}
-                  </Badge>
-                ))}
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-
-      {/* Map Placeholder */}
+      {/* Location with Map */}
       <Card className="rounded-none">
         <CardHeader>
           <CardTitle>Location</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="bg-muted h-64 flex items-center justify-center">
-            <div className="text-center text-muted-foreground">
-              <MapPin className="h-12 w-12 mx-auto mb-2" />
-              <p className="text-lg font-medium">Interactive Map</p>
-              <p className="text-sm">
-                {property.address}, {property.city}, {property.state}
-              </p>
+          {property.latitude && property.longitude ? (
+            <PropertyMap
+              latitude={property.latitude}
+              longitude={property.longitude}
+              address={property.address}
+              city={property.city}
+              postcode={property.postcode}
+            />
+          ) : (
+            <div className="bg-muted h-[300px] flex items-center justify-center rounded-lg">
+              <div className="text-center text-muted-foreground">
+                <MapPin className="h-12 w-12 mx-auto mb-2" />
+                <p className="text-lg font-medium">Map will be available soon</p>
+                <p className="text-sm mt-2">
+                  {property.address}, {property.city}
+                  {property.postcode && `, ${property.postcode}`}
+                </p>
+              </div>
             </div>
-          </div>
+          )}
         </CardContent>
       </Card>
     </div>

@@ -50,7 +50,7 @@ export function ApplicationModal({ property, onBookViewing }: ApplicationModalPr
   return (
     <>
       {/* Apply Now Card */}
-      <Card className="border-accent/20 bg-green-50 sticky top-20">
+      <Card className="border-accent/20 bg-green-50">
         <CardContent className="space-y-4">
           <div className="text-center space-y-2">
             <div className="flex items-center justify-center space-x-2 text-accent">
