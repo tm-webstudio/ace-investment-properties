@@ -271,13 +271,25 @@ export function AdminDashboardReports() {
             {loadingDocuments ? (
               <div className="space-y-3">
                 {[...Array(5)].map((_, i) => (
-                  <div key={i} className="p-4 border rounded-lg">
-                    <div className="flex items-center justify-between">
-                      <div className="flex-1 space-y-2">
-                        <div className="h-5 bg-gray-200 rounded animate-pulse w-1/3"></div>
-                        <div className="h-4 bg-gray-200 rounded animate-pulse w-1/4"></div>
+                  <div key={i} className="border rounded-none">
+                    <div className="py-2 px-3">
+                      {/* Header skeleton */}
+                      <div className="flex items-start justify-between mb-2">
+                        <div className="flex-1 space-y-2">
+                          <div className="h-5 bg-gray-200 rounded w-2/5 animate-pulse"></div>
+                        </div>
+                        {/* Badge skeleton */}
+                        <div className="h-6 w-20 bg-gray-200 rounded animate-pulse"></div>
                       </div>
-                      <div className="h-9 bg-gray-200 rounded animate-pulse w-24"></div>
+                      {/* Filename box skeleton */}
+                      <div className="space-y-2 mb-2">
+                        <div className="h-8 bg-gray-200 rounded w-3/5 animate-pulse"></div>
+                      </div>
+                      {/* Buttons skeleton */}
+                      <div className="flex gap-2 pt-2 border-t">
+                        <div className="h-9 w-20 bg-gray-200 rounded animate-pulse"></div>
+                        <div className="h-9 w-28 bg-gray-200 rounded animate-pulse"></div>
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -287,62 +299,64 @@ export function AdminDashboardReports() {
                 {propertyDocuments.map((docType) => (
                   <div
                     key={docType.type}
-                    className={`p-4 border rounded-lg ${
-                      docType.document ? 'bg-green-50 border-green-200' : 'bg-gray-50 border-gray-200'
-                    }`}
+                    className="border rounded-none"
                   >
-                    <div className="flex items-center justify-between">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-1">
-                          <h4 className="font-semibold text-gray-900">{docType.label}</h4>
+                    <div className="py-2 px-3">
+                      {/* Header */}
+                      <div className="flex items-start justify-between mb-2">
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-semibold text-[15px]">{docType.label}</h3>
+                        </div>
+                        <div className="flex-shrink-0 ml-3">
                           {docType.document ? (
-                            <Badge className="bg-green-100 text-green-800 text-xs">
-                              <CheckCircle className="h-3 w-3 mr-1" />
-                              Uploaded
-                            </Badge>
+                            <Badge variant="secondary" className="bg-yellow-200 text-yellow-800">Awaiting Approval</Badge>
                           ) : (
-                            <Badge variant="secondary" className="bg-gray-100 text-gray-600 text-xs">
-                              <XCircle className="h-3 w-3 mr-1" />
-                              Missing
-                            </Badge>
+                            <Badge variant="secondary" className="bg-gray-200 text-gray-700">Not Uploaded</Badge>
                           )}
                         </div>
-                        {docType.document && (
-                          <div className="text-sm text-gray-600">
-                            <p>File: {docType.document.file_name}</p>
-                            <p>Uploaded: {new Date(docType.document.uploaded_at).toLocaleDateString('en-GB')}</p>
-                            {docType.document.expiry_date && (
-                              <p className={
-                                new Date(docType.document.expiry_date) < new Date()
-                                  ? 'text-red-600 font-medium'
-                                  : new Date(docType.document.expiry_date) < new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
-                                  ? 'text-orange-600 font-medium'
-                                  : ''
-                              }>
-                                Expires: {new Date(docType.document.expiry_date).toLocaleDateString('en-GB')}
+                      </div>
+
+                      {docType.document && (
+                        <div className="space-y-2">
+                          {/* Filename with background */}
+                          <div className="space-y-1.5">
+                            <div className="bg-gray-50 rounded px-2 py-1.5 inline-block">
+                              <p className="text-sm text-gray-700">
+                                {docType.document.file_name}
                               </p>
+                            </div>
+                            {docType.document.expiry_date && (
+                              <span className={`text-sm ${
+                                new Date(docType.document.expiry_date) < new Date()
+                                  ? 'text-red-600'
+                                  : new Date(docType.document.expiry_date) < new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+                                  ? 'text-orange-600'
+                                  : 'text-muted-foreground'
+                              }`}>
+                                Expires: {new Date(docType.document.expiry_date).toLocaleDateString('en-GB')}
+                              </span>
                             )}
                           </div>
-                        )}
-                      </div>
-                      {docType.document && (
-                        <div className="flex gap-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => window.open(docType.document!.file_url, '_blank')}
-                          >
-                            <ExternalLink className="h-4 w-4 mr-1" />
-                            View
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleDownloadDocument(docType.document!.file_url, docType.document!.file_name)}
-                          >
-                            <Download className="h-4 w-4 mr-1" />
-                            Download
-                          </Button>
+
+                          {/* Action buttons */}
+                          <div className="flex gap-2 pt-2 border-t">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => window.open(docType.document!.file_url, '_blank')}
+                            >
+                              <ExternalLink className="h-4 w-4 mr-1.5" />
+                              View
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleDownloadDocument(docType.document!.file_url, docType.document!.file_name)}
+                            >
+                              <Download className="h-4 w-4 mr-1.5" />
+                              Download
+                            </Button>
+                          </div>
                         </div>
                       )}
                     </div>
