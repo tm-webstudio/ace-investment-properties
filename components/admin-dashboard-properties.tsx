@@ -1,8 +1,9 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Building } from "lucide-react"
+import { Building, Filter } from "lucide-react"
 import { PropertyCard } from "./property-card"
+import { Button } from "@/components/ui/button"
 import { supabase } from "@/lib/supabase"
 
 interface Property {
@@ -34,14 +35,15 @@ interface Property {
   longitude?: number
 }
 
-export function AdminDashboardProperties({ pendingOnly }: { pendingOnly?: boolean }) {
+export function AdminDashboardProperties() {
   const [properties, setProperties] = useState<Property[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [filter, setFilter] = useState<'all' | 'active' | 'draft'>('all')
 
   useEffect(() => {
     fetchProperties()
-  }, [pendingOnly])
+  }, [filter])
 
   const fetchProperties = async () => {
     try {
@@ -58,10 +60,8 @@ export function AdminDashboardProperties({ pendingOnly }: { pendingOnly?: boolea
 
       // Build query parameters
       const params = new URLSearchParams()
-      if (pendingOnly) {
-        params.append('status', 'draft')
-      } else {
-        params.append('status', 'active')
+      if (filter !== 'all') {
+        params.append('status', filter)
       }
 
       const response = await fetch(`/api/admin/properties?${params.toString()}`, {
@@ -129,49 +129,92 @@ export function AdminDashboardProperties({ pendingOnly }: { pendingOnly?: boolea
     )
   }
 
-  if (properties.length === 0) {
-    return (
-      <div className="text-center py-16 text-muted-foreground min-h-[320px] flex flex-col items-center justify-center">
-        <Building className="h-10 w-10 mx-auto mb-3 opacity-50" />
-        <p className="text-base font-medium mb-1.5">
-          {pendingOnly ? "No Pending Properties" : "No Properties"}
-        </p>
-        <p className="text-sm">
-          {pendingOnly
-            ? "There are no properties awaiting approval"
-            : "No active properties found"
-          }
-        </p>
-      </div>
-    )
+  const getEmptyStateMessage = () => {
+    switch (filter) {
+      case 'draft':
+        return {
+          title: "No Pending Properties",
+          description: "There are no properties awaiting approval"
+        }
+      case 'active':
+        return {
+          title: "No Active Properties",
+          description: "No active properties found"
+        }
+      default:
+        return {
+          title: "No Properties",
+          description: "No properties found"
+        }
+    }
   }
 
-  return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-      {properties.map((property) => (
-        pendingOnly ? (
-          <div key={property.id} className="space-y-2">
-            <PropertyCard
-              property={property}
-              variant="admin"
-              onApprove={fetchProperties}
-              onReject={fetchProperties}
-            />
+  const emptyState = getEmptyStateMessage()
 
-            {/* Admin info below the card */}
-            <div className="flex items-center justify-between text-xs text-muted-foreground">
-              <span className="font-medium">By: {property.landlordName}</span>
-              <span>Submitted: {new Date(property.created_at).toLocaleDateString('en-GB')}</span>
-            </div>
-          </div>
-        ) : (
-          <PropertyCard
-            key={property.id}
-            property={property}
-            variant="default"
-          />
-        )
-      ))}
-    </div>
+  return (
+    <>
+      {/* Filter Buttons */}
+      <div className="flex flex-wrap gap-2 mb-6">
+        <Button
+          variant={filter === 'all' ? "default" : "outline"}
+          onClick={() => setFilter('all')}
+          className="h-9"
+        >
+          <Filter className="h-4 w-4 mr-2" />
+          All Properties
+        </Button>
+        <Button
+          variant={filter === 'active' ? "default" : "outline"}
+          onClick={() => setFilter('active')}
+          className="h-9"
+        >
+          <Filter className="h-4 w-4 mr-2" />
+          Active
+        </Button>
+        <Button
+          variant={filter === 'draft' ? "default" : "outline"}
+          onClick={() => setFilter('draft')}
+          className="h-9"
+        >
+          <Filter className="h-4 w-4 mr-2" />
+          Pending
+        </Button>
+      </div>
+
+      {properties.length === 0 ? (
+        <div className="text-center py-16 text-muted-foreground min-h-[320px] flex flex-col items-center justify-center">
+          <Building className="h-10 w-10 mx-auto mb-3 opacity-50" />
+          <p className="text-base font-medium mb-1.5">{emptyState.title}</p>
+          <p className="text-sm">{emptyState.description}</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {properties.map((property) => (
+            filter === 'draft' ? (
+              <div key={property.id} className="space-y-2">
+                <PropertyCard
+                  property={property}
+                  variant="admin"
+                  onApprove={fetchProperties}
+                  onReject={fetchProperties}
+                />
+
+                {/* Admin info below the card */}
+                <div className="flex items-center justify-between text-xs text-muted-foreground">
+                  <span className="font-medium">By: {property.landlordName}</span>
+                  <span>Submitted: {new Date(property.created_at).toLocaleDateString('en-GB')}</span>
+                </div>
+              </div>
+            ) : (
+              <PropertyCard
+                key={property.id}
+                property={property}
+                variant="default"
+              />
+            )
+          ))}
+        </div>
+      )}
+    </>
   )
 }

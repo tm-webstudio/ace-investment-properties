@@ -19,31 +19,53 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     // Get initial session
     const getInitialSession = async () => {
-      // First check for stored access token from our auth flow
-      const accessToken = localStorage.getItem('accessToken')
-      
-      if (accessToken) {
-        console.log('Auth context: Found access token, verifying with Supabase')
-        
-        // Verify the stored token
-        const { data: { user }, error } = await supabase.auth.getUser(accessToken)
-        
-        if (user && !error) {
-          console.log('Auth context: Token is valid, user authenticated:', user.id)
-          setUser(user)
-          setLoading(false)
-          return
-        } else {
-          console.log('Auth context: Stored token is invalid, clearing localStorage')
+      try {
+        // First check for stored access token from our auth flow
+        const accessToken = localStorage.getItem('accessToken')
+
+        if (accessToken) {
+          console.log('Auth context: Found access token, verifying with Supabase')
+
+          // Verify the stored token
+          const { data: { user }, error } = await supabase.auth.getUser(accessToken)
+
+          if (user && !error) {
+            console.log('Auth context: Token is valid, user authenticated:', user.id)
+            setUser(user)
+            setLoading(false)
+            return
+          } else {
+            console.log('Auth context: Stored token is invalid, clearing localStorage')
+            localStorage.removeItem('accessToken')
+            localStorage.removeItem('refreshToken')
+          }
+        }
+
+        // Fallback to regular session check
+        const { data: { session }, error } = await supabase.auth.getSession()
+
+        // If there's a refresh token error, clear the session
+        if (error && error.message.includes('refresh_token_not_found')) {
+          console.log('Auth context: Invalid refresh token, clearing session')
           localStorage.removeItem('accessToken')
           localStorage.removeItem('refreshToken')
+          await supabase.auth.signOut()
+          setUser(null)
+          setLoading(false)
+          return
         }
+
+        setUser(session?.user ?? null)
+        setLoading(false)
+      } catch (error) {
+        console.error('Auth context: Error getting session:', error)
+        // Clear potentially corrupted session data
+        localStorage.removeItem('accessToken')
+        localStorage.removeItem('refreshToken')
+        await supabase.auth.signOut()
+        setUser(null)
+        setLoading(false)
       }
-      
-      // Fallback to regular session check
-      const { data: { session } } = await supabase.auth.getSession()
-      setUser(session?.user ?? null)
-      setLoading(false)
     }
 
     getInitialSession()
@@ -51,6 +73,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        // Handle sign out or token refresh errors
+        if (event === 'SIGNED_OUT' || event === 'TOKEN_REFRESHED') {
+          if (!session) {
+            localStorage.removeItem('accessToken')
+            localStorage.removeItem('refreshToken')
+          }
+        }
+
         setUser(session?.user ?? null)
         setLoading(false)
       }

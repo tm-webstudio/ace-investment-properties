@@ -58,7 +58,7 @@ export function PageHeader({
   const variantClasses = getVariantClasses()
 
   return (
-    <Card className={`mb-4 ${variantClasses.background} ${className}`}>
+    <Card className={`mb-8 ${variantClasses.background} ${className}`}>
       <CardHeader className="pb-4 pt-4">
         {category && (
           <p className={`text-sm font-bold uppercase tracking-wide mb-1 ${variantClasses.category}`}>

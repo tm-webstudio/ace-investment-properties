@@ -343,7 +343,7 @@ export function DashboardOverview({ userId, onTabChange }: DashboardOverviewProp
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Compliance & Documents */}
-        <Card>
+        <Card className="max-h-[600px] overflow-hidden flex flex-col">
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle>Compliance & Documents</CardTitle>
             {onTabChange ? (
@@ -363,7 +363,7 @@ export function DashboardOverview({ userId, onTabChange }: DashboardOverviewProp
               </Link>
             )}
           </CardHeader>
-          <CardContent>
+          <CardContent className="overflow-y-auto flex-1">
             {loadingDocs ? (
               <div className="space-y-3">
                 {[...Array(4)].map((_, i) => (
@@ -386,7 +386,7 @@ export function DashboardOverview({ userId, onTabChange }: DashboardOverviewProp
               </div>
             ) : propertiesDocSummary.length > 0 ? (
               <div className="space-y-3">
-                {propertiesDocSummary.slice(0, 4).map((property) => {
+                {propertiesDocSummary.map((property) => {
                   const percentage = (property.completedDocs / property.totalDocs) * 100
                   return (
                     <div

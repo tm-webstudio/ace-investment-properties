@@ -64,18 +64,12 @@ export default function AdminDashboard() {
     switch (activeTab) {
       case "properties":
         return "View and manage all property listings"
-      case "pending-properties":
-        return "Review and approve pending property submissions"
-      case "landlords":
-        return "Manage landlord accounts and profiles"
-      case "investors":
-        return "Manage investor accounts and profiles"
+      case "users":
+        return "Manage landlord and investor accounts"
       case "viewings":
         return "Monitor and manage property viewings"
       case "documents":
         return "Review and manage landlord documents"
-      case "settings":
-        return "Configure platform settings and preferences"
       default:
         return "Manage properties, viewings, and platform operations"
     }
@@ -166,12 +160,9 @@ export default function AdminDashboard() {
 
           {activeTab === "dashboard" && <AdminDashboardOverview admin={currentAdmin} />}
           {activeTab === "properties" && <AdminDashboardProperties />}
-          {activeTab === "pending-properties" && <AdminDashboardProperties pendingOnly={true} />}
-          {activeTab === "landlords" && <AdminDashboardUsers userType="landlord" />}
-          {activeTab === "investors" && <AdminDashboardUsers userType="investor" />}
+          {activeTab === "users" && <AdminDashboardUsers />}
           {activeTab === "viewings" && <AdminDashboardViewings />}
           {activeTab === "documents" && <AdminDashboardReports />}
-          {activeTab === "settings" && <AdminDashboardSettings />}
         </div>
       </main>
       <DashboardFooter />

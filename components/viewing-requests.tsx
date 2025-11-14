@@ -444,10 +444,10 @@ export function ViewingRequests({ variant = 'dashboard', limit }: ViewingRequest
       {variant === 'full' && renderStatsCards()}
       {variant === 'full' && renderFilterButtons()}
 
-      <div className="space-y-3">
+      <div className={variant === 'admin' ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4' : 'space-y-3'}>
         {loading ? (
           <>
-            {[...Array(variant === 'dashboard' ? 3 : 5)].map((_, i) => (
+            {[...Array(variant === 'dashboard' ? 3 : 6)].map((_, i) => (
               <div key={i} className="border rounded-lg p-4 space-y-3">
                 {/* Header skeleton */}
                 <div className="flex items-start justify-between mb-2">

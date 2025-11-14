@@ -1,7 +1,8 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { PropertyDocumentsCard } from "@/components/property-documents-card"
+import { Card, CardContent } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
 import { PropertyDocumentsModal } from "@/components/property-documents-modal"
 import { supabase } from "@/lib/supabase"
 import { FileText } from "lucide-react"
@@ -65,54 +66,95 @@ export function DashboardDocuments() {
     fetchPropertiesSummary()
   }
 
+  const getProgressBarColor = (percentage: number) => {
+    if (percentage >= 80) return "bg-green-500"
+    if (percentage >= 50) return "bg-yellow-500"
+    return "bg-destructive"
+  }
+
   if (loading) {
     return (
-      <div className="mt-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {[...Array(8)].map((_, i) => (
-            <div key={i} className="border rounded-lg overflow-hidden">
-              {/* Image skeleton */}
-              <div className="h-48 bg-gray-200 animate-pulse"></div>
-              {/* Content skeleton */}
-              <div className="p-6 space-y-3">
-                <div className="space-y-2 mb-4">
-                  <div className="h-5 bg-gray-200 rounded animate-pulse w-3/4"></div>
-                  <div className="h-4 bg-gray-200 rounded animate-pulse w-full"></div>
-                </div>
-                <div className="flex items-end gap-6">
-                  <div className="flex-1 space-y-2">
-                    <div className="h-4 bg-gray-200 rounded animate-pulse w-32"></div>
-                    <div className="h-2 bg-gray-200 rounded animate-pulse w-full"></div>
-                  </div>
-                  <div className="h-9 bg-gray-200 rounded animate-pulse w-[120px]"></div>
-                </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {[1, 2, 3, 4, 5, 6].map((i) => (
+          <Card key={i} className="rounded-none">
+            <CardContent className="p-4">
+              <div className="mb-4">
+                <div className="h-5 bg-gray-200 rounded w-3/4 mb-1 animate-pulse"></div>
+                <div className="h-4 bg-gray-200 rounded w-full animate-pulse"></div>
               </div>
-            </div>
-          ))}
-        </div>
+              <div className="flex items-end gap-6">
+                <div className="flex-1 space-y-1">
+                  <div className="h-4 bg-gray-200 rounded w-32 mb-1 animate-pulse"></div>
+                  <div className="h-2 bg-gray-200 rounded w-full animate-pulse"></div>
+                </div>
+                <div className="h-9 bg-gray-200 rounded w-[120px] animate-pulse"></div>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    )
+  }
+
+  if (properties.length === 0) {
+    return (
+      <div className="text-center py-16 text-muted-foreground min-h-[320px] flex flex-col items-center justify-center">
+        <FileText className="h-10 w-10 mx-auto mb-3 opacity-50" />
+        <p className="text-base font-medium mb-1.5">No Properties Found</p>
+        <p className="text-sm">Add a property to start managing documents</p>
       </div>
     )
   }
 
   return (
-    <div className="mt-8">
-      {properties.length === 0 ? (
-        <div className="text-center py-16 text-muted-foreground min-h-[320px] flex flex-col items-center justify-center">
-          <FileText className="h-10 w-10 mx-auto mb-3 opacity-50" />
-          <p className="text-base font-medium mb-1.5">No Properties Found</p>
-          <p className="text-sm">Add a property to start managing documents</p>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {properties.map((property) => (
-            <PropertyDocumentsCard
+    <>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {properties.map((property) => {
+          const percentage = (property.completedDocs / property.totalDocs) * 100
+
+          return (
+            <Card
               key={property.propertyId}
-              property={property}
-              onViewDocuments={handleViewDocuments}
-            />
-          ))}
-        </div>
-      )}
+              className="rounded-none hover:shadow-md transition-shadow"
+            >
+              <CardContent className="p-4">
+                <div className="mb-4">
+                  <p className="font-semibold text-[15px] mb-1 line-clamp-1">
+                    {property.address}, {property.city}
+                  </p>
+                  <p className="text-sm text-muted-foreground line-clamp-1">
+                    {property.postcode}
+                  </p>
+                </div>
+
+                <div className="flex items-end gap-3 sm:gap-6">
+                  <div className="flex-1 space-y-1">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-0.5 sm:gap-0 text-sm">
+                      <span className="text-muted-foreground">Documents:</span>
+                      <span className="font-semibold">{property.completedDocs}/{property.totalDocs} Complete</span>
+                    </div>
+                    <div className="relative h-2 w-full overflow-hidden rounded-full bg-primary/20">
+                      <div
+                        className={`h-full rounded-full transition-all ${getProgressBarColor(percentage)}`}
+                        style={{ width: `${percentage}%` }}
+                      />
+                    </div>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="min-w-[120px]"
+                    onClick={() => handleViewDocuments(property)}
+                  >
+                    <FileText className="h-4 w-4 mr-2" />
+                    View
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          )
+        })}
+      </div>
 
       {modalOpen && selectedProperty && (
         <PropertyDocumentsModal
@@ -121,6 +163,6 @@ export function DashboardDocuments() {
           onClose={handleCloseModal}
         />
       )}
-    </div>
+    </>
   )
 }

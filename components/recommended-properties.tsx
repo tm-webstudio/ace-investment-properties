@@ -1,13 +1,13 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Toggle } from "@/components/ui/toggle"
 import { PropertyCard } from "@/components/property-card"
 import { PreferencesModal } from "@/components/preferences-modal"
-import { Settings, Filter, RefreshCw, Heart } from "lucide-react"
+import { Settings, Filter, RefreshCw, Heart, ChevronLeft, ChevronRight } from "lucide-react"
 import Link from "next/link"
 import { supabase } from "@/lib/supabase"
 
@@ -44,11 +44,18 @@ export function RecommendedProperties({ className, preferences }: RecommendedPro
   const [totalMatches, setTotalMatches] = useState(0)
   const [savedProperties, setSavedProperties] = useState<Set<string>>(new Set())
   const [hasMore, setHasMore] = useState(true)
+  const scrollRef = useRef<HTMLDivElement>(null)
+  const [canScrollLeft, setCanScrollLeft] = useState(false)
+  const [canScrollRight, setCanScrollRight] = useState(false)
 
   useEffect(() => {
     fetchRecommendedProperties()
     fetchSavedProperties()
   }, [showBestOnly])
+
+  useEffect(() => {
+    updateScrollButtons()
+  }, [properties])
 
   const fetchRecommendedProperties = async (offset = 0) => {
     try {
@@ -153,6 +160,28 @@ export function RecommendedProperties({ className, preferences }: RecommendedPro
     setLoading(true)
     setProperties([])
     fetchRecommendedProperties(0)
+  }
+
+  const updateScrollButtons = () => {
+    if (scrollRef.current) {
+      const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current
+      setCanScrollLeft(scrollLeft > 0)
+      setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 10)
+    }
+  }
+
+  const scrollLeft = () => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollBy({ left: -400, behavior: 'smooth' })
+      setTimeout(updateScrollButtons, 100)
+    }
+  }
+
+  const scrollRight = () => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollBy({ left: 400, behavior: 'smooth' })
+      setTimeout(updateScrollButtons, 100)
+    }
   }
 
   if (loading) {
@@ -306,44 +335,86 @@ export function RecommendedProperties({ className, preferences }: RecommendedPro
       </CardHeader>
       <CardContent className="space-y-4">
 
-        {/* Properties Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
-          {properties.map((property) => {
-            // Convert to exact Property interface format
-            const convertedProperty = {
-              id: property.id,
-              title: property.title,
-              price: property.price, // Use converted price from API
-              monthly_rent: property.monthly_rent,
-              deposit: 0,
-              address: property.address || '',
-              city: property.city,
-              state: '',
-              bedrooms: parseInt(property.bedrooms) || 0,
-              bathrooms: parseInt(property.bathrooms) || 0,
-              propertyType: property.property_type as "Studio" | "1BR" | "2BR" | "3BR+" | "House",
-              property_type: property.property_type,
-              description: '',
-              amenities: [],
-              images: property.photos || [],
-              availableDate: property.available_date || '',
-              availability: property.availability || 'vacant',
-              property_licence: property.property_licence || 'none',
-              property_condition: property.property_condition || 'good',
-              landlordId: '',
-              landlordName: '',
-              landlordPhone: '',
-              landlordEmail: '',
-              featured: false
+        {/* Properties Carousel */}
+        <div className="relative">
+          <div
+            ref={scrollRef}
+            className="flex overflow-x-auto gap-4 pb-4 scroll-smooth"
+            onScroll={updateScrollButtons}
+            style={{
+              scrollbarWidth: 'none',
+              msOverflowStyle: 'none',
+              scrollSnapType: 'x mandatory'
+            }}
+          >
+            {properties.map((property) => {
+              // Convert to exact Property interface format
+              const convertedProperty = {
+                id: property.id,
+                title: property.title,
+                price: property.price, // Use converted price from API
+                monthly_rent: property.monthly_rent,
+                deposit: 0,
+                address: property.address || '',
+                city: property.city,
+                state: '',
+                bedrooms: parseInt(property.bedrooms) || 0,
+                bathrooms: parseInt(property.bathrooms) || 0,
+                propertyType: property.property_type as "Studio" | "1BR" | "2BR" | "3BR+" | "House",
+                property_type: property.property_type,
+                description: '',
+                amenities: [],
+                images: property.photos || [],
+                availableDate: property.available_date || '',
+                availability: property.availability || 'vacant',
+                property_licence: property.property_licence || 'none',
+                property_condition: property.property_condition || 'good',
+                landlordId: '',
+                landlordName: '',
+                landlordPhone: '',
+                landlordEmail: '',
+                featured: false
+              }
+
+              return (
+                <div
+                  key={property.id}
+                  className="flex-none w-4/5 sm:w-1/2 lg:w-[23.5%]"
+                  style={{ scrollSnapAlign: 'start' }}
+                >
+                  <PropertyCard
+                    property={convertedProperty}
+                  />
+                </div>
+              )
+            })}
+          </div>
+
+          <style jsx>{`
+            div::-webkit-scrollbar {
+              display: none;
             }
-            
-            return (
-              <PropertyCard
-                key={property.id}
-                property={convertedProperty}
-              />
-            )
-          })}
+          `}</style>
+
+          {!loading && canScrollLeft && (
+            <button
+              onClick={scrollLeft}
+              className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 bg-white shadow-lg p-2 hover:bg-gray-50 transition-colors z-10"
+              aria-label="Scroll left"
+            >
+              <ChevronLeft className="h-6 w-6" />
+            </button>
+          )}
+
+          {!loading && canScrollRight && (
+            <button
+              onClick={scrollRight}
+              className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 bg-white shadow-lg p-2 hover:bg-gray-50 transition-colors z-10"
+              aria-label="Scroll right"
+            >
+              <ChevronRight className="h-6 w-6" />
+            </button>
+          )}
         </div>
 
         {/* Load More */}

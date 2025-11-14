@@ -182,7 +182,7 @@ export function PropertyDocumentsModal({ property, open, onClose }: PropertyDocu
     }
 
     if (doc.status === 'pending') {
-      return <Badge variant="secondary" className="bg-yellow-200 text-yellow-800">Pending</Badge>
+      return <Badge variant="secondary" className="bg-yellow-200 text-yellow-800">Awaiting Approval</Badge>
     }
 
     if (doc.expiry_date) {
@@ -255,86 +255,151 @@ export function PropertyDocumentsModal({ property, open, onClose }: PropertyDocu
             </DialogTitle>
           </DialogHeader>
 
-          <div className="space-y-5 mt-6">
+          <div className="space-y-3 mt-6">
             {loading ? (
-              <div className="text-center py-8">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-                <p>Loading documents...</p>
+              <div className="space-y-3">
+                {[1, 2, 3, 4, 5].map((i) => (
+                  <Card key={i} className="rounded-none">
+                    <CardContent className="p-5">
+                      {/* Header skeleton */}
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="flex items-start gap-3 flex-1">
+                          {/* Document preview skeleton */}
+                          <div className="w-12 h-12 flex-shrink-0 rounded-lg bg-gray-200 animate-pulse"></div>
+                          <div className="flex-1 space-y-2">
+                            <div className="h-5 bg-gray-200 rounded w-2/5 animate-pulse"></div>
+                            <div className="h-4 bg-gray-200 rounded w-3/5 animate-pulse"></div>
+                          </div>
+                        </div>
+                        {/* Badge skeleton */}
+                        <div className="h-6 w-20 bg-gray-200 rounded animate-pulse"></div>
+                      </div>
+                      {/* Status message skeleton */}
+                      <div className="space-y-2 mb-3">
+                        <div className="h-4 bg-gray-200 rounded w-2/5 animate-pulse"></div>
+                      </div>
+                      {/* Buttons skeleton */}
+                      <div className="flex gap-2 flex-wrap pt-2 border-t">
+                        <div className="h-9 w-20 bg-gray-200 rounded animate-pulse"></div>
+                        <div className="h-9 w-28 bg-gray-200 rounded animate-pulse"></div>
+                        <div className="h-9 w-24 bg-gray-200 rounded animate-pulse"></div>
+                        <div className="h-9 w-20 bg-gray-200 rounded animate-pulse"></div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
               </div>
             ) : (
               documents.map((docGroup) => (
-                <Card key={docGroup.type} className="py-0">
-                  <CardContent className="p-4">
-                    <div className="flex items-start justify-between mb-4">
-                      <div className="flex items-center gap-3">
-                        <FileText className="h-5 w-5 text-muted-foreground" />
-                        <div>
-                          <h3 className="font-semibold">{docGroup.label}</h3>
-                          {docGroup.document && (
-                            <p className="text-sm text-muted-foreground">{docGroup.document.file_name}</p>
-                          )}
+                <Card key={docGroup.type} className="rounded-none border-l-4 border-l-transparent">
+                  <CardContent className="p-5">
+                    {/* Header */}
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="flex items-start gap-3 flex-1 min-w-0">
+                        {/* Document preview/icon */}
+                        {docGroup.document ? (
+                          <div className="relative w-12 h-12 flex-shrink-0 rounded-lg overflow-hidden bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200">
+                            {/* PDF/Document icon overlay */}
+                            <div className="absolute inset-0 flex items-center justify-center">
+                              <FileText className="h-6 w-6 text-blue-600" />
+                            </div>
+                            {/* Small document lines decoration */}
+                            <div className="absolute bottom-2 left-2 right-2 space-y-0.5">
+                              <div className="h-0.5 bg-blue-400/30 rounded"></div>
+                              <div className="h-0.5 bg-blue-400/30 rounded w-3/4"></div>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="w-12 h-12 flex-shrink-0 rounded-lg bg-gray-100 border-2 border-dashed border-gray-300 flex items-center justify-center">
+                            <FileText className="h-5 w-5 text-gray-400" />
+                          </div>
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-semibold text-[15px]">{docGroup.label}</h3>
                         </div>
                       </div>
-                      {getStatusBadge(docGroup.document)}
+                      <div className="flex-shrink-0 ml-3">
+                        {getStatusBadge(docGroup.document)}
+                      </div>
                     </div>
 
                     {docGroup.document ? (
-                      <div className="space-y-3 mt-2">
-                        {docGroup.document.status === 'pending' && (
-                          <p className="text-sm text-muted-foreground">Awaiting admin approval</p>
-                        )}
-                        {getExpiryText(docGroup.document)}
+                      <div className="space-y-3">
+                        {/* Filename and expiry */}
+                        <div className="space-y-1.5">
+                          <p className="text-sm text-muted-foreground truncate">
+                            {docGroup.document.file_name}
+                          </p>
+                          {getExpiryText(docGroup.document)}
+                        </div>
 
-                        <div className="flex gap-2 flex-wrap pt-1">
+                        {/* Action buttons */}
+                        <div className="flex gap-2 flex-wrap pt-2 border-t">
                           <Button
                             size="sm"
                             variant="outline"
                             onClick={() => handleView(docGroup.document!.id)}
+                            className="flex-1 sm:flex-none"
                           >
-                            <Eye className="h-4 w-4 mr-1" />
+                            <Eye className="h-4 w-4 mr-1.5" />
                             View
                           </Button>
                           <Button
                             size="sm"
                             variant="outline"
                             onClick={() => handleDownload(docGroup.document!.id, docGroup.document!.file_name)}
+                            className="flex-1 sm:flex-none"
                           >
-                            <Download className="h-4 w-4 mr-1" />
+                            <Download className="h-4 w-4 mr-1.5" />
                             Download
                           </Button>
                           <Button
                             size="sm"
                             variant="outline"
                             onClick={() => handleUpload(docGroup.type, docGroup.label)}
+                            className="flex-1 sm:flex-none"
                           >
-                            <Upload className="h-4 w-4 mr-1" />
+                            <Upload className="h-4 w-4 mr-1.5" />
                             Replace
                           </Button>
                           <Button
                             size="sm"
                             variant="outline"
                             onClick={() => handleDelete(docGroup.document!.id)}
-                            className="text-red-600 hover:text-red-700"
+                            className="flex-1 sm:flex-none text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200"
                           >
-                            <Trash2 className="h-4 w-4 mr-1" />
+                            <Trash2 className="h-4 w-4 mr-1.5" />
                             Delete
                           </Button>
                         </div>
                       </div>
                     ) : (
-                      <div className="space-y-3 mt-2">
-                        <p className="text-sm text-muted-foreground flex items-center">
-                          <AlertTriangle className="h-4 w-4 mr-1 text-orange-500" />
+                      <div className="mt-2">
+                        <p className="text-sm text-muted-foreground mb-3 flex items-center gap-1.5">
+                          <AlertTriangle className="h-4 w-4 text-orange-500" />
                           Not uploaded
                         </p>
-                        <Button
-                          size="sm"
-                          onClick={() => handleUpload(docGroup.type, docGroup.label)}
-                          className="mt-1"
-                        >
-                          <Upload className="h-4 w-4 mr-1" />
-                          Upload
-                        </Button>
+                        <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-primary transition-all">
+                          <div className="flex flex-col items-center gap-3">
+                            <Upload className="h-5 w-5 text-primary" />
+                            <div>
+                              <p className="text-sm font-medium text-gray-700">
+                                Drag and drop your file here
+                              </p>
+                              <p className="text-xs text-muted-foreground mt-0.5">
+                                PDF, JPG or PNG (Max 10MB)
+                              </p>
+                            </div>
+                            <Button
+                              size="sm"
+                              onClick={() => handleUpload(docGroup.type, docGroup.label)}
+                              className="mt-1"
+                            >
+                              <Upload className="h-4 w-4 mr-1.5" />
+                              Choose File
+                            </Button>
+                          </div>
+                        </div>
                       </div>
                     )}
                   </CardContent>

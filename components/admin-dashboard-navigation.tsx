@@ -12,13 +12,10 @@ interface AdminDashboardNavigationProps {
 export function AdminDashboardNavigation({ activeTab, onTabChange, customButton }: AdminDashboardNavigationProps) {
   const navItems = [
     { id: "dashboard", label: "Dashboard", icon: BarChart3 },
-    { id: "properties", label: "All Properties", icon: Building },
-    { id: "pending-properties", label: "Pending Properties", icon: Clock },
-    { id: "landlords", label: "Landlords", icon: UserCheck },
-    { id: "investors", label: "Investors", icon: TrendingUp },
+    { id: "properties", label: "Properties", icon: Building },
+    { id: "users", label: "Users", icon: Users },
     { id: "viewings", label: "Viewings", icon: Eye },
     { id: "documents", label: "Documents", icon: FileText },
-    { id: "settings", label: "Settings", icon: Settings },
   ]
 
   return (
@@ -30,7 +27,7 @@ export function AdminDashboardNavigation({ activeTab, onTabChange, customButton 
               key={item.id}
               onClick={() => onTabChange(item.id)}
               className={`
-                group flex items-center gap-2 relative px-3 py-2.5
+                group flex items-center gap-2 relative px-4 py-2.5
                 transition-all duration-200 ease-out
                 border-b-2 -mb-px
                 ${activeTab === item.id

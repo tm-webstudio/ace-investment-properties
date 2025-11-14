@@ -298,7 +298,7 @@ export function InvestorViewingRequests({ variant = 'dashboard', limit }: Invest
 
   if (variant === 'dashboard') {
     return (
-      <Card>
+      <Card className="max-h-[600px] overflow-hidden flex flex-col">
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>Upcoming Viewings</CardTitle>
           <Link href="/investor/viewings">
@@ -307,7 +307,7 @@ export function InvestorViewingRequests({ variant = 'dashboard', limit }: Invest
             </Button>
           </Link>
         </CardHeader>
-        <CardContent>
+        <CardContent className="overflow-y-auto flex-1">
           {cardContent}
         </CardContent>
       </Card>

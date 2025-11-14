@@ -204,10 +204,10 @@ export function InvestorDashboardOverview({ investor }: InvestorDashboardOvervie
           ) : savedPropertiesWithDetails.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               {savedPropertiesWithDetails.map((item) => (
-                <PropertyCard 
-                  key={item.id} 
-                  property={item.property} 
-                  variant="default" 
+                <PropertyCard
+                  key={item.id}
+                  property={item.property}
+                  variant="default"
                 />
               ))}
             </div>
@@ -231,7 +231,7 @@ export function InvestorDashboardOverview({ investor }: InvestorDashboardOvervie
         <InvestorViewingRequests variant="dashboard" limit={4} />
 
         {/* Recent Notifications */}
-        <Card>
+        <Card className="max-h-[600px] overflow-hidden flex flex-col">
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle>Recent Notifications</CardTitle>
             <Link href="/investor/notifications">
@@ -240,7 +240,7 @@ export function InvestorDashboardOverview({ investor }: InvestorDashboardOvervie
               </Button>
             </Link>
           </CardHeader>
-          <CardContent>
+          <CardContent className="overflow-y-auto flex-1">
             <div className="space-y-4">
               {recentNotifications.map((notification) => (
                 <div key={notification.id} className={`flex items-start space-x-3 p-3 rounded-lg ${!notification.isRead ? 'bg-blue-50' : 'bg-gray-50'}`}>
