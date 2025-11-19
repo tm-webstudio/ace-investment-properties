@@ -74,26 +74,40 @@ export async function GET(request: NextRequest) {
 
     console.log('Fetched property viewings:', viewingRequests?.length || 0)
 
-    // Fetch property and user details separately for each viewing
+    // Fetch property, user, and landlord details separately for each viewing
     const viewings = await Promise.all(
       (viewingRequests || []).map(async (viewing) => {
         let property = null
         let user_profile = null
+        let landlord_profile = null
 
         // Get property details
         if (viewing.property_id) {
           const { data: propertyData } = await supabase
             .from('properties')
-            .select('id, property_type, address, city, postcode, monthly_rent, photos')
+            .select('id, property_type, address, city, postcode, monthly_rent, photos, landlord_id')
             .eq('id', viewing.property_id)
             .single()
 
           if (propertyData) {
             property = propertyData
+
+            // Get landlord profile details
+            if (propertyData.landlord_id) {
+              const { data: landlordData } = await supabase
+                .from('user_profiles')
+                .select('full_name, email, phone')
+                .eq('id', propertyData.landlord_id)
+                .single()
+
+              if (landlordData) {
+                landlord_profile = landlordData
+              }
+            }
           }
         }
 
-        // Get user profile details
+        // Get user profile details (investor)
         if (viewing.user_id) {
           const { data: profileData } = await supabase
             .from('user_profiles')
@@ -109,7 +123,8 @@ export async function GET(request: NextRequest) {
         return {
           ...viewing,
           property,
-          user_profile
+          user_profile,
+          landlord_profile
         }
       })
     )

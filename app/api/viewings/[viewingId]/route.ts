@@ -103,3 +103,97 @@ export async function GET(
     )
   }
 }
+
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: { viewingId: string } }
+) {
+  try {
+    const { viewingId } = params
+
+    // Get user ID from authorization header
+    const authHeader = request.headers.get('authorization')
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return NextResponse.json(
+        { success: false, error: 'Authentication required' },
+        { status: 401 }
+      )
+    }
+
+    const token = authHeader.substring(7)
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token)
+
+    if (authError || !user) {
+      return NextResponse.json(
+        { success: false, error: 'Invalid authentication token' },
+        { status: 401 }
+      )
+    }
+
+    // Get viewing to check permissions
+    const { data: viewing, error: viewingError } = await supabase
+      .from('property_viewings')
+      .select('id, user_id, landlord_id, status')
+      .eq('id', viewingId)
+      .single()
+
+    if (viewingError || !viewing) {
+      return NextResponse.json(
+        { success: false, error: 'Viewing not found' },
+        { status: 404 }
+      )
+    }
+
+    // Check if user has permission to delete this viewing
+    const { data: userProfile } = await supabase
+      .from('user_profiles')
+      .select('user_type')
+      .eq('id', user.id)
+      .single()
+
+    const isOwner = viewing.user_id === user.id
+    const isLandlord = viewing.landlord_id === user.id
+    const isAdmin = userProfile?.user_type === 'admin'
+
+    if (!isOwner && !isLandlord && !isAdmin) {
+      return NextResponse.json(
+        { success: false, error: 'Access denied' },
+        { status: 403 }
+      )
+    }
+
+    // Only allow deletion of cancelled or rejected viewings (unless admin)
+    if (viewing.status !== 'cancelled' && viewing.status !== 'rejected' && !isAdmin) {
+      return NextResponse.json(
+        { success: false, error: 'Only cancelled or rejected viewings can be deleted' },
+        { status: 400 }
+      )
+    }
+
+    // Delete the viewing
+    const { error: deleteError } = await supabase
+      .from('property_viewings')
+      .delete()
+      .eq('id', viewingId)
+
+    if (deleteError) {
+      console.error('Delete viewing error:', deleteError)
+      return NextResponse.json(
+        { success: false, error: 'Failed to delete viewing' },
+        { status: 500 }
+      )
+    }
+
+    return NextResponse.json({
+      success: true,
+      message: 'Viewing deleted successfully'
+    })
+
+  } catch (error) {
+    console.error('Delete viewing error:', error)
+    return NextResponse.json(
+      { success: false, error: 'Internal server error' },
+      { status: 500 }
+    )
+  }
+}

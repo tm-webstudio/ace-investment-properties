@@ -173,21 +173,21 @@ export async function GET(request: NextRequest) {
     }
 
     // Execute count queries
-    const { data: pendingCount } = await pendingCountQuery
-    const { data: approvedCount } = await approvedCountQuery
-    const { data: rejectedCount } = await rejectedCountQuery
-    const { data: cancelledCount } = await cancelledCountQuery
-    const { data: completedCount } = await completedCountQuery
+    const { count: pendingCount } = await pendingCountQuery
+    const { count: approvedCount } = await approvedCountQuery
+    const { count: rejectedCount } = await rejectedCountQuery
+    const { count: cancelledCount } = await cancelledCountQuery
+    const { count: completedCount } = await completedCountQuery
 
     return NextResponse.json({
       success: true,
       viewings: viewings || [],
       summary: {
-        pending: pendingCount?.length || 0,
-        approved: approvedCount?.length || 0,
-        rejected: rejectedCount?.length || 0,
-        cancelled: cancelledCount?.length || 0,
-        completed: completedCount?.length || 0
+        pending: pendingCount || 0,
+        approved: approvedCount || 0,
+        rejected: rejectedCount || 0,
+        cancelled: cancelledCount || 0,
+        completed: completedCount || 0
       },
       pagination: {
         limit,

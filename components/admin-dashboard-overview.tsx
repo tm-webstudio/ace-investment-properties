@@ -615,7 +615,7 @@ export function AdminDashboardOverview({ admin, onTabChange }: AdminDashboardOve
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Recent Viewings */}
-        <ViewingRequests variant="dashboard" limit={5} onTabChange={onTabChange} />
+        <ViewingRequests variant="dashboard" limit={5} onTabChange={onTabChange} isAdmin={true} />
 
         {/* Landlord Documents */}
         <Card className="max-h-[600px] overflow-hidden flex flex-col">

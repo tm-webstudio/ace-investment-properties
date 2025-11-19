@@ -43,10 +43,16 @@ interface ViewingRequest {
     property_type: string
     address: string
     city: string
+    postcode?: string
     monthly_rent: number
     photos: string[]
   }
   user_profile?: {
+    full_name: string
+    email: string
+    phone: string
+  }
+  landlord_profile?: {
     full_name: string
     email: string
     phone: string
@@ -65,9 +71,10 @@ interface ViewingRequestsProps {
   variant?: 'dashboard' | 'full' | 'admin'
   limit?: number
   onTabChange?: (tab: string) => void
+  isAdmin?: boolean
 }
 
-export function ViewingRequests({ variant = 'dashboard', limit, onTabChange }: ViewingRequestsProps) {
+export function ViewingRequests({ variant = 'dashboard', limit, onTabChange, isAdmin = false }: ViewingRequestsProps) {
   const [viewings, setViewings] = useState<ViewingRequest[]>([])
   const [stats, setStats] = useState<ViewingStats>({
     pending: 0,
@@ -79,8 +86,7 @@ export function ViewingRequests({ variant = 'dashboard', limit, onTabChange }: V
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState<string>(
     variant === 'dashboard' ? 'pending,approved,rejected,cancelled' :
-    variant === 'admin' ? 'all' :
-    'pending'
+    'all'
   )
   const [expandedCard, setExpandedCard] = useState<string | null>(null)
   const [approveModalOpen, setApproveModalOpen] = useState(false)
@@ -89,6 +95,7 @@ export function ViewingRequests({ variant = 'dashboard', limit, onTabChange }: V
   const [selectedViewing, setSelectedViewing] = useState<ViewingRequest | null>(null)
   const [rejectionReason, setRejectionReason] = useState('')
   const [actionLoading, setActionLoading] = useState(false)
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false)
 
   const fetchViewings = async () => {
     try {
@@ -101,7 +108,7 @@ export function ViewingRequests({ variant = 'dashboard', limit, onTabChange }: V
       }
 
       // Determine which API endpoint to use
-      const apiEndpoint = variant === 'admin'
+      const apiEndpoint = (variant === 'admin' || isAdmin)
         ? '/api/admin/viewings'
         : '/api/viewings/for-my-properties'
 
@@ -257,6 +264,49 @@ export function ViewingRequests({ variant = 'dashboard', limit, onTabChange }: V
     setCancelModalOpen(true)
   }
 
+  const handleDelete = async (viewing: ViewingRequest) => {
+    setSelectedViewing(viewing)
+    setDeleteModalOpen(true)
+  }
+
+  const confirmDelete = async () => {
+    if (!selectedViewing) return
+
+    try {
+      setActionLoading(true)
+
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session?.access_token) {
+        console.error('No access token available')
+        return
+      }
+
+      const response = await fetch(`/api/viewings/${selectedViewing.id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+          'Content-Type': 'application/json'
+        }
+      })
+
+      const result = await response.json()
+
+      if (result.success) {
+        setDeleteModalOpen(false)
+        setSelectedViewing(null)
+        fetchViewings() // Refresh the list
+      } else {
+        console.error('Error deleting viewing:', result.error)
+        alert('Error deleting viewing: ' + result.error)
+      }
+    } catch (error) {
+      console.error('Error:', error)
+      alert('Error deleting viewing')
+    } finally {
+      setActionLoading(false)
+    }
+  }
+
   const confirmCancel = async () => {
     if (!selectedViewing) return
 
@@ -335,7 +385,12 @@ export function ViewingRequests({ variant = 'dashboard', limit, onTabChange }: V
   }
 
   // Filter out only past pending viewings (keep approved/rejected viewings visible)
+  // For full variant, show all viewings including past pending ones
   const upcomingViewings = viewings.filter(viewing => {
+    // For full variant, show all viewings
+    if (variant === 'full' || variant === 'admin') {
+      return true
+    }
     // Always show approved, rejected, or cancelled viewings
     if (viewing.status !== 'pending') {
       return true
@@ -344,72 +399,9 @@ export function ViewingRequests({ variant = 'dashboard', limit, onTabChange }: V
     return !isViewingPast(viewing)
   })
 
-  // Stats cards for full variant
+  // Stats cards - disabled
   const renderStatsCards = () => {
-    if (variant !== 'full') return null
-
-    const totalViewings = stats.pending + stats.approved + stats.rejected + stats.cancelled + stats.completed
-    const responseRate = totalViewings > 0 ? Math.round(((stats.approved + stats.rejected) / totalViewings) * 100) : 0
-
-    return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center">
-              <div className="rounded-full bg-orange-100 p-3">
-                <Clock className="h-6 w-6 text-orange-600" />
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Pending Requests</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.pending}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center">
-              <div className="rounded-full bg-accent/10 p-3">
-                <Check className="h-6 w-6 text-accent" />
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Approved This Week</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.approved}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center">
-              <div className="rounded-full bg-blue-100 p-3">
-                <Calendar className="h-6 w-6 text-blue-600" />
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Total Viewings</p>
-                <p className="text-2xl font-bold text-gray-900">{totalViewings}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center">
-              <div className="rounded-full bg-purple-100 p-3">
-                <TrendingUp className="h-6 w-6 text-purple-600" />
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Response Rate</p>
-                <p className="text-2xl font-bold text-gray-900">{responseRate}%</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    )
+    return null
   }
 
   // Filter buttons for full variant
@@ -417,10 +409,11 @@ export function ViewingRequests({ variant = 'dashboard', limit, onTabChange }: V
     if (variant !== 'full') return null
 
     const filters = [
+      { key: 'all', label: 'All', count: stats.pending + stats.approved + stats.rejected + stats.cancelled },
       { key: 'pending', label: 'Pending', count: stats.pending },
       { key: 'approved', label: 'Approved', count: stats.approved },
       { key: 'rejected', label: 'Rejected', count: stats.rejected },
-      { key: 'all', label: 'All', count: stats.pending + stats.approved + stats.rejected + stats.cancelled + stats.completed }
+      { key: 'cancelled', label: 'Cancelled', count: stats.cancelled }
     ]
 
     return (
@@ -445,7 +438,7 @@ export function ViewingRequests({ variant = 'dashboard', limit, onTabChange }: V
       {variant === 'full' && renderStatsCards()}
       {variant === 'full' && renderFilterButtons()}
 
-      <div className={variant === 'admin' ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4' : 'space-y-3'}>
+      <div className={(variant === 'admin' || variant === 'full') ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-start' : 'space-y-3'}>
         {loading ? (
           <>
             {[...Array(variant === 'dashboard' ? 3 : 6)].map((_, i) => (
@@ -546,7 +539,7 @@ export function ViewingRequests({ variant = 'dashboard', limit, onTabChange }: V
               {/* Expanded details */}
               {expandedCard === viewing.id && (
                 <div className="border-t pt-4 space-y-4">
-                  {variant === 'dashboard' ? (
+                  {variant === 'dashboard' && !isAdmin ? (
                     /* Dashboard variant - compact view with investor name and message preview */
                     <div className="space-y-3">
                       <div className="flex items-center text-sm">
@@ -558,6 +551,47 @@ export function ViewingRequests({ variant = 'dashboard', limit, onTabChange }: V
                           {viewing.special_requests}
                         </div>
                       )}
+                    </div>
+                  ) : (variant === 'admin' || isAdmin) ? (
+                    /* Admin variant - show both landlord and investor details */
+                    <div className="grid grid-cols-2 gap-4">
+                      {/* Landlord Details */}
+                      <div className="space-y-2 min-w-0">
+                        <h4 className="font-semibold text-gray-900 text-sm">Landlord Details</h4>
+                        <div className="space-y-1.5 text-sm">
+                          <div className="flex items-start">
+                            <User className="h-4 w-4 mr-2 text-gray-400 flex-shrink-0 mt-0.5" />
+                            <span className="break-words">{viewing.landlord_profile?.full_name || 'N/A'}</span>
+                          </div>
+                          <div className="flex items-start">
+                            <Mail className="h-4 w-4 mr-2 text-gray-400 flex-shrink-0 mt-0.5" />
+                            <span className="break-all">{viewing.landlord_profile?.email || 'N/A'}</span>
+                          </div>
+                          <div className="flex items-start">
+                            <Phone className="h-4 w-4 mr-2 text-gray-400 flex-shrink-0 mt-0.5" />
+                            <span>{viewing.landlord_profile?.phone || 'N/A'}</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Investor Details */}
+                      <div className="space-y-2 min-w-0">
+                        <h4 className="font-semibold text-gray-900 text-sm">Investor Details</h4>
+                        <div className="space-y-1.5 text-sm">
+                          <div className="flex items-start">
+                            <User className="h-4 w-4 mr-2 text-gray-400 flex-shrink-0 mt-0.5" />
+                            <span className="break-words">{viewing.user_profile?.full_name || 'N/A'}</span>
+                          </div>
+                          <div className="flex items-start">
+                            <Mail className="h-4 w-4 mr-2 text-gray-400 flex-shrink-0 mt-0.5" />
+                            <span className="break-all">{viewing.user_profile?.email || 'N/A'}</span>
+                          </div>
+                          <div className="flex items-start">
+                            <Phone className="h-4 w-4 mr-2 text-gray-400 flex-shrink-0 mt-0.5" />
+                            <span>{viewing.user_profile?.phone || 'N/A'}</span>
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   ) : (
                     /* Full variant - complete investor and property details */
@@ -618,8 +652,8 @@ export function ViewingRequests({ variant = 'dashboard', limit, onTabChange }: V
                     </div>
                   )}
 
-                  {/* Actions for approved/rejected viewings - only show in full variant */}
-                  {variant !== 'dashboard' && viewing.status !== 'pending' && viewing.status !== 'cancelled' && (
+                  {/* Actions for pending viewings - change and cancel */}
+                  {viewing.status === 'pending' && (
                     <div className="flex gap-2 pt-2">
                       <Button size="sm" variant="outline">
                         <Calendar className="h-4 w-4 mr-1" />
@@ -638,12 +672,50 @@ export function ViewingRequests({ variant = 'dashboard', limit, onTabChange }: V
                       </Button>
                     </div>
                   )}
+
+                  {/* Actions for approved viewings - change and cancel */}
+                  {viewing.status === 'approved' && (
+                    <div className="flex gap-2 pt-2">
+                      <Button size="sm" variant="outline">
+                        <Calendar className="h-4 w-4 mr-1" />
+                        Change Viewing
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          handleCancel(viewing)
+                        }}
+                      >
+                        <X className="h-4 w-4 mr-1" />
+                        Cancel Viewing
+                      </Button>
+                    </div>
+                  )}
+
+                  {/* Delete button for rejected and cancelled viewings */}
+                  {(viewing.status === 'rejected' || viewing.status === 'cancelled') && (
+                    <div className="flex gap-2 pt-2">
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          handleDelete(viewing)
+                        }}
+                      >
+                        <X className="h-4 w-4 mr-1" />
+                        Delete Viewing
+                      </Button>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
           ))
         ) : (
-          <div className="text-center py-16 text-muted-foreground min-h-[280px] flex flex-col items-center justify-center">
+          <div className="text-center py-16 text-muted-foreground min-h-[280px] flex flex-col items-center justify-center col-span-full">
             <Calendar className="h-10 w-10 mx-auto mb-3 opacity-50" />
             <p className="text-base font-medium mb-1.5">No Viewing Requests</p>
             <p className="text-sm">No viewing requests available at the moment</p>
@@ -745,6 +817,37 @@ export function ViewingRequests({ variant = 'dashboard', limit, onTabChange }: V
                 variant="destructive"
               >
                 {actionLoading ? 'Cancelling...' : 'Cancel Viewing'}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Modal */}
+      <Dialog open={deleteModalOpen} onOpenChange={setDeleteModalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Viewing</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p>
+              Are you sure you want to permanently delete the viewing for{" "}
+              <strong>{selectedViewing?.property?.property_type} in {selectedViewing?.property?.city}</strong>{" "}
+              on {selectedViewing && formatDate(selectedViewing.viewing_date)} at {selectedViewing && formatTime(selectedViewing.viewing_time)}?
+            </p>
+            <p className="text-sm text-gray-600">
+              This action cannot be undone.
+            </p>
+            <div className="flex gap-3 justify-end">
+              <Button variant="outline" onClick={() => setDeleteModalOpen(false)}>
+                Keep Viewing
+              </Button>
+              <Button
+                onClick={confirmDelete}
+                disabled={actionLoading}
+                variant="destructive"
+              >
+                {actionLoading ? 'Deleting...' : 'Delete Viewing'}
               </Button>
             </div>
           </div>
