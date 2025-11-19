@@ -18,6 +18,80 @@ import { ImageReorder } from './image-reorder'
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 
+const cityAreasMap: Record<string, string[]> = {
+  "London": [
+    "Barking and Dagenham", "Barnet", "Bexley", "Brent", "Bromley", "Camden", "Croydon",
+    "Ealing", "Enfield", "Greenwich", "Hackney", "Hammersmith and Fulham", "Haringey",
+    "Harrow", "Havering", "Hillingdon", "Hounslow", "Islington", "Kensington and Chelsea",
+    "Kingston upon Thames", "Lambeth", "Lewisham", "Merton", "Newham", "Redbridge",
+    "Richmond upon Thames", "Southwark", "Sutton", "Tower Hamlets", "Waltham Forest",
+    "Wandsworth", "Westminster", "City of London"
+  ],
+  "Birmingham": [
+    "Aston", "Bournville", "Edgbaston", "Erdington", "Hall Green", "Handsworth",
+    "Harborne", "Hodge Hill", "Kings Heath", "Ladywood", "Longbridge", "Moseley",
+    "Northfield", "Perry Barr", "Selly Oak", "Small Heath", "Solihull", "Sparkbrook",
+    "Sutton Coldfield", "Yardley"
+  ],
+  "Manchester": [
+    "Ancoats", "Ardwick", "Blackley", "Cheetham Hill", "Chorlton", "City Centre",
+    "Didsbury", "Fallowfield", "Gorton", "Hulme", "Levenshulme", "Moss Side",
+    "Old Trafford", "Rusholme", "Salford", "Stockport", "Stretford", "Withington",
+    "Wythenshawe"
+  ],
+  "Liverpool": [
+    "Aigburth", "Allerton", "Anfield", "Belle Vale", "Childwall", "City Centre",
+    "Crosby", "Everton", "Fairfield", "Kensington", "Kirkdale", "Mossley Hill",
+    "Old Swan", "Toxteth", "Walton", "Wavertree", "West Derby", "Woolton"
+  ],
+  "Leeds": [
+    "Armley", "Beeston", "Bramley", "Chapel Allerton", "City Centre", "Crossgates",
+    "Farnley", "Gipton", "Harehills", "Headingley", "Holbeck", "Horsforth",
+    "Hyde Park", "Kirkstall", "Meanwood", "Morley", "Pudsey", "Roundhay",
+    "Seacroft", "Wetherby"
+  ],
+  "Newcastle": [
+    "Benwell", "Byker", "City Centre", "Elswick", "Fenham", "Gosforth",
+    "Heaton", "Jesmond", "Kenton", "Newcastle", "Ouseburn", "Shieldfield",
+    "Walker", "Wallsend", "Westerhope"
+  ],
+  "Brighton": [
+    "Brighton Marina", "City Centre", "Hanover", "Hove", "Kemptown",
+    "Moulsecoomb", "Patcham", "Portslade", "Preston Park", "Saltdean",
+    "Shoreham", "Whitehawk", "Woodingdean"
+  ],
+  "Bristol": [
+    "Bedminster", "Bishopston", "Clifton", "City Centre", "Easton",
+    "Filton", "Fishponds", "Henleaze", "Horfield", "Kingswood",
+    "Knowle", "Redland", "Southville", "St Pauls", "Stoke Bishop",
+    "Westbury-on-Trym"
+  ],
+  "Coventry": [
+    "Canley", "Chapelfields", "City Centre", "Earlsdon", "Foleshill",
+    "Hillfields", "Holbrooks", "Radford", "Stoke", "Tile Hill",
+    "Walsgrave", "Whitley", "Wyken"
+  ],
+  "Leicester": [
+    "Aylestone", "Belgrave", "City Centre", "Clarendon Park", "Evington",
+    "Highfields", "Knighton", "Oadby", "Spinney Hills", "Stoneygate",
+    "West End", "Wigston"
+  ],
+  "Nottingham": [
+    "Beeston", "Bestwood", "Bulwell", "City Centre", "Clifton",
+    "Hucknall", "Hyson Green", "Lenton", "Mapperley", "Radford",
+    "Sherwood", "Sneinton", "West Bridgford", "Wollaton"
+  ],
+  "Oxford": [
+    "City Centre", "Cowley", "Headington", "Iffley", "Jericho",
+    "Littlemore", "Marston", "Summertown", "Wolvercote"
+  ],
+  "Cambridge": [
+    "Arbury", "Castle", "Cherry Hinton", "Chesterton", "City Centre",
+    "Coleridge", "Kings Hedges", "Newnham", "Petersfield", "Romsey",
+    "Trumpington"
+  ]
+}
+
 interface PropertyFormData {
   // Basic Info
   availability: string
@@ -26,7 +100,7 @@ interface PropertyFormData {
   propertyCondition: string
   address: string
   city: string
-  state: string
+  specificArea: string
   postcode: string
   monthlyRent: string
   availableDate: string
@@ -64,7 +138,7 @@ export function EditPropertyForm({ propertyId, initialData }: EditPropertyFormPr
     propertyCondition: initialData?.property_condition || "",
     address: initialData?.address || "",
     city: initialData?.city || "",
-    state: initialData?.county || "",
+    specificArea: initialData?.specific_area || "",
     postcode: initialData?.postcode || "",
     monthlyRent: initialData?.monthly_rent?.toString() || "",
     availableDate: initialData?.available_date || "",
@@ -89,7 +163,7 @@ export function EditPropertyForm({ propertyId, initialData }: EditPropertyFormPr
         propertyCondition: initialData?.property_condition || "",
         address: initialData?.address || "",
         city: initialData?.city || "",
-        state: initialData?.county || "",
+        specificArea: initialData?.specific_area || "",
         postcode: initialData?.postcode || "",
         monthlyRent: initialData?.monthly_rent?.toString() || "",
         availableDate: initialData?.available_date || "",
@@ -118,7 +192,7 @@ export function EditPropertyForm({ propertyId, initialData }: EditPropertyFormPr
       newFormData.propertyCondition !== initialFormData.propertyCondition ||
       newFormData.address !== initialFormData.address ||
       newFormData.city !== initialFormData.city ||
-      newFormData.state !== initialFormData.state ||
+      newFormData.specificArea !== initialFormData.specificArea ||
       newFormData.postcode !== initialFormData.postcode ||
       newFormData.monthlyRent !== initialFormData.monthlyRent ||
       newFormData.availableDate !== initialFormData.availableDate ||
@@ -152,12 +226,17 @@ export function EditPropertyForm({ propertyId, initialData }: EditPropertyFormPr
   const handleInputChange = (field: keyof PropertyFormData, value: any) => {
     setFormData((prev) => {
       const updated = { ...prev, [field]: value }
-      
+
       // Clear available date when vacant is selected
       if (field === 'availability' && value === 'vacant') {
         updated.availableDate = ''
       }
-      
+
+      // Clear specific area when city changes
+      if (field === 'city') {
+        updated.specificArea = ''
+      }
+
       // Check if form has changed
       checkFormChanges(updated)
       
@@ -382,7 +461,7 @@ export function EditPropertyForm({ propertyId, initialData }: EditPropertyFormPr
         property_condition: formData.propertyCondition,
         address: formData.address,
         city: formData.city,
-        county: formData.state,
+        specific_area: formData.specificArea,
         postcode: formData.postcode,
         monthly_rent: parseFloat(formData.monthlyRent),
         available_date: formData.availableDate,
@@ -648,42 +727,44 @@ export function EditPropertyForm({ propertyId, initialData }: EditPropertyFormPr
                   </div>
                   <div>
                     <Label htmlFor="city" className="mb-2 block">City/Town *</Label>
-                    <Input
-                      id="city"
-                      value={formData.city}
-                      onChange={(e) => handleInputChange("city", e.target.value)}
-                      placeholder="London"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="state" className="mb-2 block">County</Label>
-                    <Select value={formData.state} onValueChange={(value) => handleInputChange("state", value)}>
+                    <Select value={formData.city} onValueChange={(value) => handleInputChange("city", value)}>
                       <SelectTrigger>
-                        <SelectValue placeholder="Select county" />
+                        <SelectValue placeholder="Select city" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="Greater London">Greater London</SelectItem>
-                        <SelectItem value="West Midlands">West Midlands</SelectItem>
-                        <SelectItem value="Greater Manchester">Greater Manchester</SelectItem>
-                        <SelectItem value="West Yorkshire">West Yorkshire</SelectItem>
-                        <SelectItem value="Merseyside">Merseyside</SelectItem>
-                        <SelectItem value="South Yorkshire">South Yorkshire</SelectItem>
-                        <SelectItem value="Tyne and Wear">Tyne and Wear</SelectItem>
-                        <SelectItem value="Essex">Essex</SelectItem>
-                        <SelectItem value="Kent">Kent</SelectItem>
-                        <SelectItem value="Hampshire">Hampshire</SelectItem>
-                        <SelectItem value="Surrey">Surrey</SelectItem>
-                        <SelectItem value="Hertfordshire">Hertfordshire</SelectItem>
-                        <SelectItem value="Berkshire">Berkshire</SelectItem>
-                        <SelectItem value="Buckinghamshire">Buckinghamshire</SelectItem>
-                        <SelectItem value="East Sussex">East Sussex</SelectItem>
-                        <SelectItem value="West Sussex">West Sussex</SelectItem>
-                        <SelectItem value="Oxfordshire">Oxfordshire</SelectItem>
-                        <SelectItem value="Cambridgeshire">Cambridgeshire</SelectItem>
-                        <SelectItem value="Suffolk">Suffolk</SelectItem>
-                        <SelectItem value="Norfolk">Norfolk</SelectItem>
-                        <SelectItem value="Bedfordshire">Bedfordshire</SelectItem>
+                        <SelectItem value="London">London</SelectItem>
+                        <SelectItem value="Birmingham">Birmingham</SelectItem>
+                        <SelectItem value="Manchester">Manchester</SelectItem>
+                        <SelectItem value="Liverpool">Liverpool</SelectItem>
+                        <SelectItem value="Leeds">Leeds</SelectItem>
+                        <SelectItem value="Newcastle">Newcastle</SelectItem>
+                        <SelectItem value="Brighton">Brighton</SelectItem>
+                        <SelectItem value="Bristol">Bristol</SelectItem>
+                        <SelectItem value="Coventry">Coventry</SelectItem>
+                        <SelectItem value="Leicester">Leicester</SelectItem>
+                        <SelectItem value="Nottingham">Nottingham</SelectItem>
+                        <SelectItem value="Oxford">Oxford</SelectItem>
+                        <SelectItem value="Cambridge">Cambridge</SelectItem>
                         <SelectItem value="Other">Other</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label htmlFor="specificArea" className="mb-2 block">Specific Area (optional)</Label>
+                    <Select
+                      value={formData.specificArea || ""}
+                      onValueChange={(value) => handleInputChange("specificArea", value)}
+                      disabled={!formData.city || !cityAreasMap[formData.city]}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder={!formData.city ? "Select city first" : "Select area"} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {formData.city && cityAreasMap[formData.city] && cityAreasMap[formData.city].map((area) => (
+                          <SelectItem key={area} value={area}>
+                            {area}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </div>
