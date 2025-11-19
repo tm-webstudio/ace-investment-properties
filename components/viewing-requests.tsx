@@ -64,9 +64,10 @@ interface ViewingStats {
 interface ViewingRequestsProps {
   variant?: 'dashboard' | 'full' | 'admin'
   limit?: number
+  onTabChange?: (tab: string) => void
 }
 
-export function ViewingRequests({ variant = 'dashboard', limit }: ViewingRequestsProps) {
+export function ViewingRequests({ variant = 'dashboard', limit, onTabChange }: ViewingRequestsProps) {
   const [viewings, setViewings] = useState<ViewingRequest[]>([])
   const [stats, setStats] = useState<ViewingStats>({
     pending: 0,
@@ -481,17 +482,12 @@ export function ViewingRequests({ variant = 'dashboard', limit }: ViewingRequest
               >
                 <div className="flex items-start justify-between mb-2">
                   <div className="flex-1">
-                    <h3 className="font-sans text-[15px] font-medium mb-2">
-                      {viewing.property?.address && viewing.property?.city ? (
-                        <PropertyTitle
-                          address={viewing.property.address}
-                          city={viewing.property.city}
-                          postcode={viewing.property.postcode}
-                        />
-                      ) : (
-                        `${viewing.property?.property_type} in ${viewing.property?.city}`
-                      )}
-                    </h3>
+                    <p className="font-semibold text-[15px] mb-2 line-clamp-1">
+                      {viewing.property?.address && viewing.property?.city
+                        ? `${viewing.property.address}, ${viewing.property.city}`
+                        : `${viewing.property?.property_type} in ${viewing.property?.city}`
+                      }
+                    </p>
 
                     <Badge className={`${getStatusColor(viewing.status)} capitalize`}>
                       {viewing.status === 'pending' ? 'awaiting approval' :
@@ -550,44 +546,60 @@ export function ViewingRequests({ variant = 'dashboard', limit }: ViewingRequest
               {/* Expanded details */}
               {expandedCard === viewing.id && (
                 <div className="border-t pt-4 space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {/* Investor Details */}
+                  {variant === 'dashboard' ? (
+                    /* Dashboard variant - compact view with investor name and message preview */
                     <div className="space-y-3">
-                      <h4 className="font-semibold text-gray-900">Investor Details</h4>
-                      <div className="space-y-2 text-sm">
-                        <div className="flex items-center">
-                          <User className="h-4 w-4 mr-2 text-gray-400" />
-                          <span>{viewing.user_profile?.full_name || 'N/A'}</span>
+                      <div className="flex items-center text-sm">
+                        <User className="h-4 w-4 mr-2 text-gray-400" />
+                        <span className="font-medium">{viewing.user_profile?.full_name || 'N/A'}</span>
+                      </div>
+                      {viewing.special_requests && (
+                        <div className="text-sm text-gray-600 bg-gray-50 p-3 rounded line-clamp-2">
+                          {viewing.special_requests}
                         </div>
-                        <div className="flex items-center">
-                          <Mail className="h-4 w-4 mr-2 text-gray-400" />
-                          <span>{viewing.user_profile?.email || 'N/A'}</span>
+                      )}
+                    </div>
+                  ) : (
+                    /* Full variant - complete investor and property details */
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      {/* Investor Details */}
+                      <div className="space-y-3">
+                        <h4 className="font-semibold text-gray-900">Investor Details</h4>
+                        <div className="space-y-2 text-sm">
+                          <div className="flex items-center">
+                            <User className="h-4 w-4 mr-2 text-gray-400" />
+                            <span>{viewing.user_profile?.full_name || 'N/A'}</span>
+                          </div>
+                          <div className="flex items-center">
+                            <Mail className="h-4 w-4 mr-2 text-gray-400" />
+                            <span>{viewing.user_profile?.email || 'N/A'}</span>
+                          </div>
+                          <div className="flex items-center">
+                            <Phone className="h-4 w-4 mr-2 text-gray-400" />
+                            <span>{viewing.user_profile?.phone || 'N/A'}</span>
+                          </div>
                         </div>
-                        <div className="flex items-center">
-                          <Phone className="h-4 w-4 mr-2 text-gray-400" />
-                          <span>{viewing.user_profile?.phone || 'N/A'}</span>
+                      </div>
+
+                      {/* Property Details */}
+                      <div className="space-y-3">
+                        <h4 className="font-semibold text-gray-900">Property Details</h4>
+                        <div className="space-y-2 text-sm">
+                          <div className="flex items-center">
+                            <Home className="h-4 w-4 mr-2 text-gray-400" />
+                            <span>{viewing.property?.address}</span>
+                          </div>
+                          <div className="flex items-center">
+                            <PoundSterling className="h-4 w-4 mr-2 text-gray-400" />
+                            <span>{viewing.property?.monthly_rent ? formatCurrency(viewing.property.monthly_rent) : 'N/A'} per month</span>
+                          </div>
                         </div>
                       </div>
                     </div>
+                  )}
 
-                    {/* Property Details */}
-                    <div className="space-y-3">
-                      <h4 className="font-semibold text-gray-900">Property Details</h4>
-                      <div className="space-y-2 text-sm">
-                        <div className="flex items-center">
-                          <Home className="h-4 w-4 mr-2 text-gray-400" />
-                          <span>{viewing.property?.address}</span>
-                        </div>
-                        <div className="flex items-center">
-                          <PoundSterling className="h-4 w-4 mr-2 text-gray-400" />
-                          <span>{viewing.property?.monthly_rent ? formatCurrency(viewing.property.monthly_rent) : 'N/A'} per month</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Special Requests */}
-                  {viewing.special_requests && (
+                  {/* Special Requests - only show in full variant */}
+                  {variant !== 'dashboard' && viewing.special_requests && (
                     <div className="space-y-2">
                       <h4 className="font-semibold text-gray-900">Special Requests</h4>
                       <p className="text-sm text-gray-600 bg-gray-50 p-3 rounded">
@@ -596,8 +608,8 @@ export function ViewingRequests({ variant = 'dashboard', limit }: ViewingRequest
                     </div>
                   )}
 
-                  {/* Rejection Reason */}
-                  {viewing.status === 'rejected' && viewing.rejection_reason && (
+                  {/* Rejection Reason - only show in full variant */}
+                  {variant !== 'dashboard' && viewing.status === 'rejected' && viewing.rejection_reason && (
                     <div className="space-y-2">
                       <h4 className="font-semibold text-gray-900">Rejection Reason</h4>
                       <p className="text-sm text-gray-600 bg-destructive/5 p-3 rounded">
@@ -606,8 +618,8 @@ export function ViewingRequests({ variant = 'dashboard', limit }: ViewingRequest
                     </div>
                   )}
 
-                  {/* Actions for approved/rejected viewings */}
-                  {viewing.status !== 'pending' && viewing.status !== 'cancelled' && (
+                  {/* Actions for approved/rejected viewings - only show in full variant */}
+                  {variant !== 'dashboard' && viewing.status !== 'pending' && viewing.status !== 'cancelled' && (
                     <div className="flex gap-2 pt-2">
                       <Button size="sm" variant="outline">
                         <Calendar className="h-4 w-4 mr-1" />
@@ -634,7 +646,7 @@ export function ViewingRequests({ variant = 'dashboard', limit }: ViewingRequest
           <div className="text-center py-16 text-muted-foreground min-h-[280px] flex flex-col items-center justify-center">
             <Calendar className="h-10 w-10 mx-auto mb-3 opacity-50" />
             <p className="text-base font-medium mb-1.5">No Viewing Requests</p>
-            <p className="text-sm">No {filter === 'all' ? '' : filter + ' '}viewing requests at the moment</p>
+            <p className="text-sm">No viewing requests available at the moment</p>
           </div>
         )}
       </div>
@@ -746,11 +758,22 @@ export function ViewingRequests({ variant = 'dashboard', limit }: ViewingRequest
       <Card className="max-h-[600px] overflow-hidden flex flex-col">
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>Viewing Requests</CardTitle>
-          <Link href="/landlord/viewings">
-            <Button variant="outline" size="sm" className="bg-transparent">
+          {onTabChange ? (
+            <Button
+              variant="outline"
+              size="sm"
+              className="bg-transparent"
+              onClick={() => onTabChange('viewings')}
+            >
               View All
             </Button>
-          </Link>
+          ) : (
+            <Link href="/landlord/viewings">
+              <Button variant="outline" size="sm" className="bg-transparent">
+                View All
+              </Button>
+            </Link>
+          )}
         </CardHeader>
         <CardContent className="overflow-y-auto flex-1">
           {cardContent}

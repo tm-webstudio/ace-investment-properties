@@ -1,10 +1,12 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { FileText, Download, ExternalLink, CheckCircle, XCircle } from "lucide-react"
+import { FileText, Download, ExternalLink, CheckCircle, XCircle, Filter } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Input } from "@/components/ui/input"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog"
 import { PropertyTitle } from "@/components/property-title"
 import { supabase } from "@/lib/supabase"
@@ -38,6 +40,28 @@ export function AdminDashboardReports() {
   const [selectedProperty, setSelectedProperty] = useState<PropertyDocument | null>(null)
   const [propertyDocuments, setPropertyDocuments] = useState<DocumentDetail[]>([])
   const [loadingDocuments, setLoadingDocuments] = useState(false)
+  const [statusFilter, setStatusFilter] = useState<string>("all")
+  const [searchQuery, setSearchQuery] = useState<string>("")
+
+  const filteredDocuments = documents.filter((doc) => {
+    // Status filter
+    let matchesStatus = true
+    if (statusFilter === "complete") {
+      matchesStatus = doc.completedDocs === doc.totalDocs
+    } else if (statusFilter === "incomplete") {
+      matchesStatus = doc.completedDocs > 0 && doc.completedDocs < doc.totalDocs
+    } else if (statusFilter === "none") {
+      matchesStatus = doc.completedDocs === 0
+    }
+
+    // Search filter
+    const matchesSearch = searchQuery === "" ||
+      doc.address.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      doc.city.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      doc.postcode.toLowerCase().includes(searchQuery.toLowerCase())
+
+    return matchesStatus && matchesSearch
+  })
 
   useEffect(() => {
     fetchDocuments()
@@ -202,8 +226,39 @@ export function AdminDashboardReports() {
 
   return (
     <>
+      {/* Filters */}
+      <div className="flex flex-col sm:flex-row gap-4 mb-6">
+        <div className="flex-1">
+          <Input
+            placeholder="Search by address, city, or postcode..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full"
+          />
+        </div>
+        <Select value={statusFilter} onValueChange={setStatusFilter}>
+          <SelectTrigger className="w-full sm:w-[200px]">
+            <Filter className="h-4 w-4 mr-2" />
+            <SelectValue placeholder="Filter by status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Properties</SelectItem>
+            <SelectItem value="complete">Complete</SelectItem>
+            <SelectItem value="incomplete">Incomplete</SelectItem>
+            <SelectItem value="none">No Documents</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      {filteredDocuments.length === 0 ? (
+        <div className="text-center py-16 text-muted-foreground min-h-[320px] flex flex-col items-center justify-center">
+          <FileText className="h-10 w-10 mx-auto mb-3 opacity-50" />
+          <p className="text-base font-medium mb-1.5">No Matching Documents</p>
+          <p className="text-sm">Try adjusting your filters</p>
+        </div>
+      ) : (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {documents.map((property) => {
+        {filteredDocuments.map((property) => {
           const percentage = (property.completedDocs / property.totalDocs) * 100
 
           return (
@@ -249,6 +304,7 @@ export function AdminDashboardReports() {
           )
         })}
       </div>
+      )}
 
       {/* Documents Modal */}
       <Dialog open={documentsModalOpen} onOpenChange={setDocumentsModalOpen}>

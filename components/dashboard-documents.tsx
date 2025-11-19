@@ -123,7 +123,7 @@ export function DashboardDocuments() {
                     {property.address}, {property.city}
                   </p>
                   <p className="text-sm text-muted-foreground line-clamp-1">
-                    {property.postcode}
+                    {property.postcode?.toUpperCase()}
                   </p>
                 </div>
 

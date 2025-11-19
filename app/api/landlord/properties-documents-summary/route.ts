@@ -62,11 +62,12 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // Get landlord's properties
+    // Get landlord's properties (exclude rejected/inactive properties)
     const { data: properties, error: propertiesError } = await supabaseAdmin
       .from('properties')
-      .select('id, address, city, postcode, photos')
+      .select('id, address, city, postcode, photos, status')
       .eq('landlord_id', user.id)
+      .neq('status', 'inactive')
       .order('created_at', { ascending: false })
 
     if (propertiesError) {
@@ -79,7 +80,7 @@ export async function GET(request: NextRequest) {
 
     // Get document counts for each property
     const propertiesWithDocs = await Promise.all(
-      properties.map(async (property) => {
+      (properties || []).map(async (property) => {
         const { data: documents, error: docsError } = await supabaseAdmin
           .from('property_documents')
           .select('id')

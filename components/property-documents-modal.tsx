@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
 import { PropertyTitle } from "@/components/property-title"
-import { FileText, Upload, Download, Eye, Trash2, X, AlertTriangle } from "lucide-react"
+import { FileText, Upload, Download, Eye, Trash2, X, AlertTriangle, CheckCircle } from "lucide-react"
 import { format } from "date-fns"
 import { supabase } from "@/lib/supabase"
 import { UploadDocumentDialog } from "@/components/upload-document-dialog"
@@ -41,9 +41,10 @@ interface PropertyDocumentsModalProps {
   property: PropertySummary
   open: boolean
   onClose: () => void
+  isAdmin?: boolean
 }
 
-export function PropertyDocumentsModal({ property, open, onClose }: PropertyDocumentsModalProps) {
+export function PropertyDocumentsModal({ property, open, onClose, isAdmin = false }: PropertyDocumentsModalProps) {
   const [loading, setLoading] = useState(true)
   const [documents, setDocuments] = useState<DocumentGroup[]>([])
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false)
@@ -173,6 +174,34 @@ export function PropertyDocumentsModal({ property, open, onClose }: PropertyDocu
     } catch (error) {
       console.error('Error deleting document:', error)
       alert('Error deleting document')
+    }
+  }
+
+  const handleApprove = async (documentId: string) => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+
+      if (!session?.access_token) {
+        return
+      }
+
+      const response = await fetch(`/api/admin/documents/${documentId}/approve`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`
+        }
+      })
+
+      const data = await response.json()
+
+      if (data.success) {
+        fetchDocuments()
+      } else {
+        alert('Failed to approve document')
+      }
+    } catch (error) {
+      console.error('Error approving document:', error)
+      alert('Error approving document')
     }
   }
 
@@ -320,23 +349,38 @@ export function PropertyDocumentsModal({ property, open, onClose }: PropertyDocu
                             <Eye className="h-4 w-4 mr-1.5" />
                             View
                           </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => handleUpload(docGroup.type, docGroup.label)}
-                          >
-                            <Upload className="h-4 w-4 mr-1.5" />
-                            Replace
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => handleDelete(docGroup.document!.id)}
-                            className="text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200"
-                          >
-                            <Trash2 className="h-4 w-4 mr-1.5" />
-                            Delete
-                          </Button>
+                          {isAdmin && docGroup.document.status === 'pending' && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleApprove(docGroup.document!.id)}
+                              className="text-green-600 hover:text-green-700 hover:bg-green-50 border-green-200"
+                            >
+                              <CheckCircle className="h-4 w-4 mr-1.5" />
+                              Approve
+                            </Button>
+                          )}
+                          {!isAdmin && (
+                            <>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handleUpload(docGroup.type, docGroup.label)}
+                              >
+                                <Upload className="h-4 w-4 mr-1.5" />
+                                Replace
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handleDelete(docGroup.document!.id)}
+                                className="text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200"
+                              >
+                                <Trash2 className="h-4 w-4 mr-1.5" />
+                                Delete
+                              </Button>
+                            </>
+                          )}
                         </div>
                       </div>
                     ) : (

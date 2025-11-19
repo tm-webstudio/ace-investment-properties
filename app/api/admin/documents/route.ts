@@ -64,10 +64,13 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // Fetch all properties (admins need to see all documents regardless of status)
+    // Fetch all properties except rejected/inactive ones
     const { data: properties, error: propertiesError } = await supabaseAdmin
       .from('properties')
       .select('id, address, city, postcode, photos, status')
+      .neq('status', 'inactive')
+      .order('created_at', { ascending: false })
+      .limit(1000)
 
     if (propertiesError) {
       console.error('Error fetching properties:', propertiesError)
@@ -110,11 +113,8 @@ export async function GET(request: NextRequest) {
       })
     )
 
-    // Filter to only show properties with at least one document
-    const propertiesWithDocuments = propertiesWithDocs.filter(p => p.completedDocs > 0)
-
     // Sort by completion (lowest first) to show properties needing attention first
-    const sortedProperties = propertiesWithDocuments.sort((a, b) => {
+    const sortedProperties = propertiesWithDocs.sort((a, b) => {
       const aPercentage = (a.completedDocs / a.totalDocs) * 100
       const bPercentage = (b.completedDocs / b.totalDocs) * 100
       return aPercentage - bPercentage

@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // Fetch properties owned by this landlord
+    // Fetch properties owned by this landlord (exclude rejected/inactive properties)
     const { data: properties, error } = await supabase
       .from('properties')
       .select(`
@@ -44,6 +44,7 @@ export async function GET(request: NextRequest) {
         updated_at
       `)
       .eq('landlord_id', req.user.id)
+      .neq('status', 'inactive')
       .order('created_at', { ascending: false })
 
     if (error) {

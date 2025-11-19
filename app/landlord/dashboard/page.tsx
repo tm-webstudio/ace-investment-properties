@@ -1,7 +1,7 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
+import { useState, useEffect, Suspense } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { DashboardNavigationHeader } from "@/components/dashboard-navigation-header"
 import { DashboardFooter } from "@/components/dashboard-footer"
@@ -12,6 +12,7 @@ import { DashboardProperties } from "@/components/dashboard-properties"
 import { ViewingRequests } from "@/components/viewing-requests"
 import { DashboardNavigation } from "@/components/dashboard-navigation"
 import { PageHeader } from "@/components/page-header"
+import { PropertySubmissionConfirmationModal } from "@/components/property-submission-confirmation-modal"
 import { supabase } from "@/lib/supabase"
 import { Button } from "@/components/ui/button"
 import { Edit3 } from "lucide-react"
@@ -24,12 +25,14 @@ interface UserProfile {
   user_type: string
 }
 
-export default function LandlordDashboard() {
+function LandlordDashboardContent() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [user, setUser] = useState<UserProfile | null>(null)
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState("dashboard")
   const [isEditingProfile, setIsEditingProfile] = useState(false)
+  const [showConfirmationModal, setShowConfirmationModal] = useState(false)
 
   useEffect(() => {
     const getUser = async () => {
@@ -89,6 +92,17 @@ export default function LandlordDashboard() {
 
     getUser()
   }, [router])
+
+  // Check for confirmation modal query parameter (only on initial load)
+  useEffect(() => {
+    const showConfirmation = searchParams.get('showConfirmation')
+    if (showConfirmation === 'true') {
+      setShowConfirmationModal(true)
+      // Remove the query parameter from URL immediately
+      const newUrl = window.location.pathname
+      window.history.replaceState({}, '', newUrl)
+    }
+  }, []) // Empty dependency array - only run once on mount
 
   // Reset editing state when switching away from profile tab
   useEffect(() => {
@@ -230,6 +244,27 @@ export default function LandlordDashboard() {
         </div>
       </main>
       <DashboardFooter />
+
+      {/* Property Submission Confirmation Modal */}
+      <PropertySubmissionConfirmationModal
+        isOpen={showConfirmationModal}
+        onClose={() => setShowConfirmationModal(false)}
+      />
     </div>
+  )
+}
+
+export default function LandlordDashboard() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading dashboard...</p>
+        </div>
+      </div>
+    }>
+      <LandlordDashboardContent />
+    </Suspense>
   )
 }

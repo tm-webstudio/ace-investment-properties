@@ -20,6 +20,80 @@ import { FormProgressBar } from './form-progress-bar'
 import { useRouter } from "next/navigation"
 import Image from "next/image"
 
+const cityAreasMap: Record<string, string[]> = {
+  "London": [
+    "Barking and Dagenham", "Barnet", "Bexley", "Brent", "Bromley", "Camden", "Croydon",
+    "Ealing", "Enfield", "Greenwich", "Hackney", "Hammersmith and Fulham", "Haringey",
+    "Harrow", "Havering", "Hillingdon", "Hounslow", "Islington", "Kensington and Chelsea",
+    "Kingston upon Thames", "Lambeth", "Lewisham", "Merton", "Newham", "Redbridge",
+    "Richmond upon Thames", "Southwark", "Sutton", "Tower Hamlets", "Waltham Forest",
+    "Wandsworth", "Westminster"
+  ],
+  "Birmingham": [
+    "Aston", "Balsall Heath", "Bordesley Green", "Edgbaston", "Erdington", "Hall Green",
+    "Handsworth", "Harborne", "Kings Heath", "Ladywood", "Moseley", "Northfield",
+    "Perry Barr", "Quinton", "Saltley", "Selly Oak", "Small Heath", "Sparkbrook",
+    "Stirchley", "Sutton Coldfield", "Yardley"
+  ],
+  "Manchester": [
+    "Ancoats", "Ardwick", "Blackley", "Cheetham Hill", "Chorlton", "City Centre",
+    "Didsbury", "Fallowfield", "Gorton", "Hulme", "Levenshulme", "Moss Side",
+    "Old Trafford", "Rusholme", "Salford", "Stockport", "Stretford", "Withington",
+    "Wythenshawe"
+  ],
+  "Liverpool": [
+    "Aigburth", "Allerton", "Anfield", "Belle Vale", "Childwall", "City Centre",
+    "Crosby", "Everton", "Fairfield", "Kensington", "Kirkdale", "Mossley Hill",
+    "Old Swan", "Toxteth", "Walton", "Wavertree", "West Derby", "Woolton"
+  ],
+  "Leeds": [
+    "Armley", "Beeston", "Bramley", "Chapel Allerton", "City Centre", "Crossgates",
+    "Farnley", "Gipton", "Harehills", "Headingley", "Holbeck", "Horsforth",
+    "Hyde Park", "Kirkstall", "Meanwood", "Morley", "Pudsey", "Roundhay",
+    "Seacroft", "Wetherby"
+  ],
+  "Newcastle": [
+    "Benwell", "Byker", "City Centre", "Elswick", "Fenham", "Gosforth",
+    "Heaton", "Jesmond", "Kenton", "Newcastle", "Ouseburn", "Shieldfield",
+    "Walker", "Wallsend", "Westerhope"
+  ],
+  "Brighton": [
+    "Brighton Marina", "City Centre", "Hanover", "Hove", "Kemptown",
+    "Moulsecoomb", "Patcham", "Portslade", "Preston Park", "Saltdean",
+    "Shoreham", "Whitehawk", "Woodingdean"
+  ],
+  "Bristol": [
+    "Bedminster", "Bishopston", "Clifton", "City Centre", "Easton",
+    "Filton", "Fishponds", "Henleaze", "Horfield", "Kingswood",
+    "Knowle", "Redland", "Southville", "St Pauls", "Stoke Bishop",
+    "Westbury-on-Trym"
+  ],
+  "Coventry": [
+    "Canley", "Chapelfields", "City Centre", "Earlsdon", "Foleshill",
+    "Hillfields", "Holbrooks", "Radford", "Stoke", "Tile Hill",
+    "Walsgrave", "Whitley", "Wyken"
+  ],
+  "Leicester": [
+    "Aylestone", "Belgrave", "City Centre", "Clarendon Park", "Evington",
+    "Highfields", "Knighton", "Oadby", "Spinney Hills", "Stoneygate",
+    "West End", "Wigston"
+  ],
+  "Nottingham": [
+    "Beeston", "Bestwood", "Bulwell", "City Centre", "Clifton",
+    "Hucknall", "Hyson Green", "Lenton", "Mapperley", "Radford",
+    "Sherwood", "Sneinton", "West Bridgford", "Wollaton"
+  ],
+  "Oxford": [
+    "City Centre", "Cowley", "Headington", "Iffley", "Jericho",
+    "Littlemore", "Marston", "Summertown", "Wolvercote"
+  ],
+  "Cambridge": [
+    "Arbury", "Castle", "Cherry Hinton", "Chesterton", "City Centre",
+    "Coleridge", "Kings Hedges", "Newnham", "Petersfield", "Romsey",
+    "Trumpington"
+  ]
+}
+
 interface PropertyFormData {
   // Basic Info
   availability: string
@@ -28,7 +102,7 @@ interface PropertyFormData {
   propertyCondition: string
   address: string
   city: string
-  state: string
+  specificArea?: string
   postcode: string
   monthlyRent: string
   availableDate: string
@@ -72,7 +146,7 @@ export function AddPropertyForm() {
     propertyCondition: "",
     address: "",
     city: "",
-    state: "",
+    specificArea: "",
     postcode: "",
     monthlyRent: "",
     availableDate: "",
@@ -125,6 +199,11 @@ export function AddPropertyForm() {
         setFormErrors(prev => ({ ...prev, photos: '' }))
       }
 
+      // Clear specific area when city changes
+      if (field === 'city') {
+        updated.specificArea = ''
+      }
+
       return updated
     })
   }
@@ -152,6 +231,8 @@ export function AddPropertyForm() {
     firstName: '',
     lastName: '',
     phone: '',
+    viewingDates: [] as string[],
+    viewingTimes: [] as string[],
     acceptedTerms: false
   })
 
@@ -423,7 +504,7 @@ export function AddPropertyForm() {
         return {
           address: formData.address || '',
           city: formData.city || '',
-          state: formData.state || '',
+          specificArea: formData.specificArea || '',
           postcode: formData.postcode || ''
         }
       case 3:
@@ -531,7 +612,7 @@ export function AddPropertyForm() {
               amenities: formData.amenities,
               address: formData.address,
               city: formData.city,
-              county: formData.state,
+              specificArea: formData.specificArea,
               postcode: formData.postcode,
               photos: formData.photos.filter(photo => typeof photo === 'string') // Only include uploaded photo URLs
             },
@@ -563,6 +644,8 @@ export function AddPropertyForm() {
           firstName: signupForm.firstName,
           lastName: signupForm.lastName,
           phone: signupForm.phone,
+          viewingDates: signupForm.viewingDates,
+          viewingTimes: signupForm.viewingTimes,
           pendingPropertyToken: propertyToken,
           acceptedTerms: true
         })
@@ -600,8 +683,8 @@ export function AddPropertyForm() {
         const publishResult = await publishResponse.json()
 
         if (publishResult.success) {
-          // Use hard navigation to ensure session is fully loaded on dashboard
-          window.location.href = '/landlord/dashboard'
+          // Redirect to dashboard and show confirmation modal
+          window.location.href = '/landlord/dashboard?showConfirmation=true'
         } else {
           // Only update state on error so user can see the error message
           setIsLoggedIn(true)
@@ -651,7 +734,7 @@ export function AddPropertyForm() {
               amenities: formData.amenities,
               address: formData.address,
               city: formData.city,
-              county: formData.state,
+              specificArea: formData.specificArea,
               postcode: formData.postcode,
               photos: formData.photos.filter(photo => typeof photo === 'string') // Only include uploaded photo URLs
             },
@@ -716,8 +799,8 @@ export function AddPropertyForm() {
         const publishResult = await publishResponse.json()
 
         if (publishResult.success) {
-          // Use hard navigation to ensure session is fully loaded on dashboard
-          window.location.href = '/landlord/dashboard'
+          // Redirect to dashboard and show confirmation modal
+          window.location.href = '/landlord/dashboard?showConfirmation=true'
         } else {
           // Only update state on error so user can see the error message
           setIsLoggedIn(true)
@@ -883,8 +966,8 @@ export function AddPropertyForm() {
         console.log('Publish response:', publishResult)
 
         if (publishResult.success) {
-          // Use hard navigation to ensure session is fully loaded on dashboard
-          window.location.href = '/landlord/dashboard'
+          // Redirect to dashboard and show confirmation modal
+          window.location.href = '/landlord/dashboard?showConfirmation=true'
         } else {
           console.error('Failed to publish property:', publishResult)
           alert(`Failed to publish property: ${publishResult.error}\nDetails: ${publishResult.details || 'No additional details'}\nCode: ${publishResult.code || 'Unknown'}`)
@@ -1224,54 +1307,58 @@ export function AddPropertyForm() {
           {/* Step 2: Property Address */}
           {currentStep === 2 && (
             <div className="space-y-6">
+              <div>
+                <Label htmlFor="address">Property Address *</Label>
+                <Input
+                  id="address"
+                  value={formData.address}
+                  onChange={(e) => handleInputChange("address", e.target.value)}
+                  placeholder="123 High Street, Apartment 4B"
+                />
+              </div>
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="md:col-span-2">
-                  <Label htmlFor="address">Property Address *</Label>
-                  <Input
-                    id="address"
-                    value={formData.address}
-                    onChange={(e) => handleInputChange("address", e.target.value)}
-                    placeholder="123 High Street, Apartment 4B"
-                  />
-                </div>
                 <div>
                   <Label htmlFor="city">City/Town *</Label>
-                  <Input
-                    id="city"
-                    value={formData.city}
-                    onChange={(e) => handleInputChange("city", e.target.value)}
-                    placeholder="London"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="state">County</Label>
-                  <Select value={formData.state} onValueChange={(value) => handleInputChange("state", value)}>
+                  <Select value={formData.city} onValueChange={(value) => handleInputChange("city", value)}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select county" />
+                      <SelectValue placeholder="Select city/town" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="Greater London">Greater London</SelectItem>
-                      <SelectItem value="West Midlands">West Midlands</SelectItem>
-                      <SelectItem value="Greater Manchester">Greater Manchester</SelectItem>
-                      <SelectItem value="West Yorkshire">West Yorkshire</SelectItem>
-                      <SelectItem value="Merseyside">Merseyside</SelectItem>
-                      <SelectItem value="South Yorkshire">South Yorkshire</SelectItem>
-                      <SelectItem value="Tyne and Wear">Tyne and Wear</SelectItem>
-                      <SelectItem value="Essex">Essex</SelectItem>
-                      <SelectItem value="Kent">Kent</SelectItem>
-                      <SelectItem value="Hampshire">Hampshire</SelectItem>
-                      <SelectItem value="Surrey">Surrey</SelectItem>
-                      <SelectItem value="Hertfordshire">Hertfordshire</SelectItem>
-                      <SelectItem value="Berkshire">Berkshire</SelectItem>
-                      <SelectItem value="Buckinghamshire">Buckinghamshire</SelectItem>
-                      <SelectItem value="East Sussex">East Sussex</SelectItem>
-                      <SelectItem value="West Sussex">West Sussex</SelectItem>
-                      <SelectItem value="Oxfordshire">Oxfordshire</SelectItem>
-                      <SelectItem value="Cambridgeshire">Cambridgeshire</SelectItem>
-                      <SelectItem value="Suffolk">Suffolk</SelectItem>
-                      <SelectItem value="Norfolk">Norfolk</SelectItem>
-                      <SelectItem value="Bedfordshire">Bedfordshire</SelectItem>
+                      <SelectItem value="London">London</SelectItem>
+                      <SelectItem value="Birmingham">Birmingham</SelectItem>
+                      <SelectItem value="Manchester">Manchester</SelectItem>
+                      <SelectItem value="Liverpool">Liverpool</SelectItem>
+                      <SelectItem value="Leeds">Leeds</SelectItem>
+                      <SelectItem value="Newcastle">Newcastle</SelectItem>
+                      <SelectItem value="Brighton">Brighton</SelectItem>
+                      <SelectItem value="Bristol">Bristol</SelectItem>
+                      <SelectItem value="Coventry">Coventry</SelectItem>
+                      <SelectItem value="Leicester">Leicester</SelectItem>
+                      <SelectItem value="Nottingham">Nottingham</SelectItem>
+                      <SelectItem value="Oxford">Oxford</SelectItem>
+                      <SelectItem value="Cambridge">Cambridge</SelectItem>
                       <SelectItem value="Other">Other</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <Label htmlFor="specificArea">Specific Area (optional)</Label>
+                  <Select
+                    value={formData.specificArea || ""}
+                    onValueChange={(value) => handleInputChange("specificArea", value)}
+                    disabled={!formData.city || !cityAreasMap[formData.city]}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder={!formData.city ? "Select city first" : "Select area"} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {formData.city && cityAreasMap[formData.city] && cityAreasMap[formData.city].map((area) => (
+                        <SelectItem key={area} value={area}>
+                          {area}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
@@ -1635,28 +1722,29 @@ export function AddPropertyForm() {
                             </div>
                           </div>
 
-                          <div>
-                            <Label htmlFor="signupEmail">Email *</Label>
-                            <Input
-                              id="signupEmail"
-                              type="email"
-                              value={signupForm.email}
-                              onChange={(e) => setSignupForm(prev => ({ ...prev, email: e.target.value }))}
-                              className={authErrors.email ? 'border-red-500' : ''}
-                            />
-                            {authErrors.email && (
-                              <p className="text-sm text-red-500 mt-1">{authErrors.email}</p>
-                            )}
-                          </div>
-
-                          <div>
-                            <Label htmlFor="signupPhone">Phone Number</Label>
-                            <Input
-                              id="signupPhone"
-                              type="tel"
-                              value={signupForm.phone}
-                              onChange={(e) => setSignupForm(prev => ({ ...prev, phone: e.target.value }))}
-                            />
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                              <Label htmlFor="signupEmail">Email *</Label>
+                              <Input
+                                id="signupEmail"
+                                type="email"
+                                value={signupForm.email}
+                                onChange={(e) => setSignupForm(prev => ({ ...prev, email: e.target.value }))}
+                                className={authErrors.email ? 'border-red-500' : ''}
+                              />
+                              {authErrors.email && (
+                                <p className="text-sm text-red-500 mt-1">{authErrors.email}</p>
+                              )}
+                            </div>
+                            <div>
+                              <Label htmlFor="signupPhone">Phone Number</Label>
+                              <Input
+                                id="signupPhone"
+                                type="tel"
+                                value={signupForm.phone}
+                                onChange={(e) => setSignupForm(prev => ({ ...prev, phone: e.target.value }))}
+                              />
+                            </div>
                           </div>
 
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1685,6 +1773,67 @@ export function AddPropertyForm() {
                               {authErrors.confirmPassword && (
                                 <p className="text-sm text-red-500 mt-1">{authErrors.confirmPassword}</p>
                               )}
+                            </div>
+                          </div>
+
+                          <div className="space-y-3">
+                            <Label className="text-base font-medium">Available Viewing Times (optional)</Label>
+                            <p className="text-xs text-muted-foreground">
+                              Select your preferred days and times for property viewings
+                            </p>
+
+                            <div>
+                              <Label className="text-sm">Preferred Days</Label>
+                              <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mt-2">
+                                {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'].map((day) => (
+                                  <div
+                                    key={day}
+                                    className="flex items-center space-x-2 px-3 py-2 border rounded-md transition-colors hover:bg-slate-50"
+                                  >
+                                    <Checkbox
+                                      id={`day-${day}`}
+                                      checked={signupForm.viewingDates.includes(day)}
+                                      onCheckedChange={(checked) => {
+                                        const newDates = checked
+                                          ? [...signupForm.viewingDates, day]
+                                          : signupForm.viewingDates.filter(d => d !== day)
+                                        setSignupForm(prev => ({ ...prev, viewingDates: newDates }))
+                                      }}
+                                      className="data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+                                    />
+                                    <Label htmlFor={`day-${day}`} className="text-xs cursor-pointer flex-1 mb-0">
+                                      {day.substring(0, 3)}
+                                    </Label>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+
+                            <div>
+                              <Label className="text-sm">Preferred Times</Label>
+                              <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mt-2">
+                                {['Morning (9am-12pm)', 'Afternoon (12pm-5pm)', 'Evening (5pm-8pm)'].map((time) => (
+                                  <div
+                                    key={time}
+                                    className="flex items-center space-x-2 px-3 py-2 border rounded-md transition-colors hover:bg-slate-50"
+                                  >
+                                    <Checkbox
+                                      id={`time-${time}`}
+                                      checked={signupForm.viewingTimes.includes(time)}
+                                      onCheckedChange={(checked) => {
+                                        const newTimes = checked
+                                          ? [...signupForm.viewingTimes, time]
+                                          : signupForm.viewingTimes.filter(t => t !== time)
+                                        setSignupForm(prev => ({ ...prev, viewingTimes: newTimes }))
+                                      }}
+                                      className="data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+                                    />
+                                    <Label htmlFor={`time-${time}`} className="text-xs cursor-pointer flex-1 mb-0 leading-tight">
+                                      {time}
+                                    </Label>
+                                  </div>
+                                ))}
+                              </div>
                             </div>
                           </div>
 

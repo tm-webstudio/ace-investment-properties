@@ -84,18 +84,38 @@ export function BookViewingModal({ isOpen, onClose, propertyId, propertyData }: 
   const [availableSlots, setAvailableSlots] = useState<AvailabilitySlot[]>([])
   const [loadingSlots, setLoadingSlots] = useState(false)
   const [bookingsForDate, setBookingsForDate] = useState(0)
+  const [allowedDays, setAllowedDays] = useState<number[]>([1, 2, 3, 4, 5, 6]) // Default: Mon-Sat
+  const [loadingAvailability, setLoadingAvailability] = useState(false)
 
   // Success data
   const [successData, setSuccessData] = useState<any>(null)
 
   const modalRef = useRef<HTMLDivElement>(null)
 
-  // Check authentication when modal opens
+  // Check authentication and fetch landlord availability when modal opens
   useEffect(() => {
     if (isOpen) {
       checkAuthentication()
+      fetchLandlordAvailability()
     }
   }, [isOpen])
+
+  const fetchLandlordAvailability = async () => {
+    setLoadingAvailability(true)
+    try {
+      const response = await fetch(`/api/properties/${propertyId}/available-slots`)
+      if (response.ok) {
+        const data = await response.json()
+        if (data.success && data.landlordAvailability?.allowedDayNumbers) {
+          setAllowedDays(data.landlordAvailability.allowedDayNumbers)
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching landlord availability:', error)
+    } finally {
+      setLoadingAvailability(false)
+    }
+  }
 
   // Focus management
   useEffect(() => {
@@ -396,6 +416,7 @@ export function BookViewingModal({ isOpen, onClose, propertyId, propertyData }: 
     })
     setAvailableSlots([])
     setSuccessData(null)
+    setAllowedDays([1, 2, 3, 4, 5, 6]) // Reset to default
     onClose()
   }
 
@@ -757,10 +778,10 @@ export function BookViewingModal({ isOpen, onClose, propertyId, propertyData }: 
                       mode="single"
                       selected={bookingForm.viewingDate || undefined}
                       onSelect={handleDateSelect}
-                      disabled={(date) => 
-                        isBefore(date, tomorrow) || 
+                      disabled={(date) =>
+                        isBefore(date, tomorrow) ||
                         isAfter(date, maxDate) ||
-                        date.getDay() === 0 // Disable Sundays
+                        !allowedDays.includes(date.getDay()) // Disable days not in landlord's preferred days
                       }
                       initialFocus
                     />

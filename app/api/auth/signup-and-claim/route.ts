@@ -72,9 +72,31 @@ export async function POST(request: NextRequest) {
       firstName,
       lastName,
       phone,
+      viewingDates,
+      viewingTimes,
       pendingPropertyToken,
       acceptedTerms
     } = body
+
+    // Convert full day names to short format for database storage
+    const dayMap: { [key: string]: string } = {
+      'Monday': 'Mon',
+      'Tuesday': 'Tue',
+      'Wednesday': 'Wed',
+      'Thursday': 'Thu',
+      'Friday': 'Fri',
+      'Saturday': 'Sat',
+      'Sunday': 'Sun'
+    }
+
+    const preferredDays = (viewingDates || []).map((day: string) => dayMap[day] || day)
+    const preferredTimes = (viewingTimes || []).map((time: string) => {
+      // Convert display format to storage format
+      if (time.includes('9am-12pm')) return 'morning'
+      if (time.includes('12pm-5pm')) return 'afternoon'
+      if (time.includes('5pm-8pm')) return 'evening'
+      return time.toLowerCase()
+    })
 
     // Get regular client for auth
     const supabase = getSupabaseClient()
@@ -137,7 +159,9 @@ export async function POST(request: NextRequest) {
         phone,
         user_type: 'landlord',
         email_verified: false,
-        created_via: 'signup_and_claim'
+        created_via: 'signup_and_claim',
+        preferred_days: preferredDays,
+        preferred_times: preferredTimes
       })
 
     console.log('Profile creation:', { error: profileError })

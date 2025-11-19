@@ -158,7 +158,7 @@ export default function AdminDashboard() {
             onTabChange={setActiveTab}
           />
 
-          {activeTab === "dashboard" && <AdminDashboardOverview admin={currentAdmin} />}
+          {activeTab === "dashboard" && <AdminDashboardOverview admin={currentAdmin} onTabChange={setActiveTab} />}
           {activeTab === "properties" && <AdminDashboardProperties />}
           {activeTab === "users" && <AdminDashboardUsers />}
           {activeTab === "viewings" && <AdminDashboardViewings />}

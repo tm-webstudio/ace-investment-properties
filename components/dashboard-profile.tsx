@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { User, Mail, Phone, MapPin, Save, Edit3 } from "lucide-react"
+import { Checkbox } from "@/components/ui/checkbox"
+import { User, Mail, Phone, MapPin, Save, Edit3, Clock } from "lucide-react"
 import { supabase } from "@/lib/supabase"
 
 interface DashboardProfileProps {
@@ -25,6 +26,8 @@ export function DashboardProfile({ isEditing, setIsEditing }: DashboardProfilePr
     city: "",
     company: "",
     bio: "",
+    preferredDays: [] as string[],
+    preferredTimes: [] as string[],
   })
 
   useEffect(() => {
@@ -53,6 +56,8 @@ export function DashboardProfile({ isEditing, setIsEditing }: DashboardProfilePr
               city: profile.city || '',
               company: profile.company_name || '',
               bio: profile.bio || '',
+              preferredDays: profile.preferred_days || [],
+              preferredTimes: profile.preferred_times || [],
             })
           }
         }
@@ -89,6 +94,8 @@ export function DashboardProfile({ isEditing, setIsEditing }: DashboardProfilePr
             city: formData.city,
             company_name: formData.company,
             bio: formData.bio,
+            preferred_days: formData.preferredDays,
+            preferred_times: formData.preferredTimes,
           })
           .eq('id', session.user.id)
 
@@ -100,6 +107,8 @@ export function DashboardProfile({ isEditing, setIsEditing }: DashboardProfilePr
           city: formData.city,
           company_name: formData.company,
           bio: formData.bio,
+          preferred_days: formData.preferredDays,
+          preferred_times: formData.preferredTimes,
         }))
       }
     } catch (error) {
@@ -124,6 +133,8 @@ export function DashboardProfile({ isEditing, setIsEditing }: DashboardProfilePr
         city: user.city || '',
         company: user.company_name || '',
         bio: user.bio || '',
+        preferredDays: user.preferred_days || [],
+        preferredTimes: user.preferred_times || [],
       })
     }
     setIsEditing(false)
@@ -325,6 +336,114 @@ export function DashboardProfile({ isEditing, setIsEditing }: DashboardProfilePr
                 disabled={!isEditing}
                 placeholder="Tell us about yourself and your property management experience..."
               />
+            </div>
+
+            {isEditing && (
+              <div className="flex gap-4 pt-4">
+                <Button
+                  onClick={handleSave}
+                  className="bg-accent hover:bg-accent/90 text-accent-foreground"
+                >
+                  <Save className="h-4 w-4 mr-2" />
+                  Save Changes
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={handleCancel}
+                >
+                  Cancel
+                </Button>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Available Viewing Times */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="lg:col-span-1" />
+        <Card className="lg:col-span-2">
+          <CardHeader className="py-3">
+            <CardTitle className="flex items-center">
+              <Clock className="h-5 w-5 mr-2" />
+              Available Viewing Times
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6 pb-6">
+            <div className="space-y-3">
+              <Label>Preferred Days</Label>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day) => (
+                  <label
+                    key={day}
+                    className={`flex items-center space-x-2 border rounded-md p-3 cursor-pointer transition-colors ${
+                      formData.preferredDays.includes(day)
+                        ? 'bg-accent/10 border-accent'
+                        : 'hover:bg-gray-50'
+                    } ${!isEditing ? 'opacity-70 cursor-not-allowed' : ''}`}
+                  >
+                    <Checkbox
+                      checked={formData.preferredDays.includes(day)}
+                      onCheckedChange={(checked) => {
+                        if (!isEditing) return
+                        if (checked) {
+                          setFormData(prev => ({
+                            ...prev,
+                            preferredDays: [...prev.preferredDays, day]
+                          }))
+                        } else {
+                          setFormData(prev => ({
+                            ...prev,
+                            preferredDays: prev.preferredDays.filter(d => d !== day)
+                          }))
+                        }
+                      }}
+                      disabled={!isEditing}
+                    />
+                    <span className="text-sm">{day}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <Label>Preferred Times</Label>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                {[
+                  { value: 'morning', label: 'Morning (9am-12pm)' },
+                  { value: 'afternoon', label: 'Afternoon (12pm-5pm)' },
+                  { value: 'evening', label: 'Evening (5pm-8pm)' }
+                ].map((time) => (
+                  <label
+                    key={time.value}
+                    className={`flex items-center space-x-2 border rounded-md p-3 cursor-pointer transition-colors ${
+                      formData.preferredTimes.includes(time.value)
+                        ? 'bg-accent/10 border-accent'
+                        : 'hover:bg-gray-50'
+                    } ${!isEditing ? 'opacity-70 cursor-not-allowed' : ''}`}
+                  >
+                    <Checkbox
+                      checked={formData.preferredTimes.includes(time.value)}
+                      onCheckedChange={(checked) => {
+                        if (!isEditing) return
+                        if (checked) {
+                          setFormData(prev => ({
+                            ...prev,
+                            preferredTimes: [...prev.preferredTimes, time.value]
+                          }))
+                        } else {
+                          setFormData(prev => ({
+                            ...prev,
+                            preferredTimes: prev.preferredTimes.filter(t => t !== time.value)
+                          }))
+                        }
+                      }}
+                      disabled={!isEditing}
+                    />
+                    <span className="text-sm">{time.label}</span>
+                  </label>
+                ))}
+              </div>
             </div>
 
             {isEditing && (

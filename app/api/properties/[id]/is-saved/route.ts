@@ -67,10 +67,12 @@ export async function GET(
       }, { status: 404 })
     }
 
+    // For non-investors (admins, landlords), return not saved without error
     if (userProfile.user_type !== 'investor') {
-      return NextResponse.json({ 
-        error: 'This feature is for investors only' 
-      }, { status: 403 })
+      return NextResponse.json({
+        isSaved: false,
+        savedAt: null
+      })
     }
 
     // Check if property is saved

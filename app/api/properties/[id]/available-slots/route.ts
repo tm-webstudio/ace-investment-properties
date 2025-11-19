@@ -22,10 +22,10 @@ export async function GET(
       return date.toISOString().split('T')[0]
     })()
 
-    // Verify property exists
+    // Verify property exists and get landlord info
     const { data: property, error: propertyError } = await supabase
       .from('properties')
-      .select('id, status')
+      .select('id, status, landlord_id')
       .eq('id', propertyId)
       .single()
 
@@ -42,6 +42,44 @@ export async function GET(
         { status: 400 }
       )
     }
+
+    // Get landlord's preferred viewing times
+    const { data: landlordProfile } = await supabase
+      .from('user_profiles')
+      .select('preferred_days, preferred_times')
+      .eq('id', property.landlord_id)
+      .single()
+
+    // Map short day names to day numbers (0 = Sunday, 1 = Monday, etc.)
+    const dayNameToNumber: { [key: string]: number } = {
+      'Sun': 0, 'Mon': 1, 'Tue': 2, 'Wed': 3, 'Thu': 4, 'Fri': 5, 'Sat': 6
+    }
+
+    // Get allowed days from landlord preferences (default to all weekdays if not set)
+    const preferredDays = landlordProfile?.preferred_days || []
+    const allowedDayNumbers = preferredDays.length > 0
+      ? preferredDays.map((day: string) => dayNameToNumber[day]).filter((n: number | undefined) => n !== undefined)
+      : [1, 2, 3, 4, 5, 6] // Default: Monday to Saturday
+
+    // Get allowed time ranges from landlord preferences
+    const preferredTimes = landlordProfile?.preferred_times || []
+
+    // Convert time preferences to hour ranges
+    const getTimeRanges = (prefs: string[]) => {
+      if (prefs.length === 0) {
+        // Default: all business hours
+        return [{ start: 9, end: 18 }]
+      }
+
+      const ranges: { start: number; end: number }[] = []
+      if (prefs.includes('morning')) ranges.push({ start: 9, end: 12 })
+      if (prefs.includes('afternoon')) ranges.push({ start: 12, end: 17 })
+      if (prefs.includes('evening')) ranges.push({ start: 17, end: 20 })
+
+      return ranges.length > 0 ? ranges : [{ start: 9, end: 18 }]
+    }
+
+    const timeRanges = getTimeRanges(preferredTimes)
 
     // Get all booked time slots for this property in the date range
     const { data: bookedSlots, error: slotsError } = await supabase
@@ -62,19 +100,24 @@ export async function GET(
       )
     }
 
-    // Generate all possible time slots (business hours: 9 AM - 6 PM)
-    const generateTimeSlots = () => {
-      const slots = []
-      for (let hour = 9; hour < 18; hour++) {
-        for (let minute = 0; minute < 60; minute += 30) {
-          const timeString = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`
-          slots.push(timeString)
+    // Generate time slots based on landlord's preferred time ranges
+    const generateTimeSlots = (ranges: { start: number; end: number }[]) => {
+      const slots: string[] = []
+      ranges.forEach(range => {
+        for (let hour = range.start; hour < range.end; hour++) {
+          for (let minute = 0; minute < 60; minute += 30) {
+            const timeString = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`
+            if (!slots.includes(timeString)) {
+              slots.push(timeString)
+            }
+          }
         }
-      }
-      return slots
+      })
+      // Sort slots chronologically
+      return slots.sort()
     }
 
-    const allTimeSlots = generateTimeSlots()
+    const allTimeSlots = generateTimeSlots(timeRanges)
 
     // Create a map of booked slots for easy lookup
     const bookedSlotsMap = new Map()
@@ -95,9 +138,9 @@ export async function GET(
     for (let date = new Date(start); date <= end; date.setDate(date.getDate() + 1)) {
       const dateString = date.toISOString().split('T')[0]
       const dayOfWeek = date.getDay()
-      
-      // Skip Sundays (0) - assuming property viewings not available on Sundays
-      if (dayOfWeek === 0) {
+
+      // Skip days not in landlord's preferred days
+      if (!allowedDayNumbers.includes(dayOfWeek)) {
         continue
       }
 
@@ -142,6 +185,14 @@ export async function GET(
       })
     }
 
+    // Convert day numbers back to names for response
+    const numberToDayName: { [key: number]: string } = {
+      0: 'Sunday', 1: 'Monday', 2: 'Tuesday', 3: 'Wednesday', 4: 'Thursday', 5: 'Friday', 6: 'Saturday'
+    }
+    const excludedDays = [0, 1, 2, 3, 4, 5, 6]
+      .filter(n => !allowedDayNumbers.includes(n))
+      .map(n => numberToDayName[n])
+
     return NextResponse.json({
       success: true,
       propertyId,
@@ -150,11 +201,16 @@ export async function GET(
         endDate
       },
       availability,
+      landlordAvailability: {
+        preferredDays: preferredDays,
+        preferredTimes: preferredTimes,
+        allowedDayNumbers: allowedDayNumbers
+      },
       businessHours: {
-        start: '09:00',
-        end: '18:00',
+        start: timeRanges[0]?.start.toString().padStart(2, '0') + ':00' || '09:00',
+        end: timeRanges[timeRanges.length - 1]?.end.toString().padStart(2, '0') + ':00' || '18:00',
         interval: 30, // minutes
-        excludedDays: ['Sunday']
+        excludedDays
       }
     })
 

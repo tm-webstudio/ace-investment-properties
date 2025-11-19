@@ -171,17 +171,12 @@ export function InvestorViewingRequests({ variant = 'dashboard', limit }: Invest
               >
                 <div className="flex items-start justify-between mb-2">
                   <div className="flex-1">
-                    <h3 className="font-sans text-[15px] font-medium mb-2">
-                      {viewing.property?.address && viewing.property?.city ? (
-                        <PropertyTitle
-                          address={viewing.property.address}
-                          city={viewing.property.city}
-                          postcode={viewing.property.postcode}
-                        />
-                      ) : (
-                        `${viewing.property?.property_type} in ${viewing.property?.city}`
-                      )}
-                    </h3>
+                    <p className="font-semibold text-[15px] mb-2 line-clamp-1">
+                      {viewing.property?.address && viewing.property?.city
+                        ? `${viewing.property.address.replace(/^\d+\s*/, '').replace(/^flat\s*\d+\s*/i, '').replace(/^unit\s*\d+\s*/i, '').replace(/^apartment\s*\d+\s*/i, '').trim()}, ${viewing.property.city}`
+                        : `${viewing.property?.property_type} in ${viewing.property?.city}`
+                      }
+                    </p>
 
                     <Badge className={`${getStatusColor(viewing.status)} capitalize`}>
                       {viewing.status === 'pending' ? 'awaiting approval' :

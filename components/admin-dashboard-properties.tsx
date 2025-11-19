@@ -39,7 +39,7 @@ export function AdminDashboardProperties() {
   const [properties, setProperties] = useState<Property[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [filter, setFilter] = useState<'all' | 'active' | 'draft'>('all')
+  const [filter, setFilter] = useState<'all' | 'active' | 'draft' | 'rejected'>('all')
 
   useEffect(() => {
     fetchProperties()
@@ -141,6 +141,11 @@ export function AdminDashboardProperties() {
           title: "No Active Properties",
           description: "No active properties found"
         }
+      case 'rejected':
+        return {
+          title: "No Rejected Properties",
+          description: "No rejected properties found"
+        }
       default:
         return {
           title: "No Properties",
@@ -179,6 +184,14 @@ export function AdminDashboardProperties() {
           <Filter className="h-4 w-4 mr-2" />
           Pending
         </Button>
+        <Button
+          variant={filter === 'rejected' ? "default" : "outline"}
+          onClick={() => setFilter('rejected')}
+          className="h-9"
+        >
+          <Filter className="h-4 w-4 mr-2" />
+          Rejected
+        </Button>
       </div>
 
       {properties.length === 0 ? (
@@ -203,6 +216,19 @@ export function AdminDashboardProperties() {
                 <div className="flex items-center justify-between text-xs text-muted-foreground">
                   <span className="font-medium">By: {property.landlordName}</span>
                   <span>Submitted: {new Date(property.created_at).toLocaleDateString('en-GB')}</span>
+                </div>
+              </div>
+            ) : filter === 'rejected' ? (
+              <div key={property.id} className="space-y-2">
+                <PropertyCard
+                  property={property}
+                  variant="default"
+                />
+
+                {/* Admin info below the card */}
+                <div className="flex items-center justify-between text-xs text-muted-foreground">
+                  <span className="font-medium">By: {property.landlordName}</span>
+                  <span>Rejected: {new Date(property.updated_at).toLocaleDateString('en-GB')}</span>
                 </div>
               </div>
             ) : (

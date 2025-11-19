@@ -45,7 +45,9 @@ export async function GET(request: NextRequest) {
 
     // Get query parameters
     const searchParams = request.nextUrl.searchParams
-    const status = searchParams.get('status') // 'active', 'pending', 'draft', 'archived'
+    const status = searchParams.get('status') // 'active', 'pending', 'draft', 'archived', 'rejected'
+
+    console.log('Admin properties API - requested status:', status)
 
     // Build query - fetch properties first
     let query = supabase
@@ -60,10 +62,16 @@ export async function GET(request: NextRequest) {
 
     const { data: properties, error } = await query
 
+    console.log('Admin properties API - query result:', {
+      count: properties?.length || 0,
+      error: error?.message,
+      statuses: properties?.map(p => p.status)
+    })
+
     if (error) {
       console.error('Error fetching properties:', error)
       return NextResponse.json(
-        { success: false, error: 'Failed to fetch properties' },
+        { success: false, error: 'Failed to fetch properties', details: error.message },
         { status: 500 }
       )
     }
@@ -76,23 +84,28 @@ export async function GET(request: NextRequest) {
         let landlordPhone = ''
 
         if (property.landlord_id) {
-          // Get landlord user info
-          const { data: landlordUser } = await supabase.auth.admin.getUserById(property.landlord_id)
+          try {
+            // Get landlord user info
+            const { data: landlordUser } = await supabase.auth.admin.getUserById(property.landlord_id)
 
-          if (landlordUser?.user) {
-            landlordEmail = landlordUser.user.email || ''
-          }
+            if (landlordUser?.user) {
+              landlordEmail = landlordUser.user.email || ''
+            }
 
-          // Get landlord profile
-          const { data: landlordProfile } = await supabase
-            .from('user_profiles')
-            .select('full_name, phone')
-            .eq('id', property.landlord_id)
-            .single()
+            // Get landlord profile
+            const { data: landlordProfile } = await supabase
+              .from('user_profiles')
+              .select('full_name, phone')
+              .eq('id', property.landlord_id)
+              .single()
 
-          if (landlordProfile) {
-            landlordName = landlordProfile.full_name || 'Unknown'
-            landlordPhone = landlordProfile.phone || ''
+            if (landlordProfile) {
+              landlordName = landlordProfile.full_name || 'Unknown'
+              landlordPhone = landlordProfile.phone || ''
+            }
+          } catch (landlordError) {
+            console.error('Error fetching landlord info for property:', property.id, landlordError)
+            // Continue with default values
           }
         }
 
@@ -136,7 +149,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('Error in admin properties API:', error)
     return NextResponse.json(
-      { success: false, error: 'Internal server error' },
+      { success: false, error: 'Internal server error', details: error instanceof Error ? error.message : String(error) },
       { status: 500 }
     )
   }

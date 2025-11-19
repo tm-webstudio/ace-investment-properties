@@ -207,11 +207,14 @@ export function DashboardOverview({ userId, onTabChange }: DashboardOverviewProp
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>My Properties</CardTitle>
-          <Link href="/landlord/properties">
-            <Button variant="outline" size="sm" className="bg-transparent">
-              View All
-            </Button>
-          </Link>
+          <Button
+            variant="outline"
+            size="sm"
+            className="bg-transparent"
+            onClick={() => onTabChange?.('properties')}
+          >
+            View All
+          </Button>
         </CardHeader>
         <CardContent>
           {loading ? (
@@ -395,19 +398,10 @@ export function DashboardOverview({ userId, onTabChange }: DashboardOverviewProp
                     >
                       <div className="mb-4">
                         <p className="font-semibold text-[15px] mb-1 line-clamp-1">
-                          <PropertyTitle
-                            address={property.address}
-                            city={property.city}
-                            postcode={property.postcode}
-                          />
+                          {property.address}, {property.city}
                         </p>
                         <p className="text-sm text-muted-foreground line-clamp-1">
-                          <PropertyTitle
-                            address={property.address}
-                            city={property.city}
-                            postcode={property.postcode}
-                            variant="full"
-                          />
+                          {property.postcode?.toUpperCase()}
                         </p>
                       </div>
 
@@ -449,7 +443,7 @@ export function DashboardOverview({ userId, onTabChange }: DashboardOverviewProp
         </Card>
 
         {/* Viewing Requests */}
-        <ViewingRequests variant="dashboard" limit={5} />
+        <ViewingRequests variant="dashboard" limit={5} onTabChange={onTabChange} />
       </div>
 
       {modalOpen && selectedProperty && (

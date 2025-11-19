@@ -7,7 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { PropertyCard } from "@/components/property-card"
 import { PropertyTitle } from "@/components/property-title"
 import { ViewingRequests } from "@/components/viewing-requests"
-import { Settings, Eye, CheckCircle, XCircle, Clock, Calendar, Home, Users, BarChart3, Plus, Shield, Building, FileText, Download, ExternalLink, ChevronLeft, ChevronRight } from "lucide-react"
+import { Settings, Eye, CheckCircle, XCircle, Clock, Calendar, Home, Users, BarChart3, Plus, Shield, Building, FileText, Download, ExternalLink, ChevronLeft, ChevronRight, Check } from "lucide-react"
 import Link from "next/link"
 import type { Admin } from "@/lib/sample-data"
 import { samplePendingProperties, sampleViewings, sampleProperties, sampleLandlords, sampleInvestors } from "@/lib/sample-data"
@@ -15,9 +15,10 @@ import { supabase } from "@/lib/supabase"
 
 interface AdminDashboardOverviewProps {
   admin: Admin
+  onTabChange?: (tab: string) => void
 }
 
-export function AdminDashboardOverview({ admin }: AdminDashboardOverviewProps) {
+export function AdminDashboardOverview({ admin, onTabChange }: AdminDashboardOverviewProps) {
   const [stats, setStats] = useState({
     totalProperties: 0,
     totalPendingProperties: 0,
@@ -197,7 +198,9 @@ export function AdminDashboardOverview({ admin }: AdminDashboardOverviewProps) {
 
           console.log('Formatted docs:', formattedDocs)
           console.log('First doc example:', formattedDocs[0])
-          setDocumentsForDisplay(formattedDocs)
+          // Filter to only show properties with at least one document for the overview
+          const docsWithUploads = formattedDocs.filter((doc: any) => doc.completedDocs > 0)
+          setDocumentsForDisplay(docsWithUploads)
         } else {
           console.log('No documents data in response')
         }
@@ -356,6 +359,37 @@ export function AdminDashboardOverview({ admin }: AdminDashboardOverviewProps) {
     }
   }
 
+  const handleApproveDocument = async (documentId: string) => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session?.access_token) {
+        alert('Please log in to approve documents')
+        return
+      }
+
+      const response = await fetch(`/api/admin/documents/${documentId}/approve`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`
+        }
+      })
+
+      const data = await response.json()
+
+      if (data.success) {
+        // Refresh the documents list
+        if (selectedPropertyForDocs) {
+          handleViewDocuments(selectedPropertyForDocs)
+        }
+      } else {
+        alert('Failed to approve document')
+      }
+    } catch (error) {
+      console.error('Error approving document:', error)
+      alert('Error approving document')
+    }
+  }
+
   const closeDocumentsModal = () => {
     setDocumentsModalOpen(false)
     setSelectedPropertyForDocs(null)
@@ -467,11 +501,14 @@ export function AdminDashboardOverview({ admin }: AdminDashboardOverviewProps) {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>Pending Property Approvals</CardTitle>
-          <Link href="/admin/properties">
-            <Button variant="outline" size="sm" className="bg-transparent">
-              View All
-            </Button>
-          </Link>
+          <Button
+            variant="outline"
+            size="sm"
+            className="bg-transparent"
+            onClick={() => onTabChange?.('properties')}
+          >
+            View All
+          </Button>
         </CardHeader>
         <CardContent>
           {loading ? (
@@ -578,17 +615,20 @@ export function AdminDashboardOverview({ admin }: AdminDashboardOverviewProps) {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Recent Viewings */}
-        <ViewingRequests variant="dashboard" limit={5} />
+        <ViewingRequests variant="dashboard" limit={5} onTabChange={onTabChange} />
 
         {/* Landlord Documents */}
         <Card className="max-h-[600px] overflow-hidden flex flex-col">
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle>Landlord Documents</CardTitle>
-            <Link href="/admin/documents">
-              <Button variant="outline" size="sm" className="bg-transparent">
-                View All
-              </Button>
-            </Link>
+            <Button
+              variant="outline"
+              size="sm"
+              className="bg-transparent"
+              onClick={() => onTabChange?.('documents')}
+            >
+              View All
+            </Button>
           </CardHeader>
           <CardContent className="overflow-y-auto flex-1">
             {documentsLoading ? (
@@ -632,7 +672,7 @@ export function AdminDashboardOverview({ admin }: AdminDashboardOverviewProps) {
                           {property.address}, {property.city}
                         </p>
                         <p className="text-sm text-muted-foreground line-clamp-1">
-                          {property.postcode}
+                          {property.postcode?.toUpperCase()}
                         </p>
                       </div>
 
@@ -769,7 +809,11 @@ export function AdminDashboardOverview({ admin }: AdminDashboardOverviewProps) {
                         </div>
                         <div className="flex-shrink-0 ml-3">
                           {docType.document ? (
-                            <Badge variant="secondary" className="bg-yellow-200 text-yellow-800">Awaiting Approval</Badge>
+                            docType.document.status === 'approved' ? (
+                              <Badge variant="secondary" className="bg-green-200 text-green-800">Approved</Badge>
+                            ) : (
+                              <Badge variant="secondary" className="bg-yellow-200 text-yellow-800">Awaiting Approval</Badge>
+                            )
                           ) : (
                             <Badge variant="secondary" className="bg-gray-200 text-gray-700">Not Uploaded</Badge>
                           )}
@@ -816,6 +860,17 @@ export function AdminDashboardOverview({ admin }: AdminDashboardOverviewProps) {
                               <Download className="h-4 w-4 mr-1.5" />
                               Download
                             </Button>
+                            {docType.document.status !== 'approved' && (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handleApproveDocument(docType.document.id)}
+                                className="text-green-600 hover:text-green-700 hover:bg-green-50 border-green-200"
+                              >
+                                <Check className="h-4 w-4 mr-1.5" />
+                                Approve
+                              </Button>
+                            )}
                           </div>
                         </div>
                       )}

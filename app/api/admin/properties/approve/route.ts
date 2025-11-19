@@ -82,7 +82,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Update property status
-    const newStatus = action === 'approve' ? 'active' : 'inactive'
+    const newStatus = action === 'approve' ? 'active' : 'rejected'
     const updateData: any = {
       status: newStatus
     }

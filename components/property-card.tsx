@@ -124,12 +124,14 @@ export function PropertyCard({ property, variant = 'default', onPropertyDeleted,
   }
   // Check if property is awaiting approval (only show for non-admin variants)
   const isAwaitingApproval = property.status === 'draft' && variant !== 'admin'
+  // Check if property is rejected
+  const isRejected = property.status === 'rejected'
 
   // Shared card structure for both variants
   const CardLayout = ({ children, topRightAction }: { children: React.ReactNode, topRightAction: React.ReactNode }) => (
-    <Card className={`overflow-hidden hover:shadow-lg transition-all duration-300 group border-border/50 hover:border-accent/20 cursor-pointer p-0 gap-3.5 rounded-none ${isAwaitingApproval ? 'opacity-60' : ''}`}>
+    <Card className={`overflow-hidden hover:shadow-lg transition-all duration-300 group border-border/50 hover:border-accent/20 cursor-pointer p-0 gap-3.5 rounded-none ${isAwaitingApproval || isRejected ? 'opacity-60' : ''}`}>
       <div className="relative overflow-hidden cursor-pointer" onClick={handleCardClick}>
-        {isAwaitingApproval && (
+        {(isAwaitingApproval || isRejected) && (
           <div className="absolute inset-0 bg-gray-900/10 z-[5]" />
         )}
         {(property.images || property.photos)?.[0] ? (
@@ -154,6 +156,15 @@ export function PropertyCard({ property, variant = 'default', onPropertyDeleted,
           <div className="absolute inset-0 flex items-center justify-center z-[6]">
             <div className="bg-yellow-500/95 text-white px-4 py-2 rounded shadow-lg border-2 border-yellow-400">
               <p className="font-bold text-sm">Awaiting Approval</p>
+            </div>
+          </div>
+        )}
+
+        {/* Rejected Watermark */}
+        {isRejected && (
+          <div className="absolute inset-0 flex items-center justify-center z-[6]">
+            <div className="bg-red-500/95 text-white px-4 py-2 rounded shadow-lg border-2 border-red-400">
+              <p className="font-bold text-sm">Rejected</p>
             </div>
           </div>
         )}
