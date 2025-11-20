@@ -204,20 +204,16 @@ export function InvestorDashboardSavedProperties() {
 
       {/* Properties Grid */}
       {savedProperties.length === 0 ? (
-        <Card>
-          <CardContent className="p-12 text-center">
-            <Heart className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
-            <h3 className="text-xl font-semibold mb-2">No saved properties yet</h3>
-            <p className="text-muted-foreground mb-6">
-              Start browsing properties and save the ones you're interested in.
-            </p>
-            <Link href="/investor/property-matching">
-              <Button className="bg-accent hover:bg-accent/90 text-accent-foreground">
-                Find Properties
-              </Button>
-            </Link>
-          </CardContent>
-        </Card>
+        <div className="text-center py-16 text-muted-foreground min-h-[320px] flex flex-col items-center justify-center">
+          <Heart className="h-10 w-10 mx-auto mb-3 opacity-50" />
+          <p className="text-base font-medium mb-1.5">No Saved Properties</p>
+          <p className="text-sm mb-4">Start browsing properties and save the ones you're interested in</p>
+          <Link href="/investor/property-matching">
+            <Button className="bg-accent hover:bg-accent/90 text-accent-foreground">
+              Find Properties
+            </Button>
+          </Link>
+        </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
           {savedProperties.map((saved) => (

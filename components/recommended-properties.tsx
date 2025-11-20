@@ -194,8 +194,26 @@ export function RecommendedProperties({ className, preferences }: RecommendedPro
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex items-center justify-center py-12">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          <div className="flex gap-4 overflow-hidden">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="flex-none w-[23.5%] min-w-[200px]">
+                <div className="border rounded-lg overflow-hidden">
+                  <div className="w-full h-48 bg-gray-200 animate-pulse" />
+                  <div className="p-4 space-y-3">
+                    <div className="h-5 bg-gray-200 rounded w-3/4 animate-pulse" />
+                    <div className="h-4 bg-gray-200 rounded w-1/2 animate-pulse" />
+                    <div className="flex gap-4">
+                      <div className="h-4 bg-gray-200 rounded w-16 animate-pulse" />
+                      <div className="h-4 bg-gray-200 rounded w-16 animate-pulse" />
+                    </div>
+                    <div className="flex gap-2">
+                      <div className="h-6 bg-gray-200 rounded w-16 animate-pulse" />
+                      <div className="h-6 bg-gray-200 rounded w-12 animate-pulse" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         </CardContent>
       </Card>
@@ -278,56 +296,59 @@ export function RecommendedProperties({ className, preferences }: RecommendedPro
   return (
     <Card className={className}>
       <CardHeader className="space-y-4">
-        <CardTitle className="flex items-center gap-2">
-          <Heart className="h-5 w-5 text-primary" />
-          Recommended For You
-        </CardTitle>
+        <div className="flex items-center justify-between mb-1">
+          <CardTitle className="flex items-center gap-2">
+            <Heart className="h-5 w-5 text-primary" />
+            Recommended For You
+          </CardTitle>
+          <Link href="/investor/dashboard?tab=preferences">
+            <Button variant="outline" size="sm" className="bg-transparent">
+              View All
+            </Button>
+          </Link>
+        </div>
 
         {/* Your Preferences Section */}
         {preferences && (
-          <div className="py-4 border rounded-lg bg-gray-50/50 w-full relative">
-            <div className="flex justify-between items-center mb-3 px-4">
-              <h3 className="text-base font-medium">Your Preferences</h3>
-              <PreferencesModal onPreferencesUpdate={() => {
-                fetchRecommendedProperties()
-                fetchSavedProperties()
-              }} />
+          <div className="py-4 border rounded-lg bg-gray-50/50 w-full md:w-1/2 relative">
+            <div className="mb-3 px-4">
+              <h3 className="text-sm font-bold">Your Preferences</h3>
             </div>
-            <div className="grid grid-cols-4 gap-3 text-sm px-4">
+            <div className="grid grid-cols-2 gap-2 text-sm px-4">
               <div>
-                <span className="text-gray-600">Budget:</span>
-                <div className="font-medium">
+                <span className="text-gray-900">Budget: </span>
+                <span className="text-gray-600">
                   £{preferences.preference_data.budget.min.toLocaleString()}-£{preferences.preference_data.budget.max.toLocaleString()}/month
-                </div>
+                </span>
               </div>
               <div>
-                <span className="text-gray-600">Bedrooms:</span>
-                <div className="font-medium">
+                <span className="text-gray-900">Bedrooms: </span>
+                <span className="text-gray-600">
                   {preferences.preference_data.bedrooms.min === preferences.preference_data.bedrooms.max
                     ? `${preferences.preference_data.bedrooms.min} bedroom${preferences.preference_data.bedrooms.min !== 1 ? 's' : ''}`
                     : `${preferences.preference_data.bedrooms.min}-${preferences.preference_data.bedrooms.max} bedrooms`
                   }
-                </div>
+                </span>
               </div>
               <div>
-                <span className="text-gray-600">Property Types:</span>
-                <div className="font-medium">
+                <span className="text-gray-900">Property Types: </span>
+                <span className="text-gray-600">
                   {preferences.preference_data.property_types?.length > 0
                     ? preferences.preference_data.property_types.slice(0, 2).join(', ') +
                       (preferences.preference_data.property_types.length > 2 ? ` +${preferences.preference_data.property_types.length - 2} more` : '')
                     : 'Not specified'
                   }
-                </div>
+                </span>
               </div>
               <div>
-                <span className="text-gray-600">Locations:</span>
-                <div className="font-medium">
+                <span className="text-gray-900">Locations: </span>
+                <span className="text-gray-600">
                   {preferences.preference_data.locations?.length > 0
                     ? preferences.preference_data.locations.map((loc: any) => loc.city).slice(0, 2).join(', ') +
                       (preferences.preference_data.locations.length > 2 ? ` +${preferences.preference_data.locations.length - 2} more` : '')
                     : 'Not specified'
                   }
-                </div>
+                </span>
               </div>
             </div>
           </div>
@@ -416,26 +437,6 @@ export function RecommendedProperties({ className, preferences }: RecommendedPro
             </button>
           )}
         </div>
-
-        {/* Load More */}
-        {hasMore && (
-          <div className="flex justify-center pt-4">
-            <Button
-              variant="outline"
-              onClick={handleLoadMore}
-              disabled={loadingMore}
-            >
-              {loadingMore ? (
-                <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current mr-2"></div>
-                  Loading...
-                </>
-              ) : (
-                "Show More Properties"
-              )}
-            </Button>
-          </div>
-        )}
 
       </CardContent>
     </Card>

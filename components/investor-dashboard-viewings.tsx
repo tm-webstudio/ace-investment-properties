@@ -307,27 +307,25 @@ export function InvestorDashboardViewings() {
 
       {/* Viewing Requests List */}
       {filteredViewings.length === 0 ? (
-        <Card>
-          <CardContent className="p-12 text-center">
-            <Calendar className="h-16 w-16 mx-auto mb-4 text-gray-400" />
-            <h3 className="text-xl font-semibold mb-2">
-              {stats.total === 0 ? "No viewing requests yet" : "No viewings match your filters"}
-            </h3>
-            <p className="text-gray-600 mb-6">
-              {stats.total === 0
-                ? "Browse properties and book a viewing to get started"
-                : "Try adjusting your filters"
-              }
-            </p>
-            {stats.total === 0 && (
-              <Link href="/investor/property-matching">
-                <Button className="bg-accent hover:bg-accent/90 text-accent-foreground">
-                  Browse Properties
-                </Button>
-              </Link>
-            )}
-          </CardContent>
-        </Card>
+        <div className="text-center py-16 text-muted-foreground min-h-[320px] flex flex-col items-center justify-center">
+          <Calendar className="h-10 w-10 mx-auto mb-3 opacity-50" />
+          <p className="text-base font-medium mb-1.5">
+            {stats.total === 0 ? "No Viewing Requests" : "No Matching Viewings"}
+          </p>
+          <p className="text-sm mb-4">
+            {stats.total === 0
+              ? "Browse properties and book a viewing to get started"
+              : "Try adjusting your filters"
+            }
+          </p>
+          {stats.total === 0 && (
+            <Link href="/investor/property-matching">
+              <Button className="bg-accent hover:bg-accent/90 text-accent-foreground">
+                Browse Properties
+              </Button>
+            </Link>
+          )}
+        </div>
       ) : (
         <div className="space-y-4">
           {filteredViewings.map((viewing) => {

@@ -296,7 +296,7 @@ export function InvestorViewingRequests({ variant = 'dashboard', limit }: Invest
       <Card className="max-h-[600px] overflow-hidden flex flex-col">
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>Upcoming Viewings</CardTitle>
-          <Link href="/investor/viewings">
+          <Link href="/investor/dashboard?tab=viewings">
             <Button variant="outline" size="sm" className="bg-transparent">
               View All
             </Button>

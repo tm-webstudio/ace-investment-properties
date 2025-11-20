@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { DashboardNavigationHeader } from "@/components/dashboard-navigation-header"
 import { DashboardFooter } from "@/components/dashboard-footer"
@@ -14,18 +14,27 @@ import { InvestorDashboardSavedProperties } from "@/components/investor-dashboar
 import { InvestorDashboardViewings } from "@/components/investor-dashboard-viewings"
 import { RecommendedProperties } from "@/components/recommended-properties"
 import { Button } from "@/components/ui/button"
-import { Edit3 } from "lucide-react"
+import { Edit3, Settings } from "lucide-react"
 import { sampleInvestors } from "@/lib/sample-data"
 import { supabase } from "@/lib/supabase"
 
 export default function InvestorDashboard() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [isLoading, setIsLoading] = useState(true)
   const [user, setUser] = useState<any>(null)
   const [userProfile, setUserProfile] = useState<any>(null)
   const [preferences, setPreferences] = useState<any>(null)
   const [activeTab, setActiveTab] = useState("dashboard")
   const [isEditingProfile, setIsEditingProfile] = useState(false)
+
+  // Handle tab from URL query parameter
+  useEffect(() => {
+    const tab = searchParams.get('tab')
+    if (tab && ['dashboard', 'preferences', 'saved-properties', 'viewings', 'profile'].includes(tab)) {
+      setActiveTab(tab)
+    }
+  }, [searchParams])
 
   // In a real app, this would come from user data
   const currentInvestor = sampleInvestors[0]
@@ -197,6 +206,21 @@ export default function InvestorDashboard() {
                   <Edit3 className="mr-2 h-4 w-4 transition-all duration-200 ease-out group-hover:scale-105" />
                   <span className="relative z-10 font-medium">Edit Profile</span>
                 </Button>
+              ) : activeTab !== "profile" ? (
+                <Link href="/investor/preferences">
+                  <Button
+                    className="
+                      group bg-accent hover:bg-accent/90 text-accent-foreground
+                      transition-all duration-200 ease-out
+                      hover:scale-[1.02] hover:-translate-y-px
+                      hover:shadow-md hover:shadow-accent/15
+                      active:scale-[0.98] active:transition-none
+                    "
+                  >
+                    <Settings className="mr-2 h-4 w-4 transition-all duration-200 ease-out group-hover:scale-105" />
+                    <span className="relative z-10 font-medium">Edit Preferences</span>
+                  </Button>
+                </Link>
               ) : undefined
             }
           />

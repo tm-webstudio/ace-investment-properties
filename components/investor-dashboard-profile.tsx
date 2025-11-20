@@ -6,8 +6,17 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { User, Mail, Phone, MapPin, Save } from "lucide-react"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Checkbox } from "@/components/ui/checkbox"
+import { User, Mail, Phone, MapPin, Save, Settings } from "lucide-react"
 import { supabase } from "@/lib/supabase"
+
+interface PreferencesData {
+  budget: { min: number; max: number }
+  bedrooms: { min: number; max: number }
+  property_types: string[]
+  locations: { city: string }[]
+}
 
 interface InvestorDashboardProfileProps {
   isEditing: boolean
@@ -27,6 +36,22 @@ export function InvestorDashboardProfile({ isEditing, setIsEditing }: InvestorDa
     bio: "",
     investmentGoals: "",
   })
+  const [preferences, setPreferences] = useState<PreferencesData | null>(null)
+  const [preferencesForm, setPreferencesForm] = useState<PreferencesData>({
+    budget: { min: 1000, max: 3000 },
+    bedrooms: { min: 1, max: 4 },
+    property_types: [],
+    locations: []
+  })
+  const [newLocation, setNewLocation] = useState("")
+
+  const propertyTypeOptions = [
+    { value: "house", label: "House" },
+    { value: "flat", label: "Flat" },
+    { value: "hmo", label: "HMO" },
+    { value: "studio", label: "Studio" },
+    { value: "bungalow", label: "Bungalow" },
+  ]
 
   useEffect(() => {
     const fetchUserProfile = async () => {
@@ -57,6 +82,19 @@ export function InvestorDashboardProfile({ isEditing, setIsEditing }: InvestorDa
               investmentGoals: profile.investment_goals || '',
             })
           }
+
+          // Fetch preferences
+          const { data: preferencesData } = await supabase
+            .from('investor_preferences')
+            .select('*')
+            .eq('user_id', session.user.id)
+            .single()
+
+          if (preferencesData?.preference_data) {
+            const prefData = preferencesData.preference_data as PreferencesData
+            setPreferences(prefData)
+            setPreferencesForm(prefData)
+          }
         }
       } catch (error) {
         console.error('Error fetching profile:', error)
@@ -82,6 +120,7 @@ export function InvestorDashboardProfile({ isEditing, setIsEditing }: InvestorDa
       if (session?.user) {
         const fullName = `${formData.firstName} ${formData.surname}`.trim()
 
+        // Update profile
         await supabase
           .from('user_profiles')
           .update({
@@ -105,6 +144,31 @@ export function InvestorDashboardProfile({ isEditing, setIsEditing }: InvestorDa
           bio: formData.bio,
           investment_goals: formData.investmentGoals,
         }))
+
+        // Update preferences
+        const { data: existingPrefs } = await supabase
+          .from('investor_preferences')
+          .select('id')
+          .eq('user_id', session.user.id)
+          .single()
+
+        if (existingPrefs) {
+          await supabase
+            .from('investor_preferences')
+            .update({
+              preference_data: preferencesForm
+            })
+            .eq('user_id', session.user.id)
+        } else {
+          await supabase
+            .from('investor_preferences')
+            .insert({
+              user_id: session.user.id,
+              preference_data: preferencesForm
+            })
+        }
+
+        setPreferences(preferencesForm)
       }
     } catch (error) {
       console.error('Error updating profile:', error)
@@ -131,7 +195,37 @@ export function InvestorDashboardProfile({ isEditing, setIsEditing }: InvestorDa
         investmentGoals: user.investment_goals || '',
       })
     }
+    // Reset preferences form
+    if (preferences) {
+      setPreferencesForm(preferences)
+    }
     setIsEditing(false)
+  }
+
+  const handlePropertyTypeToggle = (type: string) => {
+    setPreferencesForm(prev => ({
+      ...prev,
+      property_types: prev.property_types.includes(type)
+        ? prev.property_types.filter(t => t !== type)
+        : [...prev.property_types, type]
+    }))
+  }
+
+  const handleAddLocation = () => {
+    if (newLocation.trim() && !preferencesForm.locations.some(l => l.city.toLowerCase() === newLocation.trim().toLowerCase())) {
+      setPreferencesForm(prev => ({
+        ...prev,
+        locations: [...prev.locations, { city: newLocation.trim() }]
+      }))
+      setNewLocation("")
+    }
+  }
+
+  const handleRemoveLocation = (city: string) => {
+    setPreferencesForm(prev => ({
+      ...prev,
+      locations: prev.locations.filter(l => l.city !== city)
+    }))
   }
 
   if (loading) {
@@ -246,8 +340,10 @@ export function InvestorDashboardProfile({ isEditing, setIsEditing }: InvestorDa
           </CardContent>
         </Card>
 
-        {/* Settings Form */}
-        <Card className="lg:col-span-2">
+        {/* Right column - Personal Info and Preferences */}
+        <div className="lg:col-span-2 space-y-8">
+          {/* Settings Form */}
+          <Card>
           <CardHeader className="py-3">
             <CardTitle className="flex items-center">
               <User className="h-5 w-5 mr-2" />
@@ -348,6 +444,156 @@ export function InvestorDashboardProfile({ isEditing, setIsEditing }: InvestorDa
                 placeholder="Tell us about yourself and your investment experience..."
               />
             </div>
+          </CardContent>
+          </Card>
+
+          {/* Preferences Section */}
+          <Card>
+          <CardHeader className="py-3">
+            <CardTitle className="flex items-center">
+              <Settings className="h-5 w-5 mr-2" />
+              Investment Preferences
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6 pb-6">
+            {/* Budget */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="budgetMin">Minimum Budget (£/month)</Label>
+                <Input
+                  id="budgetMin"
+                  type="number"
+                  value={preferencesForm.budget.min}
+                  onChange={(e) => setPreferencesForm(prev => ({
+                    ...prev,
+                    budget: { ...prev.budget, min: parseInt(e.target.value) || 0 }
+                  }))}
+                  disabled={!isEditing}
+                  placeholder="1000"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="budgetMax">Maximum Budget (£/month)</Label>
+                <Input
+                  id="budgetMax"
+                  type="number"
+                  value={preferencesForm.budget.max}
+                  onChange={(e) => setPreferencesForm(prev => ({
+                    ...prev,
+                    budget: { ...prev.budget, max: parseInt(e.target.value) || 0 }
+                  }))}
+                  disabled={!isEditing}
+                  placeholder="3000"
+                />
+              </div>
+            </div>
+
+            {/* Bedrooms */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="bedroomsMin">Minimum Bedrooms</Label>
+                <Select
+                  value={preferencesForm.bedrooms.min.toString()}
+                  onValueChange={(value) => setPreferencesForm(prev => ({
+                    ...prev,
+                    bedrooms: { ...prev.bedrooms, min: parseInt(value) }
+                  }))}
+                  disabled={!isEditing}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {[1, 2, 3, 4, 5, 6].map(num => (
+                      <SelectItem key={num} value={num.toString()}>{num}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="bedroomsMax">Maximum Bedrooms</Label>
+                <Select
+                  value={preferencesForm.bedrooms.max.toString()}
+                  onValueChange={(value) => setPreferencesForm(prev => ({
+                    ...prev,
+                    bedrooms: { ...prev.bedrooms, max: parseInt(value) }
+                  }))}
+                  disabled={!isEditing}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {[1, 2, 3, 4, 5, 6].map(num => (
+                      <SelectItem key={num} value={num.toString()}>{num}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {/* Property Types */}
+            <div className="space-y-2">
+              <Label>Property Types</Label>
+              <div className="flex flex-wrap gap-3">
+                {propertyTypeOptions.map(option => (
+                  <div key={option.value} className="flex items-center space-x-2">
+                    <Checkbox
+                      id={option.value}
+                      checked={preferencesForm.property_types.includes(option.value)}
+                      onCheckedChange={() => handlePropertyTypeToggle(option.value)}
+                      disabled={!isEditing}
+                    />
+                    <label
+                      htmlFor={option.value}
+                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                    >
+                      {option.label}
+                    </label>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Locations */}
+            <div className="space-y-2">
+              <Label>Preferred Locations</Label>
+              {isEditing && (
+                <div className="flex gap-2">
+                  <Input
+                    value={newLocation}
+                    onChange={(e) => setNewLocation(e.target.value)}
+                    placeholder="Add a city..."
+                    onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddLocation())}
+                  />
+                  <Button type="button" variant="outline" onClick={handleAddLocation}>
+                    Add
+                  </Button>
+                </div>
+              )}
+              <div className="flex flex-wrap gap-2 mt-2">
+                {preferencesForm.locations.map(loc => (
+                  <span
+                    key={loc.city}
+                    className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-gray-100"
+                  >
+                    {loc.city}
+                    {isEditing && (
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveLocation(loc.city)}
+                        className="ml-2 text-gray-500 hover:text-gray-700"
+                      >
+                        ×
+                      </button>
+                    )}
+                  </span>
+                ))}
+                {preferencesForm.locations.length === 0 && (
+                  <span className="text-sm text-muted-foreground">No locations added</span>
+                )}
+              </div>
+            </div>
 
             {isEditing && (
               <div className="flex gap-4 pt-4">
@@ -367,7 +613,8 @@ export function InvestorDashboardProfile({ isEditing, setIsEditing }: InvestorDa
               </div>
             )}
           </CardContent>
-        </Card>
+          </Card>
+        </div>
       </div>
     </div>
   )

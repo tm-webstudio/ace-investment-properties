@@ -1,11 +1,10 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Settings, MapPin, Home, PoundSterling, Calendar, Edit3 } from "lucide-react"
+import { PropertyCard } from "@/components/property-card"
+import { Settings, Edit3, Loader2 } from "lucide-react"
 import Link from "next/link"
 import { supabase } from "@/lib/supabase"
 
@@ -13,34 +12,73 @@ interface InvestorDashboardPreferencesProps {
   preferences?: any
 }
 
+interface MatchedProperty {
+  id: string
+  title: string
+  address: string
+  city: string
+  property_type: string
+  bedrooms: string
+  bathrooms: string
+  monthly_rent: number
+  price: number
+  photos: string[]
+  available_date?: string
+  property_licence?: string
+  property_condition?: string
+  availability?: string
+  matchScore: number
+  matchReasons: string[]
+}
+
 export function InvestorDashboardPreferences({ preferences: initialPreferences }: InvestorDashboardPreferencesProps) {
-  const router = useRouter()
   const [preferences, setPreferences] = useState<any>(initialPreferences)
-  const [loading, setLoading] = useState(!initialPreferences)
+  const [properties, setProperties] = useState<MatchedProperty[]>([])
+  const [loading, setLoading] = useState(true)
+  const [totalMatches, setTotalMatches] = useState(0)
 
   useEffect(() => {
-    if (!initialPreferences) {
-      fetchPreferences()
-    }
-  }, [initialPreferences])
+    fetchPreferencesAndProperties()
+  }, [])
 
-  const fetchPreferences = async () => {
+  const fetchPreferencesAndProperties = async () => {
     try {
       const { data: { session } } = await supabase.auth.getSession()
-      if (!session?.access_token) return
+      if (!session?.access_token) {
+        setLoading(false)
+        return
+      }
 
-      const response = await fetch('/api/investor/preferences', {
-        headers: {
-          'Authorization': `Bearer ${session.access_token}`
+      // Fetch preferences if not provided
+      if (!preferences) {
+        const prefResponse = await fetch('/api/investor/preferences', {
+          headers: {
+            'Authorization': `Bearer ${session.access_token}`
+          }
+        })
+        const prefResult = await prefResponse.json()
+        if (prefResult.success && prefResult.preferences) {
+          setPreferences(prefResult.preferences)
         }
-      })
+      }
+
+      // Fetch matched properties
+      const response = await fetch(
+        `/api/investor/matched-properties?minScore=0&limit=50`,
+        {
+          headers: {
+            'Authorization': `Bearer ${session.access_token}`
+          }
+        }
+      )
 
       const result = await response.json()
-      if (result.success && result.preferences) {
-        setPreferences(result.preferences)
+      if (result.success) {
+        setProperties(result.properties)
+        setTotalMatches(result.total)
       }
     } catch (error) {
-      console.error('Error fetching preferences:', error)
+      console.error('Error fetching data:', error)
     } finally {
       setLoading(false)
     }
@@ -49,47 +87,37 @@ export function InvestorDashboardPreferences({ preferences: initialPreferences }
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     )
   }
 
   if (!preferences) {
     return (
-      <Card>
-        <CardContent className="p-12 text-center">
-          <Settings className="h-16 w-16 mx-auto mb-4 text-gray-400" />
-          <h3 className="text-xl font-semibold mb-2">No Preferences Set</h3>
-          <p className="text-gray-600 mb-6">
-            Set your investment preferences to get personalized property recommendations.
-          </p>
-          <Link href="/investor/preferences">
-            <Button className="bg-accent hover:bg-accent/90 text-accent-foreground">
-              <Settings className="mr-2 h-4 w-4" />
-              Set Up Preferences
-            </Button>
-          </Link>
-        </CardContent>
-      </Card>
+      <div className="text-center py-16 text-muted-foreground min-h-[320px] flex flex-col items-center justify-center">
+        <Settings className="h-10 w-10 mx-auto mb-3 opacity-50" />
+        <p className="text-base font-medium mb-1.5">No Preferences Set</p>
+        <p className="text-sm mb-4">Set your investment preferences to get personalized property recommendations</p>
+        <Link href="/investor/preferences">
+          <Button className="bg-accent hover:bg-accent/90 text-accent-foreground">
+            <Settings className="mr-2 h-4 w-4" />
+            Set Up Preferences
+          </Button>
+        </Link>
+      </div>
     )
   }
 
   const prefData = preferences.preference_data || {}
-  const operatorTypeLabels = {
-    sa_operator: "Supported Accommodation Operator",
-    supported_living: "Supported Living Provider",
-    social_housing: "Social Housing Provider",
-    other: "Other"
-  }
 
   return (
     <div className="space-y-6">
       {/* Header with Edit Button */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Your Investment Preferences</h2>
+          <h2 className="text-2xl font-bold text-gray-900">Properties Matching Your Preferences</h2>
           <p className="text-gray-600 mt-1">
-            Last updated: {new Date(preferences.updated_at).toLocaleDateString()}
+            {totalMatches} {totalMatches === 1 ? 'property' : 'properties'} match your criteria
           </p>
         </div>
         <Link href="/investor/preferences">
@@ -100,143 +128,98 @@ export function InvestorDashboardPreferences({ preferences: initialPreferences }
         </Link>
       </div>
 
-      {/* Business Type */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Settings className="h-5 w-5" />
-            Business Information
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
+      {/* Preferences Summary */}
+      <div className="py-4 border rounded-lg bg-gray-50/50 w-full md:w-1/2">
+        <div className="mb-3 px-4">
+          <h3 className="text-sm font-bold">Your Preferences</h3>
+        </div>
+        <div className="grid grid-cols-2 gap-2 text-sm px-4">
           <div>
-            <span className="text-sm text-gray-600">Operator Type:</span>
-            <p className="font-medium">
-              {operatorTypeLabels[preferences.operator_type as keyof typeof operatorTypeLabels] || preferences.operator_type}
-              {preferences.operator_type_other && ` - ${preferences.operator_type_other}`}
-            </p>
+            <span className="text-gray-900">Budget: </span>
+            <span className="text-gray-600">
+              £{prefData.budget?.min?.toLocaleString() || 500}-£{prefData.budget?.max?.toLocaleString() || 2000}/month
+            </span>
           </div>
           <div>
-            <span className="text-sm text-gray-600">Properties Managing:</span>
-            <p className="font-medium">{preferences.properties_managing || 0}</p>
+            <span className="text-gray-900">Bedrooms: </span>
+            <span className="text-gray-600">
+              {prefData.bedrooms?.min || 1}-{prefData.bedrooms?.max || 3} bedrooms
+            </span>
           </div>
-        </CardContent>
-      </Card>
-
-      {/* Property Preferences */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Home className="h-5 w-5" />
-            Property Requirements
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
           <div>
-            <span className="text-sm text-gray-600 block mb-2">Property Types:</span>
-            <div className="flex flex-wrap gap-2">
-              {prefData.property_types?.length > 0 ? (
-                prefData.property_types.map((type: string) => (
-                  <Badge key={type} variant="secondary" className="capitalize">
-                    {type.replace('_', ' ')}
-                  </Badge>
-                ))
-              ) : (
-                <span className="text-gray-500">No specific types selected</span>
-              )}
-            </div>
+            <span className="text-gray-900">Property Types: </span>
+            <span className="text-gray-600">
+              {prefData.property_types?.length > 0
+                ? prefData.property_types.slice(0, 2).join(', ') +
+                  (prefData.property_types.length > 2 ? ` +${prefData.property_types.length - 2} more` : '')
+                : 'Any'
+              }
+            </span>
           </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <span className="text-sm text-gray-600">Bedrooms:</span>
-              <p className="font-medium">
-                {prefData.bedrooms?.min || 1} - {prefData.bedrooms?.max || 3}
-              </p>
-            </div>
-            <div>
-              <span className="text-sm text-gray-600">Budget:</span>
-              <p className="font-medium">
-                £{prefData.budget?.min || 500} - £{prefData.budget?.max || 2000}
-                <span className="text-xs text-gray-500 ml-1">
-                  ({prefData.budget?.type === 'per_property' ? 'per property' : 'total portfolio'})
-                </span>
-              </p>
-            </div>
+          <div>
+            <span className="text-gray-900">Locations: </span>
+            <span className="text-gray-600">
+              {prefData.locations?.length > 0
+                ? prefData.locations.map((loc: any) => loc.city).slice(0, 2).join(', ') +
+                  (prefData.locations.length > 2 ? ` +${prefData.locations.length - 2} more` : '')
+                : 'Any'
+              }
+            </span>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
-      {/* Location Preferences */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <MapPin className="h-5 w-5" />
-            Preferred Locations
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {prefData.locations?.length > 0 ? (
-            <div className="space-y-3">
-              {prefData.locations.map((location: any, index: number) => (
-                <div key={index} className="p-3 bg-gray-50 rounded-lg">
-                  <p className="font-medium">{location.city}</p>
-                  {location.areas?.length > 0 && (
-                    <p className="text-sm text-gray-600">
-                      Areas: {location.areas.join(', ')}
-                    </p>
-                  )}
-                  <p className="text-sm text-gray-600">
-                    Within {location.radius} miles
-                  </p>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p className="text-gray-500">No location preferences set</p>
-          )}
-        </CardContent>
-      </Card>
+      {/* Matched Properties Grid */}
+      {properties.length > 0 ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {properties.map((property) => {
+            const convertedProperty = {
+              id: property.id,
+              title: property.title,
+              price: property.price,
+              monthly_rent: property.monthly_rent,
+              deposit: 0,
+              address: property.address || '',
+              city: property.city,
+              state: '',
+              bedrooms: parseInt(property.bedrooms) || 0,
+              bathrooms: parseInt(property.bathrooms) || 0,
+              propertyType: property.property_type as "Studio" | "1BR" | "2BR" | "3BR+" | "House",
+              property_type: property.property_type,
+              description: '',
+              amenities: [],
+              images: property.photos || [],
+              availableDate: property.available_date || '',
+              availability: property.availability || 'vacant',
+              property_licence: property.property_licence || 'none',
+              property_condition: property.property_condition || 'good',
+              landlordId: '',
+              landlordName: '',
+              landlordPhone: '',
+              landlordEmail: '',
+              featured: false
+            }
 
-      {/* Availability */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Calendar className="h-5 w-5" />
-            Availability
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {prefData.availability?.immediate ? (
-            <Badge className="bg-green-100 text-green-800">
-              Looking for immediate availability
-            </Badge>
-          ) : prefData.availability?.available_from ? (
-            <p>
-              Available from: {new Date(prefData.availability.available_from).toLocaleDateString()}
-            </p>
-          ) : (
-            <p className="text-gray-500">No availability preferences set</p>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Additional Preferences */}
-      {prefData.additional_preferences?.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Additional Requirements</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-wrap gap-2">
-              {prefData.additional_preferences.map((pref: string, index: number) => (
-                <Badge key={index} variant="outline" className="capitalize">
-                  {pref.replace('_', ' ')}
-                </Badge>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+            return (
+              <PropertyCard
+                key={property.id}
+                property={convertedProperty}
+              />
+            )
+          })}
+        </div>
+      ) : (
+        <div className="text-center py-16 text-muted-foreground min-h-[280px] flex flex-col items-center justify-center">
+          <Settings className="h-10 w-10 mx-auto mb-3 opacity-50" />
+          <p className="text-base font-medium mb-1.5">No Matching Properties</p>
+          <p className="text-sm mb-4">Try adjusting your preferences to see more properties</p>
+          <Link href="/investor/preferences">
+            <Button variant="outline">
+              <Edit3 className="mr-2 h-4 w-4" />
+              Edit Preferences
+            </Button>
+          </Link>
+        </div>
       )}
     </div>
   )
