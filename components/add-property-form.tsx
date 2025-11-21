@@ -293,7 +293,7 @@ export function AddPropertyForm() {
 
       reader.onload = (e) => {
         console.log('📖 FileReader loaded, creating image...')
-        const img = new Image()
+        const img = document.createElement('img')
 
         img.onerror = (error) => {
           console.error('❌ Image load error:', error)
