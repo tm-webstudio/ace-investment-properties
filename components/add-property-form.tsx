@@ -333,7 +333,7 @@ export function AddPropertyForm() {
 
     try {
       // Upload files in batches to avoid payload size limits
-      const BATCH_SIZE = 3 // Upload max 3 files at a time
+      const BATCH_SIZE = 2 // Upload max 2 files at a time
       const allUploadedUrls: string[] = []
       let totalUploaded = 0
       let totalFailed = 0
