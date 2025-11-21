@@ -315,9 +315,16 @@ export function AddPropertyForm() {
           canvas.toBlob(
             (blob) => {
               if (blob) {
-                const compressedFile = new File([blob], file.name, {
-                  type: 'image/jpeg',
-                  lastModified: Date.now()
+                // Safari-compatible File creation
+                const compressedFile = blob as File
+                // Add filename to blob (for Safari compatibility)
+                Object.defineProperty(compressedFile, 'name', {
+                  writable: false,
+                  value: file.name.replace(/\.[^.]+$/, '.jpeg')
+                })
+                Object.defineProperty(compressedFile, 'lastModified', {
+                  writable: false,
+                  value: Date.now()
                 })
                 console.log(`✅ Compressed to ${(compressedFile.size / (1024 * 1024)).toFixed(2)}MB`)
                 resolve(compressedFile)
