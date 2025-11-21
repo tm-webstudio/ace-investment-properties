@@ -274,42 +274,62 @@ export function AddPropertyForm() {
 
   const handlePhotoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(event.target.files || [])
+    console.log('📸 Files selected:', files.length, files.map(f => ({ name: f.name, type: f.type, size: f.size })))
+
     if (files.length === 0) return
 
     // Validate files first
     const maxFiles = 10
     const maxSize = 10 * 1024 * 1024 // 10MB
-    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp']
+    // Include HEIC/HEIF for iOS devices
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/heic', 'image/heif']
 
     const errors: string[] = []
-    
+
     const validFiles = files.filter(file => {
-      if (!allowedTypes.includes(file.type)) {
-        errors.push(`${file.name} is not a valid image type`)
+      console.log('Validating file:', file.name, 'Type:', file.type, 'Size:', file.size)
+
+      if (!allowedTypes.includes(file.type.toLowerCase())) {
+        const error = `${file.name} is not a valid image type (${file.type}). Please use JPEG, PNG, WebP, or HEIC format.`
+        errors.push(error)
+        console.error('❌ File type error:', error)
         return false
       }
       if (file.size > maxSize) {
-        errors.push(`${file.name} is too large (max 10MB)`)
+        const error = `${file.name} is too large (${(file.size / (1024 * 1024)).toFixed(2)}MB). Maximum size is 10MB.`
+        errors.push(error)
+        console.error('❌ File size error:', error)
         return false
       }
       return true
     })
+
+    console.log('✅ Valid files:', validFiles.length, 'out of', files.length)
 
     if (formData.photos.length + validFiles.length > maxFiles) {
       errors.push(`Too many images. Maximum ${maxFiles} allowed`)
     }
 
     if (errors.length > 0) {
-      setFormErrors(prev => ({ ...prev, photos: errors.join(', ') }))
+      console.error('❌ Validation errors:', errors)
+      setFormErrors(prev => ({ ...prev, photos: errors.join(' | ') }))
+      setUploadingImages(false)
+      event.target.value = ''
       return
     } else {
       setFormErrors(prev => ({ ...prev, photos: '' }))
     }
 
-    if (validFiles.length === 0) return
+    if (validFiles.length === 0) {
+      console.warn('⚠️ No valid files to upload')
+      setFormErrors(prev => ({ ...prev, photos: 'No valid images selected. Please try again.' }))
+      event.target.value = ''
+      return
+    }
 
     setUploadingImages(true)
     setUploadProgress({})
+    console.log('🚀 Starting upload for', validFiles.length, 'files')
 
     try {
       // Create FormData for upload
@@ -317,7 +337,7 @@ export function AddPropertyForm() {
       validFiles.forEach(file => {
         uploadFormData.append('images', file)
       })
-      
+
       if (sessionId) {
         uploadFormData.append('sessionId', sessionId)
       }
@@ -325,43 +345,55 @@ export function AddPropertyForm() {
         uploadFormData.append('draftId', draftId)
       }
 
-      // Upload images to API  
+      console.log('📤 Uploading to API with sessionId:', sessionId, 'draftId:', draftId)
+
+      // Upload images to API
       const uploadOptions: RequestInit = {
         method: 'POST',
         body: uploadFormData
       }
-      
+
       if (userToken) {
         uploadOptions.headers = {
           'Authorization': `Bearer ${userToken}`
         }
       }
-      
+
       const response = await fetch('/api/properties/images/upload', uploadOptions)
+      console.log('📥 Upload response status:', response.status)
+
       const result = await response.json()
+      console.log('📥 Upload result:', result)
 
       if (result.success) {
         // Full success case
         const imageUrls = result.images.map((img: any) => img.url)
+        console.log('✅ Successfully uploaded', imageUrls.length, 'images')
         handleInputChange("photos", [...formData.photos, ...imageUrls])
+        setFormErrors(prev => ({ ...prev, photos: '' }))
       } else if (response.status === 207) {
         // Partial success case (207 Multi-Status)
         if (result.images && result.images.length > 0) {
           const imageUrls = result.images.map((img: any) => img.url)
+          console.log('⚠️ Partially uploaded', imageUrls.length, 'images. Failed:', result.failed)
           handleInputChange("photos", [...formData.photos, ...imageUrls])
         }
         if (result.successful && result.failed) {
-          console.log(`Uploaded ${result.successful} image(s). ${result.failed} failed: ${result.errors?.join(', ')}`)
+          const errorMsg = `Uploaded ${result.successful} image(s). ${result.failed} failed: ${result.errors?.join(', ')}`
+          console.warn('⚠️', errorMsg)
+          setFormErrors(prev => ({ ...prev, photos: errorMsg }))
         } else {
-          console.log(`Some images uploaded successfully`)
+          console.log('⚠️ Some images uploaded successfully')
         }
       } else {
         // Full failure case
+        console.error('❌ Upload failed:', result)
         throw new Error(result.error || 'Upload failed')
       }
     } catch (error: any) {
-      console.error('Error uploading images:', error)
-      console.error('Failed to upload images: ' + error.message)
+      console.error('❌ Error uploading images:', error)
+      const errorMessage = `Failed to upload images: ${error.message}. Please try uploading one image at a time.`
+      setFormErrors(prev => ({ ...prev, photos: errorMessage }))
     } finally {
       setUploadingImages(false)
       setUploadProgress({})
@@ -1068,7 +1100,7 @@ export function AddPropertyForm() {
       />
 
       {/* Step Content */}
-      <Card>
+      <Card className="gap-2">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             {currentStep === 1 && (
@@ -1412,13 +1444,13 @@ export function AddPropertyForm() {
                 <p className="text-muted-foreground mb-4">
                   {isDragOver
                     ? 'Release to upload your images'
-                    : 'Drag and drop images here, or click to browse. Maximum 10 images, 10MB each. Supported formats: JPEG, PNG, WebP.'
+                    : 'Drag and drop images here, or click to browse. Maximum 10 images, 10MB each. Supported formats: JPEG, PNG, WebP, HEIC.'
                   }
                 </p>
                 <input
                   type="file"
                   multiple
-                  accept="image/jpeg,image/jpg,image/png,image/webp"
+                  accept="image/jpeg,image/jpg,image/png,image/webp,image/heic,image/heif"
                   onChange={handlePhotoUpload}
                   className="hidden"
                   id="photo-upload"

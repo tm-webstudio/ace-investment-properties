@@ -15,7 +15,8 @@ export interface ImageUploadOptions {
 }
 
 // Allowed image types and sizes
-export const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp']
+// Including HEIC/HEIF for iOS devices
+export const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/heic', 'image/heif']
 export const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10MB
 export const MAX_IMAGES_PER_PROPERTY = 10
 
