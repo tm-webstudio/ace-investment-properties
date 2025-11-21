@@ -283,11 +283,25 @@ export function AddPropertyForm() {
 
     console.log(`🗜️ Compressing ${file.name} (${(file.size / (1024 * 1024)).toFixed(2)}MB)`)
 
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
       const reader = new FileReader()
+
+      reader.onerror = (error) => {
+        console.error('❌ FileReader error:', error)
+        resolve(file) // Fallback to original on error
+      }
+
       reader.onload = (e) => {
+        console.log('📖 FileReader loaded, creating image...')
         const img = new Image()
+
+        img.onerror = (error) => {
+          console.error('❌ Image load error:', error)
+          resolve(file) // Fallback to original on error
+        }
+
         img.onload = () => {
+          console.log(`🖼️ Image loaded: ${img.width}x${img.height}`)
           const canvas = document.createElement('canvas')
           let width = img.width
           let height = img.height
@@ -306,14 +320,23 @@ export function AddPropertyForm() {
 
           canvas.width = width
           canvas.height = height
+          console.log(`📐 Canvas size: ${width}x${height}`)
 
           const ctx = canvas.getContext('2d')
-          ctx?.drawImage(img, 0, 0, width, height)
+          if (!ctx) {
+            console.error('❌ Failed to get canvas context')
+            resolve(file)
+            return
+          }
+
+          ctx.drawImage(img, 0, 0, width, height)
+          console.log('🎨 Image drawn to canvas, converting to blob...')
 
           // Start with quality 0.8 and reduce if needed
           let quality = 0.8
           canvas.toBlob(
             (blob) => {
+              console.log('📦 Blob created:', blob)
               if (blob) {
                 // Safari-compatible File creation
                 const compressedFile = blob as File
@@ -329,6 +352,7 @@ export function AddPropertyForm() {
                 console.log(`✅ Compressed to ${(compressedFile.size / (1024 * 1024)).toFixed(2)}MB`)
                 resolve(compressedFile)
               } else {
+                console.error('❌ Blob is null')
                 resolve(file) // Fallback to original
               }
             },
