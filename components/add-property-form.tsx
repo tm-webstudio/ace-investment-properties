@@ -119,7 +119,6 @@ interface PropertyFormData {
 
   // Photos
   photos: (File | string)[]
-  primaryPhotoIndex: number
   noPhotosYet: boolean
 
   // Contact (optional)
@@ -157,7 +156,6 @@ export function AddPropertyForm() {
     numberOfUnits: "",
     totalFloors: "",
     photos: [],
-    primaryPhotoIndex: 0,
     noPhotosYet: false,
     contactName: "",
     contactEmail: "",
@@ -584,9 +582,6 @@ export function AddPropertyForm() {
 
     const newPhotos = formData.photos.filter((_, i) => i !== index)
     handleInputChange("photos", newPhotos)
-    if (formData.primaryPhotoIndex >= newPhotos.length) {
-      handleInputChange("primaryPhotoIndex", Math.max(0, newPhotos.length - 1))
-    }
   }
 
   // Save draft to API
@@ -1577,9 +1572,7 @@ export function AddPropertyForm() {
               {formData.photos.length > 0 && (
                 <ImageReorder
                   images={formData.photos}
-                  primaryImageIndex={formData.primaryPhotoIndex}
                   onImagesReorder={(newImages) => handleInputChange("photos", newImages)}
-                  onPrimaryImageChange={(index) => handleInputChange("primaryPhotoIndex", index)}
                   onImageRemove={removePhoto}
                   disabled={uploadingImages}
                 />
@@ -1606,7 +1599,7 @@ export function AddPropertyForm() {
                 <p className="text-muted-foreground mb-4">
                   {isDragOver
                     ? 'Release to upload your images'
-                    : 'Drag and drop images here, or click to browse. Maximum 10 images, 10MB each. Large images are automatically compressed. Supported formats: JPEG, PNG, WebP, HEIC.'
+                    : 'Drag and drop or click to browse. Up to 10 images. JPEG, PNG, WebP, HEIC.'
                   }
                 </p>
                 <input
@@ -1699,9 +1692,9 @@ export function AddPropertyForm() {
                     {formData.photos.length > 0 ? (
                       <div className="aspect-video relative rounded-lg overflow-hidden mb-4">
                         <Image
-                          src={typeof formData.photos[formData.primaryPhotoIndex] === 'string'
-                            ? formData.photos[formData.primaryPhotoIndex] as string
-                            : URL.createObjectURL(formData.photos[formData.primaryPhotoIndex] as File)}
+                          src={typeof formData.photos[0] === 'string'
+                            ? formData.photos[0] as string
+                            : URL.createObjectURL(formData.photos[0] as File)}
                           alt={`${formData.propertyType} in ${formData.city}`}
                           fill
                           className="object-cover"
