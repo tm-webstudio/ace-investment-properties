@@ -332,67 +332,90 @@ export function AddPropertyForm() {
     console.log('🚀 Starting upload for', validFiles.length, 'files')
 
     try {
-      // Create FormData for upload
-      const uploadFormData = new FormData()
-      validFiles.forEach(file => {
-        uploadFormData.append('images', file)
-      })
+      // Upload files in batches to avoid payload size limits
+      const BATCH_SIZE = 3 // Upload max 3 files at a time
+      const allUploadedUrls: string[] = []
+      let totalUploaded = 0
+      let totalFailed = 0
 
-      if (sessionId) {
-        uploadFormData.append('sessionId', sessionId)
-      }
-      if (draftId) {
-        uploadFormData.append('draftId', draftId)
-      }
+      for (let i = 0; i < validFiles.length; i += BATCH_SIZE) {
+        const batch = validFiles.slice(i, i + BATCH_SIZE)
+        console.log(`📦 Uploading batch ${Math.floor(i / BATCH_SIZE) + 1} (${batch.length} files)`)
 
-      console.log('📤 Uploading to API with sessionId:', sessionId, 'draftId:', draftId)
+        // Create FormData for this batch
+        const uploadFormData = new FormData()
+        batch.forEach(file => {
+          uploadFormData.append('images', file)
+        })
 
-      // Upload images to API
-      const uploadOptions: RequestInit = {
-        method: 'POST',
-        body: uploadFormData
-      }
-
-      if (userToken) {
-        uploadOptions.headers = {
-          'Authorization': `Bearer ${userToken}`
+        if (sessionId) {
+          uploadFormData.append('sessionId', sessionId)
         }
-      }
+        if (draftId) {
+          uploadFormData.append('draftId', draftId)
+        }
 
-      const response = await fetch('/api/properties/images/upload', uploadOptions)
-      console.log('📥 Upload response status:', response.status)
+        console.log('📤 Uploading to API with sessionId:', sessionId, 'draftId:', draftId)
 
-      const result = await response.json()
-      console.log('📥 Upload result:', result)
+        // Upload images to API
+        const uploadOptions: RequestInit = {
+          method: 'POST',
+          body: uploadFormData
+        }
 
-      if (result.success) {
-        // Full success case
-        const imageUrls = result.images.map((img: any) => img.url)
-        console.log('✅ Successfully uploaded', imageUrls.length, 'images')
-        handleInputChange("photos", [...formData.photos, ...imageUrls])
-        setFormErrors(prev => ({ ...prev, photos: '' }))
-      } else if (response.status === 207) {
-        // Partial success case (207 Multi-Status)
-        if (result.images && result.images.length > 0) {
+        if (userToken) {
+          uploadOptions.headers = {
+            'Authorization': `Bearer ${userToken}`
+          }
+        }
+
+        const response = await fetch('/api/properties/images/upload', uploadOptions)
+        console.log('📥 Upload response status:', response.status)
+
+        if (response.status === 413) {
+          throw new Error('Files too large. Please upload fewer images at once or reduce image sizes.')
+        }
+
+        const result = await response.json()
+        console.log('📥 Upload result:', result)
+
+        if (result.success) {
           const imageUrls = result.images.map((img: any) => img.url)
-          console.log('⚠️ Partially uploaded', imageUrls.length, 'images. Failed:', result.failed)
-          handleInputChange("photos", [...formData.photos, ...imageUrls])
-        }
-        if (result.successful && result.failed) {
-          const errorMsg = `Uploaded ${result.successful} image(s). ${result.failed} failed: ${result.errors?.join(', ')}`
-          console.warn('⚠️', errorMsg)
-          setFormErrors(prev => ({ ...prev, photos: errorMsg }))
+          console.log('✅ Successfully uploaded', imageUrls.length, 'images in this batch')
+          allUploadedUrls.push(...imageUrls)
+          totalUploaded += imageUrls.length
+        } else if (response.status === 207) {
+          // Partial success case
+          if (result.images && result.images.length > 0) {
+            const imageUrls = result.images.map((img: any) => img.url)
+            console.log('⚠️ Partially uploaded', imageUrls.length, 'images in this batch')
+            allUploadedUrls.push(...imageUrls)
+            totalUploaded += imageUrls.length
+            totalFailed += result.failed || 0
+          }
         } else {
-          console.log('⚠️ Some images uploaded successfully')
+          console.error('❌ Batch upload failed:', result)
+          totalFailed += batch.length
         }
-      } else {
-        // Full failure case
-        console.error('❌ Upload failed:', result)
-        throw new Error(result.error || 'Upload failed')
       }
+
+      // Update photos with all uploaded URLs
+      if (allUploadedUrls.length > 0) {
+        handleInputChange("photos", [...formData.photos, ...allUploadedUrls])
+        console.log(`✅ Total: Uploaded ${totalUploaded} images successfully`)
+      }
+
+      if (totalFailed > 0) {
+        const errorMsg = `Uploaded ${totalUploaded} image(s). ${totalFailed} failed.`
+        console.warn('⚠️', errorMsg)
+        setFormErrors(prev => ({ ...prev, photos: errorMsg }))
+      } else if (totalUploaded > 0) {
+        setFormErrors(prev => ({ ...prev, photos: '' }))
+      }
+
     } catch (error: any) {
       console.error('❌ Error uploading images:', error)
-      const errorMessage = `Failed to upload images: ${error.message}. Please try uploading one image at a time.`
+      const errorMessage = `Failed to upload images: ${error.message}.`
       setFormErrors(prev => ({ ...prev, photos: errorMessage }))
     } finally {
       setUploadingImages(false)
