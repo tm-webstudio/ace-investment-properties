@@ -23,10 +23,28 @@ export async function POST(request: NextRequest) {
     
     // Validate step data
     try {
+      console.log(`Validating step ${step} data:`, JSON.stringify(stepData, null, 2))
       validatePropertyStep(step, stepData)
+      console.log(`Step ${step} validation passed`)
     } catch (error: any) {
+      console.error(`❌ Validation failed for step ${step}:`, error)
+      console.error('Error details:', JSON.stringify(error, null, 2))
+
+      // Extract detailed error message
+      let errorDetails = error.errors || error.issues || error.message
+      if (error.errors) {
+        errorDetails = error.errors.map((e: any) => ({
+          path: e.path?.join('.'),
+          message: e.message
+        }))
+      }
+
       return NextResponse.json(
-        { error: 'Validation failed', details: error.errors },
+        {
+          error: 'Validation failed',
+          details: errorDetails,
+          rawError: error.toString()
+        },
         { status: 400 }
       )
     }

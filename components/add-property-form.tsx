@@ -471,46 +471,86 @@ export function AddPropertyForm() {
   const saveDraft = async (step: number, stepData: any) => {
     try {
       setIsLoading(true)
-      
+
       // Debug logging
-      console.log(`Saving step ${step} with data:`, JSON.stringify(stepData, null, 2))
-      
+      console.log(`💾 Saving step ${step} with data:`, JSON.stringify(stepData, null, 2))
+
+      // Special logging for step 3 (photos)
+      if (step === 3 && stepData.photos) {
+        console.log('📸 Photos array details:', {
+          count: stepData.photos.length,
+          types: stepData.photos.map((p: any) => typeof p),
+          firstPhotoPreview: stepData.photos[0]?.substring(0, 100),
+          allPhotos: stepData.photos
+        })
+      }
+
       const headers: { [key: string]: string } = { 'Content-Type': 'application/json' }
       if (userToken) {
         headers.Authorization = `Bearer ${userToken}`
       }
-      
+
+      const requestBody = {
+        stepData,
+        step,
+        ...(sessionId ? { sessionId } : {})
+      }
+
+      console.log('📤 Request body:', JSON.stringify(requestBody, null, 2))
+
       const response = await fetch('/api/properties/draft', {
         method: 'POST',
         headers,
-        body: JSON.stringify({
-          stepData,
-          step,
-          ...(sessionId ? { sessionId } : {})
-        })
+        body: JSON.stringify(requestBody)
       })
 
-      const result = await response.json()
-      
+      console.log('📥 Response status:', response.status, response.statusText)
+
+      const responseText = await response.text()
+      console.log('📥 Raw response:', responseText)
+
+      let result
+      try {
+        result = JSON.parse(responseText)
+      } catch (e) {
+        console.error('❌ Failed to parse response as JSON:', e)
+        setFormErrors(prev => ({ ...prev, general: `Server error: ${responseText}` }))
+        return false
+      }
+
       if (result.success) {
         if (!sessionId) {
           setSessionId(result.sessionId)
         }
         // Always update draftId to ensure we have the correct reference
         setDraftId(result.draft.id)
-        console.log(`Step ${step} saved successfully, draftId: ${result.draft.id}`)
+        console.log(`✅ Step ${step} saved successfully, draftId: ${result.draft.id}`)
         return true
       } else {
-        console.error('Failed to save draft:', result.error)
+        console.error('❌ Failed to save draft:', result.error)
         if (result.details) {
-          console.error('Validation details:', JSON.stringify(result.details, null, 2))
-          console.error('Step data that failed:', JSON.stringify(stepData, null, 2))
+          console.error('❌ Validation details:', JSON.stringify(result.details, null, 2))
+          console.error('❌ Step data that failed:', JSON.stringify(stepData, null, 2))
+
+          // Set user-visible error
+          setFormErrors(prev => ({
+            ...prev,
+            general: `Validation failed: ${JSON.stringify(result.details)}`
+          }))
+        } else {
+          setFormErrors(prev => ({
+            ...prev,
+            general: `Failed to save: ${result.error}`
+          }))
         }
-        console.error(`Failed to save step ${step}: ${result.error}${result.details ? '\nSee console for details' : ''}`)
         return false
       }
-    } catch (error) {
-      console.error('Error saving draft:', error)
+    } catch (error: any) {
+      console.error('❌ Error saving draft:', error)
+      setFormErrors(prev => ({
+        ...prev,
+        general: `Error saving draft: ${error.message}`
+      }))
       return false
     } finally {
       setIsLoading(false)
