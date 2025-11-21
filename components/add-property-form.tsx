@@ -272,6 +272,69 @@ export function AddPropertyForm() {
     return () => subscription.unsubscribe()
   }, [])
 
+  // Helper function to compress images over 4MB
+  const compressImage = async (file: File): Promise<File> => {
+    const MAX_SIZE = 4 * 1024 * 1024 // 4MB server limit
+
+    // If file is already under 4MB, return as-is
+    if (file.size <= MAX_SIZE) {
+      return file
+    }
+
+    console.log(`🗜️ Compressing ${file.name} (${(file.size / (1024 * 1024)).toFixed(2)}MB)`)
+
+    return new Promise((resolve) => {
+      const reader = new FileReader()
+      reader.onload = (e) => {
+        const img = new Image()
+        img.onload = () => {
+          const canvas = document.createElement('canvas')
+          let width = img.width
+          let height = img.height
+
+          // Scale down if image is very large
+          const maxDimension = 1920
+          if (width > maxDimension || height > maxDimension) {
+            if (width > height) {
+              height = (height / width) * maxDimension
+              width = maxDimension
+            } else {
+              width = (width / height) * maxDimension
+              height = maxDimension
+            }
+          }
+
+          canvas.width = width
+          canvas.height = height
+
+          const ctx = canvas.getContext('2d')
+          ctx?.drawImage(img, 0, 0, width, height)
+
+          // Start with quality 0.8 and reduce if needed
+          let quality = 0.8
+          canvas.toBlob(
+            (blob) => {
+              if (blob) {
+                const compressedFile = new File([blob], file.name, {
+                  type: 'image/jpeg',
+                  lastModified: Date.now()
+                })
+                console.log(`✅ Compressed to ${(compressedFile.size / (1024 * 1024)).toFixed(2)}MB`)
+                resolve(compressedFile)
+              } else {
+                resolve(file) // Fallback to original
+              }
+            },
+            'image/jpeg',
+            quality
+          )
+        }
+        img.src = e.target?.result as string
+      }
+      reader.readAsDataURL(file)
+    })
+  }
+
   const handlePhotoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(event.target.files || [])
     console.log('📸 Files selected:', files.length, files.map(f => ({ name: f.name, type: f.type, size: f.size })))
@@ -280,7 +343,7 @@ export function AddPropertyForm() {
 
     // Validate files first
     const maxFiles = 10
-    const maxSize = 10 * 1024 * 1024 // 10MB
+    const maxSize = 10 * 1024 * 1024 // 10MB initial size limit
     // Include HEIC/HEIF for iOS devices
     const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/heic', 'image/heif']
 
@@ -342,9 +405,14 @@ export function AddPropertyForm() {
         const batch = validFiles.slice(i, i + BATCH_SIZE)
         console.log(`📦 Uploading batch ${Math.floor(i / BATCH_SIZE) + 1} (${batch.length} files)`)
 
+        // Compress files if needed
+        const compressedBatch = await Promise.all(
+          batch.map(file => compressImage(file))
+        )
+
         // Create FormData for this batch
         const uploadFormData = new FormData()
-        batch.forEach(file => {
+        compressedBatch.forEach(file => {
           uploadFormData.append('images', file)
         })
 
@@ -1507,7 +1575,7 @@ export function AddPropertyForm() {
                 <p className="text-muted-foreground mb-4">
                   {isDragOver
                     ? 'Release to upload your images'
-                    : 'Drag and drop images here, or click to browse. Maximum 10 images, 10MB each. Supported formats: JPEG, PNG, WebP, HEIC.'
+                    : 'Drag and drop images here, or click to browse. Maximum 10 images, 10MB each. Large images are automatically compressed. Supported formats: JPEG, PNG, WebP, HEIC.'
                   }
                 </p>
                 <input
