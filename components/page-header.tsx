@@ -59,13 +59,13 @@ export function PageHeader({
 
   return (
     <Card className={`mb-4 ${variantClasses.background} ${className}`}>
-      <CardHeader className="pb-4 pt-4">
+      <CardHeader className="md:pb-4 md:pt-4">
         {category && (
           <p className={`text-sm font-bold uppercase tracking-wide mb-1 ${variantClasses.category}`}>
             {category}
           </p>
         )}
-        <h1 className={`font-serif text-3xl md:text-4xl font-bold mb-1 ${variantClasses.title}`}>
+        <h1 className={`font-serif text-2xl md:text-4xl font-bold mb-1 ${variantClasses.title}`}>
           {title}
         </h1>
         <p className={`text-md ${variantClasses.subtitle}`}>

@@ -120,9 +120,9 @@ function LandlordDashboardContent() {
       case "documents":
         return "Property Documents"
       case "profile":
-        return `Welcome back, ${user?.first_name || 'User'} ${user?.last_name || ''}`
+        return `Welcome, ${user?.first_name || 'User'} ${user?.last_name || ''}`
       default:
-        return `Welcome back, ${user?.first_name || 'User'} ${user?.last_name || ''}`
+        return `Welcome, ${user?.first_name || 'User'} ${user?.last_name || ''}`
     }
   }
 

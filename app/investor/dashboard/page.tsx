@@ -168,7 +168,7 @@ function InvestorDashboardContent() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-8 sm:py-8">
           <PageHeader
             category="Investor Dashboard"
-            title={`Welcome back, ${userProfile?.full_name || 'Investor'}`}
+            title={`Welcome, ${userProfile?.full_name || 'Investor'}`}
             subtitle="Track your property investments and opportunities"
             variant="green"
           />
