@@ -32,7 +32,7 @@ export function DashboardNavigation({ activeTab, onTabChange, customButton }: Da
                 transition-all duration-200 ease-out
                 border-b-2 -mb-px
                 ${activeTab === item.id
-                  ? 'border-primary text-primary bg-primary/5'
+                  ? 'border-primary text-primary bg-blue-50'
                   : 'border-transparent text-gray-600 hover:text-gray-900 hover:border-gray-300'
                 }
               `}

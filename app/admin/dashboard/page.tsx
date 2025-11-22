@@ -60,21 +60,6 @@ export default function AdminDashboard() {
     }
   }
 
-  const getPageSubtitle = () => {
-    switch (activeTab) {
-      case "properties":
-        return "View and manage all property listings"
-      case "users":
-        return "Manage landlord and investor accounts"
-      case "viewings":
-        return "Monitor and manage property viewings"
-      case "documents":
-        return "Review and manage landlord documents"
-      default:
-        return "Manage properties, viewings, and platform operations"
-    }
-  }
-
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -140,7 +125,7 @@ export default function AdminDashboard() {
     <div className="min-h-screen flex flex-col">
       <DashboardNavigationHeader />
       <main className="flex-1 bg-background">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-8 sm:py-8">
           <Card className="mb-8 bg-gradient-to-r from-red-50 via-red-100/50 to-red-50 border-red-200/30">
             <CardHeader className="pb-4 pt-4">
               <p className="text-sm font-bold text-red-700/70 uppercase tracking-wide mb-1">
@@ -149,7 +134,7 @@ export default function AdminDashboard() {
               <h1 className="font-serif text-3xl md:text-4xl font-bold text-red-900 mb-1">
                 System Administration
               </h1>
-              <p className="text-red-800/70 text-md">{getPageSubtitle()}</p>
+              <p className="text-red-800/70 text-md">Manage properties, viewings, and platform operations</p>
             </CardHeader>
           </Card>
 

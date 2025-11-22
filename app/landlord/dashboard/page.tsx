@@ -126,21 +126,6 @@ function LandlordDashboardContent() {
     }
   }
 
-  const getPageSubtitle = () => {
-    switch (activeTab) {
-      case "properties":
-        return "View and manage all your listed properties"
-      case "viewings":
-        return "Manage viewing requests from potential tenants"
-      case "documents":
-        return "Manage certificates and licenses for your properties"
-      case "profile":
-        return "Manage your account information and preferences"
-      default:
-        return "Manage your properties and applications"
-    }
-  }
-
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -206,11 +191,11 @@ function LandlordDashboardContent() {
     <div className="min-h-screen flex flex-col">
       <DashboardNavigationHeader />
       <main className="flex-1 bg-background">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-8 sm:py-8">
           <PageHeader
             category="Landlord Dashboard"
             title={getPageTitle()}
-            subtitle={getPageSubtitle()}
+            subtitle="Manage your properties and applications"
             variant="blue"
           />
 

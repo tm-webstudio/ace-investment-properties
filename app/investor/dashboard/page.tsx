@@ -100,21 +100,6 @@ function InvestorDashboardContent() {
     }
   }, [activeTab])
 
-  const getPageSubtitle = () => {
-    switch (activeTab) {
-      case "profile":
-        return "Manage your account information and preferences"
-      case "preferences":
-        return "Set your investment criteria and property preferences"
-      case "saved-properties":
-        return "View and manage your saved properties"
-      case "viewings":
-        return "Track your property viewing appointments"
-      default:
-        return "Track your property investments and opportunities"
-    }
-  }
-
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -180,11 +165,11 @@ function InvestorDashboardContent() {
     <div className="min-h-screen flex flex-col">
       <DashboardNavigationHeader />
       <main className="flex-1 bg-background">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-8 sm:py-8">
           <PageHeader
             category="Investor Dashboard"
             title={`Welcome back, ${userProfile?.full_name || 'Investor'}`}
-            subtitle={getPageSubtitle()}
+            subtitle="Track your property investments and opportunities"
             variant="green"
           />
 
