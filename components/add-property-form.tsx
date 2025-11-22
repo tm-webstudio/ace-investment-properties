@@ -1319,7 +1319,7 @@ export function AddPropertyForm() {
                     />
                   </div>
                 )}
-                <div></div>
+                <div className="hidden md:block"></div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -1359,7 +1359,7 @@ export function AddPropertyForm() {
                     </SelectContent>
                   </Select>
                 </div>
-                <div></div>
+                <div className="hidden md:block"></div>
               </div>
 
               {formData.propertyType !== "Block" && (
@@ -1421,7 +1421,7 @@ export function AddPropertyForm() {
                       onChange={(e) => handleInputChange("totalFloors", e.target.value)}
                     />
                   </div>
-                  <div></div>
+                  <div className="hidden md:block"></div>
                 </div>
               )}
 
@@ -1687,10 +1687,10 @@ export function AddPropertyForm() {
               <div className="rounded-lg px-4 py-4 border">
                 <h3 className="text-lg font-semibold leading-none tracking-tight mb-4">Property Summary</h3>
                 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
                   <div>
                     {formData.photos.length > 0 ? (
-                      <div className="aspect-video relative rounded-lg overflow-hidden mb-4">
+                      <div className="aspect-video relative rounded-lg overflow-hidden mb-2 md:mb-4">
                         <Image
                           src={typeof formData.photos[0] === 'string'
                             ? formData.photos[0] as string
@@ -1701,7 +1701,7 @@ export function AddPropertyForm() {
                         />
                       </div>
                     ) : (
-                      <div className="aspect-video relative rounded-lg overflow-hidden mb-4 bg-slate-100 flex items-center justify-center">
+                      <div className="aspect-video relative rounded-lg overflow-hidden mb-2 md:mb-4 bg-slate-100 flex items-center justify-center">
                         <div className="text-center text-muted-foreground">
                           <Camera className="h-16 w-16 mx-auto mb-2 opacity-30" />
                           <p className="text-sm">No photos yet</p>
@@ -1709,7 +1709,7 @@ export function AddPropertyForm() {
                       </div>
                     )}
                   </div>
-                  <div className="space-y-4">
+                  <div className="space-y-2 md:space-y-4">
                     <div>
                       <h3 className="text-lg font-semibold">{formData.address.replace(/^\d+\s*/, '')}, {formData.city.charAt(0).toUpperCase() + formData.city.slice(1).toLowerCase()}, {(formData.postcode?.split(' ')[0] || formData.postcode).toUpperCase()}</h3>
                       <div className="text-lg font-semibold text-accent mt-1">
@@ -1809,7 +1809,7 @@ export function AddPropertyForm() {
                     </div>
 
                     {formData.description && (
-                      <div className="mt-4">
+                      <div className="mt-2 md:mt-4">
                         <strong className="text-sm">Description:</strong>
                         <div className="mt-1">
                           <p className={`text-sm text-muted-foreground ${formData.description.length > 200 ? (showFullDescription ? '' : 'line-clamp-3') : ''}`}>
