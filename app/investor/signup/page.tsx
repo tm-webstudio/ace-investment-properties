@@ -7,7 +7,7 @@ import { Navigation } from "@/components/navigation"
 import { Footer } from "@/components/footer"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { ArrowLeft, ArrowRight, X } from "lucide-react"
+import { ArrowLeft, ArrowRight, X, Briefcase, Home, MapPin, UserPlus } from "lucide-react"
 import { OnboardingStep1 } from "@/components/onboarding/step-1"
 import { OnboardingStep2 } from "@/components/onboarding/step-2"
 import { OnboardingStep3 } from "@/components/onboarding/step-3"
@@ -379,11 +379,36 @@ export default function InvestorSignup() {
           </div>
 
         {/* Main Card */}
-        <Card className="mb-8">
+        <Card className="mb-4">
           <CardHeader>
-            <CardTitle>{stepTitles[currentStep as keyof typeof stepTitles]}</CardTitle>
+            <CardTitle className="flex items-center gap-2">
+              {currentStep === 1 && (
+                <>
+                  <Briefcase className="h-5 w-5 text-accent" />
+                  About Your Business
+                </>
+              )}
+              {currentStep === 2 && (
+                <>
+                  <Home className="h-5 w-5 text-accent" />
+                  Property Preferences
+                </>
+              )}
+              {currentStep === 3 && (
+                <>
+                  <MapPin className="h-5 w-5 text-accent" />
+                  Location & Availability
+                </>
+              )}
+              {currentStep === 4 && (
+                <>
+                  <UserPlus className="h-5 w-5 text-accent" />
+                  Create Account
+                </>
+              )}
+            </CardTitle>
           </CardHeader>
-          <CardContent className="p-4 sm:p-6">
+          <CardContent className="px-4 sm:px-6">
             {error && (
               <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-md">
                 <p className="text-sm text-red-700">{error}</p>

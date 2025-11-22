@@ -270,25 +270,6 @@ export default function EditPreferences() {
             </Link>
           </div>
 
-          {/* Match Count Preview */}
-          {matchCount !== null && (
-            <Card className="mb-6 border-primary/20 bg-primary/5">
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
-                    <span className="font-medium text-primary">
-                      {matchCount} properties match these criteria
-                    </span>
-                  </div>
-                  <Badge variant="secondary" className="bg-primary/10 text-primary">
-                    Live Preview
-                  </Badge>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
           {/* Error/Success Messages */}
           {error && (
             <Card className="mb-6 border-red-200 bg-red-50">

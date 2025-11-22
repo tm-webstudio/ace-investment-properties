@@ -11,7 +11,7 @@ import { InvestorDashboardOverview } from "@/components/investor-dashboard-overv
 import { InvestorDashboardProfile } from "@/components/investor-dashboard-profile"
 import { InvestorDashboardPreferences } from "@/components/investor-dashboard-preferences"
 import { InvestorDashboardSavedProperties } from "@/components/investor-dashboard-saved-properties"
-import { InvestorDashboardViewings } from "@/components/investor-dashboard-viewings"
+import { InvestorViewingRequests } from "@/components/investor-viewing-requests"
 import { RecommendedProperties } from "@/components/recommended-properties"
 import { Button } from "@/components/ui/button"
 import { Edit3, Settings } from "lucide-react"
@@ -233,7 +233,17 @@ function InvestorDashboardContent() {
           )}
           {activeTab === "preferences" && <InvestorDashboardPreferences preferences={preferences} />}
           {activeTab === "saved-properties" && <InvestorDashboardSavedProperties />}
-          {activeTab === "viewings" && <InvestorDashboardViewings />}
+          {activeTab === "viewings" && (
+            <div className="space-y-6">
+              <div>
+                <h2 className="text-2xl font-bold text-gray-900">My Viewings</h2>
+                <p className="text-gray-600 mt-1">
+                  Track and manage your property viewing appointments
+                </p>
+              </div>
+              <InvestorViewingRequests variant="full" />
+            </div>
+          )}
           {activeTab === "profile" && <InvestorDashboardProfile isEditing={isEditingProfile} setIsEditing={setIsEditingProfile} />}
         </div>
       </main>

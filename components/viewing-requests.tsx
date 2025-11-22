@@ -96,6 +96,7 @@ export function ViewingRequests({ variant = 'dashboard', limit, onTabChange, isA
   const [rejectionReason, setRejectionReason] = useState('')
   const [actionLoading, setActionLoading] = useState(false)
   const [deleteModalOpen, setDeleteModalOpen] = useState(false)
+  const [cancelError, setCancelError] = useState('')
 
   const fetchViewings = async () => {
     try {
@@ -261,6 +262,7 @@ export function ViewingRequests({ variant = 'dashboard', limit, onTabChange, isA
 
   const handleCancel = async (viewing: ViewingRequest) => {
     setSelectedViewing(viewing)
+    setCancelError('')
     setCancelModalOpen(true)
   }
 
@@ -332,14 +334,13 @@ export function ViewingRequests({ variant = 'dashboard', limit, onTabChange, isA
       if (result.success) {
         setCancelModalOpen(false)
         setSelectedViewing(null)
+        setCancelError('')
         fetchViewings() // Refresh the list
       } else {
-        console.error('Error cancelling viewing:', result.error)
-        alert('Error cancelling viewing: ' + result.error)
+        setCancelError(result.error || 'Failed to cancel viewing request')
       }
     } catch (error) {
-      console.error('Error:', error)
-      alert('Error cancelling viewing')
+      setCancelError(error instanceof Error ? error.message : 'Error cancelling viewing request')
     } finally {
       setActionLoading(false)
     }
@@ -406,7 +407,7 @@ export function ViewingRequests({ variant = 'dashboard', limit, onTabChange, isA
 
   // Filter buttons for full variant
   const renderFilterButtons = () => {
-    if (variant !== 'full') return null
+    if (variant !== 'full' && variant !== 'admin') return null
 
     const filters = [
       { key: 'all', label: 'All', count: stats.pending + stats.approved + stats.rejected + stats.cancelled },
@@ -436,7 +437,7 @@ export function ViewingRequests({ variant = 'dashboard', limit, onTabChange, isA
   const cardContent = (
     <>
       {variant === 'full' && renderStatsCards()}
-      {variant === 'full' && renderFilterButtons()}
+      {(variant === 'full' || variant === 'admin') && renderFilterButtons()}
 
       <div className={(variant === 'admin' || variant === 'full') ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-start' : 'space-y-3'}>
         {loading ? (
@@ -807,6 +808,11 @@ export function ViewingRequests({ variant = 'dashboard', limit, onTabChange, isA
             <p className="text-sm text-gray-600">
               The investor will be notified that this viewing has been cancelled.
             </p>
+            {cancelError && (
+              <div className="p-4 bg-red-50 border border-red-200 rounded-md">
+                <p className="text-sm text-red-700">{cancelError}</p>
+              </div>
+            )}
             <div className="flex gap-3 justify-end">
               <Button variant="outline" onClick={() => setCancelModalOpen(false)}>
                 Keep Viewing

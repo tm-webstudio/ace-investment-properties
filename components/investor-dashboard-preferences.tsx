@@ -112,20 +112,12 @@ export function InvestorDashboardPreferences({ preferences: initialPreferences }
 
   return (
     <div className="space-y-6">
-      {/* Header with Edit Button */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold text-gray-900">Properties Matching Your Preferences</h2>
-          <p className="text-gray-600 mt-1">
-            {totalMatches} {totalMatches === 1 ? 'property' : 'properties'} match your criteria
-          </p>
-        </div>
-        <Link href="/investor/preferences">
-          <Button variant="outline">
-            <Edit3 className="mr-2 h-4 w-4" />
-            Edit Preferences
-          </Button>
-        </Link>
+      {/* Header */}
+      <div>
+        <h2 className="text-2xl font-bold text-gray-900">Properties Matching Your Preferences</h2>
+        <p className="text-gray-600 mt-1">
+          {totalMatches} {totalMatches === 1 ? 'property' : 'properties'} match your criteria
+        </p>
       </div>
 
       {/* Preferences Summary */}

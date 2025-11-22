@@ -163,11 +163,11 @@ export function InvestorDashboardViewings() {
       if (response.ok) {
         await fetchViewings()
       } else {
-        alert('Failed to cancel viewing request')
+        const errorData = await response.json().catch(() => ({ error: 'Failed to cancel viewing request' }))
+        alert(errorData.error || 'Failed to cancel viewing request')
       }
     } catch (error) {
-      console.error('Error cancelling viewing:', error)
-      alert('Error cancelling viewing request')
+      alert(error instanceof Error ? error.message : 'Error cancelling viewing request')
     } finally {
       setCancellingId(null)
     }
@@ -388,16 +388,22 @@ export function InvestorDashboardViewings() {
                         </Link>
 
                         {(viewing.status === 'pending' || viewing.status === 'approved') && (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            disabled={cancellingId === viewing.id}
-                            onClick={() => handleCancelViewing(viewing.id)}
-                            className="text-red-600 hover:text-red-700"
-                          >
-                            <X className="h-3 w-3 mr-1" />
-                            {cancellingId === viewing.id ? 'Cancelling...' : 'Cancel'}
-                          </Button>
+                          <>
+                            <Button variant="outline" size="sm">
+                              <Calendar className="h-3 w-3 mr-1" />
+                              Change
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              disabled={cancellingId === viewing.id}
+                              onClick={() => handleCancelViewing(viewing.id)}
+                              className="text-red-600 hover:text-red-700"
+                            >
+                              <X className="h-3 w-3 mr-1" />
+                              {cancellingId === viewing.id ? 'Cancelling...' : 'Cancel'}
+                            </Button>
+                          </>
                         )}
                       </div>
                     </div>

@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { PropertyCard } from "@/components/property-card"
 import { Heart, Search, Filter, Loader2 } from "lucide-react"
 import Link from "next/link"
+import { supabase } from "@/lib/supabase"
 
 interface SavedProperty {
   savedPropertyId: string
@@ -62,8 +63,9 @@ export function InvestorDashboardSavedProperties() {
   const fetchSavedProperties = async () => {
     setLoading(true)
     try {
-      const token = localStorage.getItem('accessToken')
-      if (!token) {
+      const { data: { session } } = await supabase.auth.getSession()
+
+      if (!session?.access_token) {
         router.push('/auth/signin')
         return
       }
@@ -78,7 +80,7 @@ export function InvestorDashboardSavedProperties() {
 
       const response = await fetch(`/api/saved-properties?${params}`, {
         headers: {
-          'Authorization': `Bearer ${token}`
+          'Authorization': `Bearer ${session.access_token}`
         }
       })
 

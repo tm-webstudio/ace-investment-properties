@@ -8,14 +8,29 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Checkbox } from "@/components/ui/checkbox"
-import { User, Mail, Phone, MapPin, Save, Settings } from "lucide-react"
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+import { Calendar } from "@/components/ui/calendar"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { User, Mail, Phone, MapPin, Save, Settings, CalendarIcon, X } from "lucide-react"
 import { supabase } from "@/lib/supabase"
+import { cn } from "@/lib/utils"
+
+interface Location {
+  id?: string
+  city: string
+  areas?: string[]
+}
 
 interface PreferencesData {
-  budget: { min: number; max: number }
+  budget: { min: number; max: number; type: "per_property" | "total_portfolio" }
   bedrooms: { min: number; max: number }
   property_types: string[]
-  locations: { city: string }[]
+  locations: Location[]
+  additional_preferences?: string
+  availability?: {
+    immediate: boolean
+    available_from: string | null
+  }
 }
 
 interface InvestorDashboardProfileProps {
@@ -33,24 +48,31 @@ export function InvestorDashboardProfile({ isEditing, setIsEditing }: InvestorDa
     phone: "",
     city: "",
     company: "",
-    bio: "",
-    investmentGoals: "",
+    operatorType: "sa_operator" as "sa_operator" | "supported_living" | "social_housing" | "other",
+    operatorTypeOther: "",
+    propertiesManaging: 0,
   })
   const [preferences, setPreferences] = useState<PreferencesData | null>(null)
   const [preferencesForm, setPreferencesForm] = useState<PreferencesData>({
-    budget: { min: 1000, max: 3000 },
+    budget: { min: 1000, max: 3000, type: "per_property" },
     bedrooms: { min: 1, max: 4 },
     property_types: [],
-    locations: []
+    locations: [],
+    additional_preferences: "",
+    availability: {
+      immediate: false,
+      available_from: null
+    }
   })
   const [newLocation, setNewLocation] = useState("")
 
   const propertyTypeOptions = [
-    { value: "house", label: "House" },
-    { value: "flat", label: "Flat" },
+    { value: "houses", label: "Houses" },
+    { value: "flats", label: "Flats/Apartments" },
+    { value: "blocks", label: "Blocks" },
     { value: "hmo", label: "HMO" },
-    { value: "studio", label: "Studio" },
-    { value: "bungalow", label: "Bungalow" },
+    { value: "studios", label: "Studios" },
+    { value: "commercial", label: "Commercial to Residential" },
   ]
 
   useEffect(() => {
@@ -71,6 +93,13 @@ export function InvestorDashboardProfile({ isEditing, setIsEditing }: InvestorDa
             const firstName = nameParts[0] || ''
             const surname = nameParts.slice(1).join(' ') || ''
 
+            // Fetch preferences first to get operator type and properties managing
+            const { data: preferencesData } = await supabase
+              .from('investor_preferences')
+              .select('*')
+              .eq('user_id', session.user.id)
+              .single()
+
             setFormData({
               firstName: firstName,
               surname: surname,
@@ -78,22 +107,29 @@ export function InvestorDashboardProfile({ isEditing, setIsEditing }: InvestorDa
               phone: profile.phone || '',
               city: profile.city || '',
               company: profile.company_name || '',
-              bio: profile.bio || '',
-              investmentGoals: profile.investment_goals || '',
+              operatorType: preferencesData?.operator_type || 'sa_operator',
+              operatorTypeOther: preferencesData?.operator_type_other || '',
+              propertiesManaging: preferencesData?.properties_managing || 0,
             })
-          }
 
-          // Fetch preferences
-          const { data: preferencesData } = await supabase
-            .from('investor_preferences')
-            .select('*')
-            .eq('user_id', session.user.id)
-            .single()
-
-          if (preferencesData?.preference_data) {
-            const prefData = preferencesData.preference_data as PreferencesData
-            setPreferences(prefData)
-            setPreferencesForm(prefData)
+            if (preferencesData?.preference_data) {
+              const prefData = preferencesData.preference_data as PreferencesData
+              setPreferences(prefData)
+              setPreferencesForm(prefData)
+            }
+          } else {
+            // No profile found, set empty data
+            setFormData({
+              firstName: "",
+              surname: "",
+              email: "",
+              phone: "",
+              city: "",
+              company: "",
+              operatorType: "sa_operator",
+              operatorTypeOther: "",
+              propertiesManaging: 0,
+            })
           }
         }
       } catch (error) {
@@ -129,8 +165,6 @@ export function InvestorDashboardProfile({ isEditing, setIsEditing }: InvestorDa
             phone: formData.phone,
             city: formData.city,
             company_name: formData.company,
-            bio: formData.bio,
-            investment_goals: formData.investmentGoals,
           })
           .eq('id', session.user.id)
 
@@ -141,8 +175,6 @@ export function InvestorDashboardProfile({ isEditing, setIsEditing }: InvestorDa
           phone: formData.phone,
           city: formData.city,
           company_name: formData.company,
-          bio: formData.bio,
-          investment_goals: formData.investmentGoals,
         }))
 
         // Update preferences
@@ -156,6 +188,9 @@ export function InvestorDashboardProfile({ isEditing, setIsEditing }: InvestorDa
           await supabase
             .from('investor_preferences')
             .update({
+              operator_type: formData.operatorType,
+              operator_type_other: formData.operatorTypeOther,
+              properties_managing: formData.propertiesManaging,
               preference_data: preferencesForm
             })
             .eq('user_id', session.user.id)
@@ -164,6 +199,9 @@ export function InvestorDashboardProfile({ isEditing, setIsEditing }: InvestorDa
             .from('investor_preferences')
             .insert({
               user_id: session.user.id,
+              operator_type: formData.operatorType,
+              operator_type_other: formData.operatorTypeOther,
+              properties_managing: formData.propertiesManaging,
               preference_data: preferencesForm
             })
         }
@@ -177,27 +215,48 @@ export function InvestorDashboardProfile({ isEditing, setIsEditing }: InvestorDa
     }
   }
 
-  const handleCancel = () => {
-    // Reset form data to original values
-    if (user) {
-      const nameParts = (user.full_name || '').split(' ')
-      const firstName = nameParts[0] || ''
-      const surname = nameParts.slice(1).join(' ') || ''
+  const handleCancel = async () => {
+    // Reload original data
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (session?.user) {
+        const { data: profile } = await supabase
+          .from('user_profiles')
+          .select('*')
+          .eq('id', session.user.id)
+          .single()
 
-      setFormData({
-        firstName: firstName,
-        surname: surname,
-        email: user.email || '',
-        phone: user.phone || '',
-        city: user.city || '',
-        company: user.company_name || '',
-        bio: user.bio || '',
-        investmentGoals: user.investment_goals || '',
-      })
-    }
-    // Reset preferences form
-    if (preferences) {
-      setPreferencesForm(preferences)
+        const { data: preferencesData } = await supabase
+          .from('investor_preferences')
+          .select('*')
+          .eq('user_id', session.user.id)
+          .single()
+
+        if (profile) {
+          const nameParts = (profile.full_name || '').split(' ')
+          const firstName = nameParts[0] || ''
+          const surname = nameParts.slice(1).join(' ') || ''
+
+          setFormData({
+            firstName: firstName,
+            surname: surname,
+            email: profile.email || '',
+            phone: profile.phone || '',
+            city: profile.city || '',
+            company: profile.company_name || '',
+            operatorType: preferencesData?.operator_type || 'sa_operator',
+            operatorTypeOther: preferencesData?.operator_type_other || '',
+            propertiesManaging: preferencesData?.properties_managing || 0,
+          })
+        }
+
+        // Reset preferences form
+        if (preferencesData?.preference_data) {
+          setPreferencesForm(preferencesData.preference_data as PreferencesData)
+        }
+      }
+    } catch (error) {
+      console.error('Error resetting form:', error)
     }
     setIsEditing(false)
   }
@@ -421,29 +480,51 @@ export function InvestorDashboardProfile({ isEditing, setIsEditing }: InvestorDa
               </div>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="investmentGoals">Investment Goals</Label>
-              <Textarea
-                id="investmentGoals"
-                rows={3}
-                value={formData.investmentGoals || ""}
-                onChange={(e) => handleInputChange('investmentGoals', e.target.value)}
-                disabled={!isEditing}
-                placeholder="What are your investment goals and strategies?"
-              />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="operatorType">Operator Type</Label>
+                <Select
+                  value={formData.operatorType}
+                  onValueChange={(value) => handleInputChange('operatorType', value)}
+                  disabled={!isEditing}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="sa_operator">SA Operator</SelectItem>
+                    <SelectItem value="supported_living">Supported/Assisted Living</SelectItem>
+                    <SelectItem value="social_housing">Social Housing/EA/TA</SelectItem>
+                    <SelectItem value="other">Other</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="propertiesManaging">Properties Managing</Label>
+                <Input
+                  id="propertiesManaging"
+                  type="number"
+                  min="0"
+                  value={formData.propertiesManaging}
+                  onChange={(e) => handleInputChange('propertiesManaging', e.target.value)}
+                  disabled={!isEditing}
+                  placeholder="0"
+                />
+              </div>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="bio">Bio</Label>
-              <Textarea
-                id="bio"
-                rows={4}
-                value={formData.bio || ""}
-                onChange={(e) => handleInputChange('bio', e.target.value)}
-                disabled={!isEditing}
-                placeholder="Tell us about yourself and your investment experience..."
-              />
-            </div>
+            {formData.operatorType === "other" && (
+              <div className="space-y-2">
+                <Label htmlFor="operatorTypeOther">Please Specify Operator Type</Label>
+                <Input
+                  id="operatorTypeOther"
+                  value={formData.operatorTypeOther || ""}
+                  onChange={(e) => handleInputChange('operatorTypeOther', e.target.value)}
+                  disabled={!isEditing}
+                  placeholder="Specify your operator type"
+                />
+              </div>
+            )}
           </CardContent>
           </Card>
 
@@ -456,88 +537,12 @@ export function InvestorDashboardProfile({ isEditing, setIsEditing }: InvestorDa
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-6 pb-6">
-            {/* Budget */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="budgetMin">Minimum Budget (£/month)</Label>
-                <Input
-                  id="budgetMin"
-                  type="number"
-                  value={preferencesForm.budget.min}
-                  onChange={(e) => setPreferencesForm(prev => ({
-                    ...prev,
-                    budget: { ...prev.budget, min: parseInt(e.target.value) || 0 }
-                  }))}
-                  disabled={!isEditing}
-                  placeholder="1000"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="budgetMax">Maximum Budget (£/month)</Label>
-                <Input
-                  id="budgetMax"
-                  type="number"
-                  value={preferencesForm.budget.max}
-                  onChange={(e) => setPreferencesForm(prev => ({
-                    ...prev,
-                    budget: { ...prev.budget, max: parseInt(e.target.value) || 0 }
-                  }))}
-                  disabled={!isEditing}
-                  placeholder="3000"
-                />
-              </div>
-            </div>
-
-            {/* Bedrooms */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="bedroomsMin">Minimum Bedrooms</Label>
-                <Select
-                  value={preferencesForm.bedrooms.min.toString()}
-                  onValueChange={(value) => setPreferencesForm(prev => ({
-                    ...prev,
-                    bedrooms: { ...prev.bedrooms, min: parseInt(value) }
-                  }))}
-                  disabled={!isEditing}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {[1, 2, 3, 4, 5, 6].map(num => (
-                      <SelectItem key={num} value={num.toString()}>{num}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="bedroomsMax">Maximum Bedrooms</Label>
-                <Select
-                  value={preferencesForm.bedrooms.max.toString()}
-                  onValueChange={(value) => setPreferencesForm(prev => ({
-                    ...prev,
-                    bedrooms: { ...prev.bedrooms, max: parseInt(value) }
-                  }))}
-                  disabled={!isEditing}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {[1, 2, 3, 4, 5, 6].map(num => (
-                      <SelectItem key={num} value={num.toString()}>{num}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
             {/* Property Types */}
             <div className="space-y-2">
               <Label>Property Types</Label>
-              <div className="flex flex-wrap gap-3">
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                 {propertyTypeOptions.map(option => (
-                  <div key={option.value} className="flex items-center space-x-2">
+                  <div key={option.value} className="flex items-center space-x-2 p-3 border border-gray-200 rounded-lg">
                     <Checkbox
                       id={option.value}
                       checked={preferencesForm.property_types.includes(option.value)}
@@ -546,12 +551,125 @@ export function InvestorDashboardProfile({ isEditing, setIsEditing }: InvestorDa
                     />
                     <label
                       htmlFor={option.value}
-                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                      className="text-sm font-medium leading-none cursor-pointer"
                     >
                       {option.label}
                     </label>
                   </div>
                 ))}
+              </div>
+            </div>
+
+            {/* Bedrooms */}
+            <div>
+              <Label className="text-base font-medium mb-2 block">Bedrooms</Label>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="bedroomsMin">Minimum</Label>
+                  <Select
+                    value={preferencesForm.bedrooms.min.toString()}
+                    onValueChange={(value) => setPreferencesForm(prev => ({
+                      ...prev,
+                      bedrooms: { ...prev.bedrooms, min: parseInt(value) }
+                    }))}
+                    disabled={!isEditing}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(num => (
+                        <SelectItem key={num} value={num.toString()}>
+                          {num === 10 ? "10+" : num}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="bedroomsMax">Maximum</Label>
+                  <Select
+                    value={preferencesForm.bedrooms.max.toString()}
+                    onValueChange={(value) => setPreferencesForm(prev => ({
+                      ...prev,
+                      bedrooms: { ...prev.bedrooms, max: parseInt(value) }
+                    }))}
+                    disabled={!isEditing}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(num => (
+                        <SelectItem key={num} value={num.toString()}>
+                          {num === 10 ? "10+" : num}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </div>
+
+            {/* Budget */}
+            <div>
+              <Label className="text-base font-medium mb-2 block">Budget</Label>
+              {/* Budget Type */}
+              <div className="mb-4">
+                <Label className="text-sm font-medium mb-2 block">Monthly rent budget:</Label>
+                <RadioGroup
+                  value={preferencesForm.budget.type}
+                  onValueChange={(value) => setPreferencesForm(prev => ({
+                    ...prev,
+                    budget: { ...prev.budget, type: value as "per_property" | "total_portfolio" }
+                  }))}
+                  className="flex gap-6"
+                  disabled={!isEditing}
+                >
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="per_property" id="per_property" disabled={!isEditing} />
+                    <Label htmlFor="per_property" className="cursor-pointer">Per property</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="total_portfolio" id="total_portfolio" disabled={!isEditing} />
+                    <Label htmlFor="total_portfolio" className="cursor-pointer">Total portfolio</Label>
+                  </div>
+                </RadioGroup>
+              </div>
+              {/* Budget Range */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="budgetMin">Minimum £</Label>
+                  <Input
+                    id="budgetMin"
+                    type="number"
+                    min="0"
+                    step="50"
+                    value={preferencesForm.budget.min}
+                    onChange={(e) => setPreferencesForm(prev => ({
+                      ...prev,
+                      budget: { ...prev.budget, min: parseInt(e.target.value) || 0 }
+                    }))}
+                    disabled={!isEditing}
+                    placeholder="500"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="budgetMax">Maximum £</Label>
+                  <Input
+                    id="budgetMax"
+                    type="number"
+                    min={preferencesForm.budget.min}
+                    step="50"
+                    value={preferencesForm.budget.max}
+                    onChange={(e) => setPreferencesForm(prev => ({
+                      ...prev,
+                      budget: { ...prev.budget, max: parseInt(e.target.value) || 0 }
+                    }))}
+                    disabled={!isEditing}
+                    placeholder="2000"
+                  />
+                </div>
               </div>
             </div>
 
@@ -572,19 +690,21 @@ export function InvestorDashboardProfile({ isEditing, setIsEditing }: InvestorDa
                 </div>
               )}
               <div className="flex flex-wrap gap-2 mt-2">
-                {preferencesForm.locations.map(loc => (
+                {preferencesForm.locations.map((loc, idx) => (
                   <span
-                    key={loc.city}
+                    key={idx}
                     className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-gray-100"
                   >
+                    <MapPin className="h-3 w-3 mr-1" />
                     {loc.city}
+                    {loc.areas && loc.areas.length > 0 && ` (${loc.areas.join(", ")})`}
                     {isEditing && (
                       <button
                         type="button"
                         onClick={() => handleRemoveLocation(loc.city)}
                         className="ml-2 text-gray-500 hover:text-gray-700"
                       >
-                        ×
+                        <X className="h-3 w-3" />
                       </button>
                     )}
                   </span>
@@ -593,6 +713,87 @@ export function InvestorDashboardProfile({ isEditing, setIsEditing }: InvestorDa
                   <span className="text-sm text-muted-foreground">No locations added</span>
                 )}
               </div>
+            </div>
+
+            {/* Additional Preferences */}
+            <div className="space-y-2">
+              <Label htmlFor="additionalPreferences">Additional Preferences</Label>
+              <Textarea
+                id="additionalPreferences"
+                value={preferencesForm.additional_preferences || ""}
+                onChange={(e) => setPreferencesForm(prev => ({
+                  ...prev,
+                  additional_preferences: e.target.value
+                }))}
+                disabled={!isEditing}
+                placeholder="e.g., Parking required, Garden/Outdoor space, Furnished, Bills included, Wheelchair accessible"
+                className="min-h-[100px]"
+              />
+            </div>
+
+            {/* Availability */}
+            <div>
+              <Label className="text-base font-medium mb-2 block">When do you need properties?</Label>
+              {/* Immediate Availability */}
+              <div className="mb-4">
+                <div className="flex items-center space-x-3 p-3 border border-gray-200 rounded-lg">
+                  <Checkbox
+                    id="immediate"
+                    checked={preferencesForm.availability?.immediate || false}
+                    onCheckedChange={(checked) => setPreferencesForm(prev => ({
+                      ...prev,
+                      availability: {
+                        immediate: checked as boolean,
+                        available_from: checked ? null : prev.availability?.available_from || null
+                      }
+                    }))}
+                    disabled={!isEditing}
+                  />
+                  <Label htmlFor="immediate" className="cursor-pointer font-medium">
+                    I'm looking for immediate availability
+                  </Label>
+                </div>
+              </div>
+              {/* Date Picker */}
+              {!preferencesForm.availability?.immediate && (
+                <div>
+                  <Label className="text-sm font-medium mb-2 block">Available from</Label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        disabled={!isEditing}
+                        className={cn(
+                          "w-full justify-start text-left font-normal",
+                          !preferencesForm.availability?.available_from && "text-muted-foreground"
+                        )}
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {preferencesForm.availability?.available_from ? (
+                          new Date(preferencesForm.availability.available_from).toLocaleDateString()
+                        ) : (
+                          <span>Pick a date</span>
+                        )}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={preferencesForm.availability?.available_from ? new Date(preferencesForm.availability.available_from) : undefined}
+                        onSelect={(date) => setPreferencesForm(prev => ({
+                          ...prev,
+                          availability: {
+                            immediate: false,
+                            available_from: date?.toISOString() || null
+                          }
+                        }))}
+                        disabled={(date) => date < new Date()}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+              )}
             </div>
 
             {isEditing && (

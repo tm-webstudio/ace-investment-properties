@@ -4,6 +4,9 @@ import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import { PropertyTitle } from "@/components/property-title"
 import {
   Calendar,
@@ -14,7 +17,9 @@ import {
   Mail,
   User,
   Home,
-  PoundSterling
+  Wallet,
+  X,
+  Filter
 } from "lucide-react"
 import Link from "next/link"
 import { supabase } from "@/lib/supabase"
@@ -45,6 +50,19 @@ interface ViewingRequest {
     phone: string
     company_name?: string
   }
+  user_profile?: {
+    full_name: string
+    email: string
+    phone: string
+  }
+}
+
+interface ViewingStats {
+  pending: number
+  approved: number
+  rejected: number
+  cancelled: number
+  completed: number
 }
 
 interface InvestorViewingRequestsProps {
@@ -56,6 +74,22 @@ export function InvestorViewingRequests({ variant = 'dashboard', limit }: Invest
   const [viewings, setViewings] = useState<ViewingRequest[]>([])
   const [loading, setLoading] = useState(true)
   const [expandedCard, setExpandedCard] = useState<string | null>(null)
+  const [cancelModalOpen, setCancelModalOpen] = useState(false)
+  const [changeModalOpen, setChangeModalOpen] = useState(false)
+  const [selectedViewing, setSelectedViewing] = useState<ViewingRequest | null>(null)
+  const [cancelError, setCancelError] = useState('')
+  const [changeError, setChangeError] = useState('')
+  const [actionLoading, setActionLoading] = useState(false)
+  const [newViewingDate, setNewViewingDate] = useState('')
+  const [newViewingTime, setNewViewingTime] = useState('')
+  const [filter, setFilter] = useState<string>('all')
+  const [stats, setStats] = useState<ViewingStats>({
+    pending: 0,
+    approved: 0,
+    rejected: 0,
+    cancelled: 0,
+    completed: 0
+  })
 
   const fetchViewings = async () => {
     try {
@@ -80,12 +114,30 @@ export function InvestorViewingRequests({ variant = 'dashboard', limit }: Invest
       const result = await response.json()
 
       if (result.success) {
-        // Filter for pending, approved, rejected, and cancelled viewings if dashboard variant
-        const filteredViewings = variant === 'dashboard'
-          ? (result.viewings || []).filter((v: ViewingRequest) =>
-              v.status === 'pending' || v.status === 'approved' || v.status === 'rejected' || v.status === 'cancelled'
-            )
-          : result.viewings || []
+        const allViewings = result.viewings || []
+
+        // Calculate stats
+        const calculatedStats = {
+          pending: allViewings.filter((v: ViewingRequest) => v.status === 'pending').length,
+          approved: allViewings.filter((v: ViewingRequest) => v.status === 'approved').length,
+          rejected: allViewings.filter((v: ViewingRequest) => v.status === 'rejected').length,
+          cancelled: allViewings.filter((v: ViewingRequest) => v.status === 'cancelled').length,
+          completed: allViewings.filter((v: ViewingRequest) => v.status === 'completed').length
+        }
+        setStats(calculatedStats)
+
+        // Filter viewings based on variant and filter state
+        let filteredViewings = allViewings
+
+        if (variant === 'dashboard') {
+          // Dashboard: show pending, approved, rejected, and cancelled
+          filteredViewings = allViewings.filter((v: ViewingRequest) =>
+            v.status === 'pending' || v.status === 'approved' || v.status === 'rejected' || v.status === 'cancelled'
+          )
+        } else if (variant === 'full' && filter !== 'all') {
+          // Full view with filter: apply status filter
+          filteredViewings = allViewings.filter((v: ViewingRequest) => v.status === filter)
+        }
 
         setViewings(filteredViewings)
       } else {
@@ -100,7 +152,7 @@ export function InvestorViewingRequests({ variant = 'dashboard', limit }: Invest
 
   useEffect(() => {
     fetchViewings()
-  }, [limit])
+  }, [limit, filter])
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -132,13 +184,144 @@ export function InvestorViewingRequests({ variant = 'dashboard', limit }: Invest
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-GB', {
       style: 'currency',
-      currency: 'GBP'
+      currency: 'GBP',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
     }).format(amount / 100)
+  }
+
+  const renderFilterButtons = () => {
+    if (variant !== 'full') return null
+
+    const filters = [
+      { key: 'all', label: 'All', count: stats.pending + stats.approved + stats.rejected + stats.cancelled },
+      { key: 'pending', label: 'Pending', count: stats.pending },
+      { key: 'approved', label: 'Approved', count: stats.approved },
+      { key: 'rejected', label: 'Rejected', count: stats.rejected },
+      { key: 'cancelled', label: 'Cancelled', count: stats.cancelled }
+    ]
+
+    return (
+      <div className="flex flex-wrap gap-2 mb-6">
+        {filters.map((filterOption) => (
+          <Button
+            key={filterOption.key}
+            variant={filter === filterOption.key ? "default" : "outline"}
+            onClick={() => setFilter(filterOption.key)}
+            className="h-9"
+          >
+            <Filter className="h-4 w-4 mr-2" />
+            {filterOption.label} ({filterOption.count})
+          </Button>
+        ))}
+      </div>
+    )
+  }
+
+  const handleCancel = async (viewing: ViewingRequest) => {
+    setSelectedViewing(viewing)
+    setCancelError('')
+    setCancelModalOpen(true)
+  }
+
+  const confirmCancel = async () => {
+    if (!selectedViewing) return
+
+    try {
+      setActionLoading(true)
+
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session?.access_token) {
+        console.error('No access token available')
+        return
+      }
+
+      const response = await fetch(`/api/viewings/${selectedViewing.id}/cancel`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+          'Content-Type': 'application/json'
+        }
+      })
+
+      const result = await response.json()
+
+      if (result.success) {
+        setCancelModalOpen(false)
+        setSelectedViewing(null)
+        setCancelError('')
+        fetchViewings() // Refresh the list
+      } else {
+        setCancelError(result.error || 'Failed to cancel viewing request')
+      }
+    } catch (error) {
+      setCancelError(error instanceof Error ? error.message : 'Error cancelling viewing request')
+    } finally {
+      setActionLoading(false)
+    }
+  }
+
+  const handleChangeViewing = async (viewing: ViewingRequest) => {
+    setSelectedViewing(viewing)
+    setNewViewingDate(viewing.viewing_date)
+    setNewViewingTime(viewing.viewing_time)
+    setChangeError('')
+    setChangeModalOpen(true)
+  }
+
+  const confirmChangeViewing = async () => {
+    if (!selectedViewing) return
+
+    if (!newViewingDate || !newViewingTime) {
+      setChangeError('Please select both date and time')
+      return
+    }
+
+    try {
+      setActionLoading(true)
+
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session?.access_token) {
+        console.error('No access token available')
+        return
+      }
+
+      const response = await fetch(`/api/viewings/${selectedViewing.id}`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          viewing_date: newViewingDate,
+          viewing_time: newViewingTime
+        })
+      })
+
+      const result = await response.json()
+
+      if (result.success) {
+        setChangeModalOpen(false)
+        setSelectedViewing(null)
+        setChangeError('')
+        setNewViewingDate('')
+        setNewViewingTime('')
+        fetchViewings() // Refresh the list
+      } else {
+        setChangeError(result.error || 'Failed to update viewing request')
+      }
+    } catch (error) {
+      setChangeError(error instanceof Error ? error.message : 'Error updating viewing request')
+    } finally {
+      setActionLoading(false)
+    }
   }
 
   const cardContent = (
     <>
-      <div className="space-y-3">
+      {renderFilterButtons()}
+
+      <div className={variant === 'full' ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-start' : 'space-y-3'}>
         {loading ? (
           <>
             {[...Array(variant === 'dashboard' ? 3 : 5)].map((_, i) => (
@@ -215,47 +398,26 @@ export function InvestorViewingRequests({ variant = 'dashboard', limit }: Invest
               {/* Expanded details */}
               {expandedCard === viewing.id && (
                 <div className="border-t pt-4 space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {/* Property Details */}
+                  {/* Property Details - Only show for approved viewings */}
+                  {viewing.status === 'approved' && (
                     <div className="space-y-3">
                       <h4 className="font-semibold text-gray-900">Property Details</h4>
                       <div className="space-y-2 text-sm">
                         <div className="flex items-center">
                           <Home className="h-4 w-4 mr-2 text-gray-400" />
-                          <span>{viewing.property?.address}</span>
+                          <span>
+                            {viewing.property?.address}
+                            {viewing.property?.city && `, ${viewing.property.city}`}
+                            {viewing.property?.postcode && `, ${viewing.property.postcode}`}
+                          </span>
                         </div>
                         <div className="flex items-center">
-                          <PoundSterling className="h-4 w-4 mr-2 text-gray-400" />
+                          <Wallet className="h-4 w-4 mr-2 text-gray-400" />
                           <span>{viewing.property?.monthly_rent ? formatCurrency(viewing.property.monthly_rent) : 'N/A'} per month</span>
                         </div>
                       </div>
                     </div>
-
-                    {/* Landlord Details */}
-                    <div className="space-y-3">
-                      <h4 className="font-semibold text-gray-900">Landlord Details</h4>
-                      <div className="space-y-2 text-sm">
-                        <div className="flex items-center">
-                          <User className="h-4 w-4 mr-2 text-gray-400" />
-                          <span>{viewing.landlord_profile?.full_name || 'N/A'}</span>
-                        </div>
-                        {viewing.landlord_profile?.company_name && (
-                          <div className="flex items-center">
-                            <Home className="h-4 w-4 mr-2 text-gray-400" />
-                            <span>{viewing.landlord_profile.company_name}</span>
-                          </div>
-                        )}
-                        <div className="flex items-center">
-                          <Mail className="h-4 w-4 mr-2 text-gray-400" />
-                          <span>{viewing.landlord_profile?.email || 'N/A'}</span>
-                        </div>
-                        <div className="flex items-center">
-                          <Phone className="h-4 w-4 mr-2 text-gray-400" />
-                          <span>{viewing.landlord_profile?.phone || 'N/A'}</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+                  )}
 
                   {/* Special Requests */}
                   {viewing.special_requests && (
@@ -276,6 +438,34 @@ export function InvestorViewingRequests({ variant = 'dashboard', limit }: Invest
                       </p>
                     </div>
                   )}
+
+                  {/* Actions for pending and approved viewings */}
+                  {(viewing.status === 'pending' || viewing.status === 'approved') && (
+                    <div className="flex gap-2 pt-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          handleChangeViewing(viewing)
+                        }}
+                      >
+                        <Calendar className="h-4 w-4 mr-1" />
+                        Change Viewing
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          handleCancel(viewing)
+                        }}
+                      >
+                        <X className="h-4 w-4 mr-1" />
+                        Cancel Viewing
+                      </Button>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -288,6 +478,104 @@ export function InvestorViewingRequests({ variant = 'dashboard', limit }: Invest
           </div>
         )}
       </div>
+
+      {/* Cancel Modal */}
+      <Dialog open={cancelModalOpen} onOpenChange={setCancelModalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Cancel Viewing</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p>
+              Are you sure you want to cancel the viewing for{" "}
+              <strong>{selectedViewing?.property?.property_type} in {selectedViewing?.property?.city}</strong>{" "}
+              on {selectedViewing && formatDate(selectedViewing.viewing_date)} at {selectedViewing && formatTime(selectedViewing.viewing_time)}?
+            </p>
+            <p className="text-sm text-gray-600">
+              The landlord will be notified that this viewing has been cancelled.
+            </p>
+            {cancelError && (
+              <div className="p-4 bg-red-50 border border-red-200 rounded-md">
+                <p className="text-sm text-red-700">{cancelError}</p>
+              </div>
+            )}
+            <div className="flex gap-3 justify-end">
+              <Button variant="outline" onClick={() => setCancelModalOpen(false)}>
+                Keep Viewing
+              </Button>
+              <Button
+                onClick={confirmCancel}
+                disabled={actionLoading}
+                variant="destructive"
+              >
+                {actionLoading ? 'Cancelling...' : 'Cancel Viewing'}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Change Viewing Modal */}
+      <Dialog open={changeModalOpen} onOpenChange={setChangeModalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Change Viewing Time</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p>
+              Update the viewing date and time for{" "}
+              <strong>{selectedViewing?.property?.property_type} in {selectedViewing?.property?.city}</strong>
+            </p>
+
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="viewing_date">Viewing Date</Label>
+                <Input
+                  id="viewing_date"
+                  type="date"
+                  value={newViewingDate}
+                  onChange={(e) => setNewViewingDate(e.target.value)}
+                  min={new Date().toISOString().split('T')[0]}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="viewing_time">Viewing Time</Label>
+                <Input
+                  id="viewing_time"
+                  type="time"
+                  value={newViewingTime}
+                  onChange={(e) => setNewViewingTime(e.target.value)}
+                />
+              </div>
+            </div>
+
+            {selectedViewing?.status === 'approved' && (
+              <p className="text-sm text-amber-600 bg-amber-50 p-3 rounded">
+                Note: Changing an approved viewing will reset its status to pending and require landlord re-approval.
+              </p>
+            )}
+
+            {changeError && (
+              <div className="p-4 bg-red-50 border border-red-200 rounded-md">
+                <p className="text-sm text-red-700">{changeError}</p>
+              </div>
+            )}
+
+            <div className="flex gap-3 justify-end">
+              <Button variant="outline" onClick={() => setChangeModalOpen(false)}>
+                Cancel
+              </Button>
+              <Button
+                onClick={confirmChangeViewing}
+                disabled={actionLoading}
+              >
+                {actionLoading ? 'Updating...' : 'Update Viewing'}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </>
   )
 
@@ -295,7 +583,7 @@ export function InvestorViewingRequests({ variant = 'dashboard', limit }: Invest
     return (
       <Card className="max-h-[600px] overflow-hidden flex flex-col">
         <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>Upcoming Viewings</CardTitle>
+          <CardTitle>Viewing Requests</CardTitle>
           <Link href="/investor/dashboard?tab=viewings">
             <Button variant="outline" size="sm" className="bg-transparent">
               View All
