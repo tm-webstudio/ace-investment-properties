@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { User, BarChart3, Settings, Heart, Calendar } from "lucide-react"
+import { User, BarChart3, Sparkles, Heart, Calendar } from "lucide-react"
 
 interface InvestorDashboardNavigationProps {
   activeTab: string
@@ -13,7 +13,7 @@ interface InvestorDashboardNavigationProps {
 export function InvestorDashboardNavigation({ activeTab, onTabChange, customButton }: InvestorDashboardNavigationProps) {
   const navItems = [
     { id: "dashboard", label: "Dashboard", icon: BarChart3 },
-    { id: "preferences", label: "Preferences", icon: Settings },
+    { id: "preferences", label: "For You", icon: Sparkles },
     { id: "saved-properties", label: "Saved Properties", icon: Heart },
     { id: "viewings", label: "Viewings", icon: Calendar },
     { id: "profile", label: "Profile", icon: User },

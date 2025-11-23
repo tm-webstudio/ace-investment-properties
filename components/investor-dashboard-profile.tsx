@@ -290,7 +290,7 @@ export function InvestorDashboardProfile({ isEditing, setIsEditing }: InvestorDa
   if (loading) {
     return (
       <div className="space-y-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Profile Overview Skeleton */}
           <Card className="lg:col-span-1 self-start">
             <CardContent className="px-4 py-3">
@@ -369,7 +369,7 @@ export function InvestorDashboardProfile({ isEditing, setIsEditing }: InvestorDa
 
   return (
     <div className="space-y-8">
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Profile Overview Card */}
         <Card className="lg:col-span-1 self-start">
           <CardContent className="px-4 py-3">
@@ -400,9 +400,9 @@ export function InvestorDashboardProfile({ isEditing, setIsEditing }: InvestorDa
         </Card>
 
         {/* Right column - Personal Info and Preferences */}
-        <div className="lg:col-span-2 space-y-8">
+        <div className="lg:col-span-2 space-y-6">
           {/* Settings Form */}
-          <Card>
+          <Card className="mb-6">
           <CardHeader className="py-3">
             <CardTitle className="flex items-center">
               <User className="h-5 w-5 mr-2" />

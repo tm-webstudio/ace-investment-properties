@@ -192,7 +192,7 @@ function InvestorDashboardContent() {
                   <span className="relative z-10 font-medium">Edit Profile</span>
                 </Button>
               ) : activeTab !== "profile" ? (
-                <Link href="/investor/preferences">
+                <Link href="/investor/preferences" className="hidden md:inline-flex">
                   <Button
                     className="
                       group bg-accent hover:bg-accent/90 text-accent-foreground
@@ -221,8 +221,8 @@ function InvestorDashboardContent() {
           {activeTab === "viewings" && (
             <div className="space-y-6">
               <div>
-                <h2 className="text-2xl font-bold text-gray-900">My Viewings</h2>
-                <p className="text-gray-600 mt-1">
+                <h2 className="text-lg md:text-xl font-medium text-gray-900">My Viewings</h2>
+                <p className="text-sm md:text-base text-gray-600 mt-1">
                   Track and manage your property viewing appointments
                 </p>
               </div>

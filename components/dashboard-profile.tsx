@@ -143,7 +143,7 @@ export function DashboardProfile({ isEditing, setIsEditing }: DashboardProfilePr
   if (loading) {
     return (
       <div className="space-y-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Profile Overview Skeleton */}
           <Card className="lg:col-span-1 self-start">
             <CardContent className="px-4 py-3">
@@ -217,7 +217,7 @@ export function DashboardProfile({ isEditing, setIsEditing }: DashboardProfilePr
 
   return (
     <div className="space-y-8">
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Profile Overview Card */}
         <Card className="lg:col-span-1 self-start">
           <CardContent className="px-4 py-3">
@@ -248,7 +248,7 @@ export function DashboardProfile({ isEditing, setIsEditing }: DashboardProfilePr
         </Card>
 
         {/* Settings Form */}
-        <Card className="lg:col-span-2">
+        <Card className="lg:col-span-2 mb-6">
           <CardHeader className="py-3">
             <CardTitle className="flex items-center">
               <User className="h-5 w-5 mr-2" />
@@ -360,7 +360,7 @@ export function DashboardProfile({ isEditing, setIsEditing }: DashboardProfilePr
       </div>
 
       {/* Available Viewing Times */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-1" />
         <Card className="lg:col-span-2">
           <CardHeader className="py-3">

@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { PropertyCard } from "@/components/property-card"
-import { Heart, Search, Filter, Loader2 } from "lucide-react"
+import { Heart, Search, Filter } from "lucide-react"
 import Link from "next/link"
 import { supabase } from "@/lib/supabase"
 
@@ -133,79 +133,35 @@ export function InvestorDashboardSavedProperties() {
     }
   }
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center py-12">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    )
-  }
-
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <div className="flex items-center gap-3">
-            <Heart className="h-6 w-6 text-red-500 fill-current" />
-            <h2 className="text-2xl font-bold text-gray-900">Saved Properties</h2>
-          </div>
-          <p className="text-gray-600 mt-1">
-            {total > 0 ? `${total} saved properties` : 'You haven\'t saved any properties yet'}
-          </p>
-        </div>
-        {total > 0 && (
-          <Link href="/investor/saved-properties">
-            <Button variant="outline">View All</Button>
-          </Link>
-        )}
+      <div>
+        <h2 className="text-lg md:text-xl font-medium text-gray-900">My Saved Properties</h2>
+        <p className="text-sm md:text-base text-gray-600 mt-1">
+          Properties you've saved for future consideration
+        </p>
       </div>
 
-      {/* Search and Filters */}
-      {total > 0 && (
-        <Card>
-          <CardContent className="p-4">
-            <form onSubmit={handleSearch} className="flex flex-col md:flex-row gap-4">
-              <div className="flex-1 relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search saved properties..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                />
+      {loading ? (
+        /* Loading Skeletons */
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+          {[...Array(8)].map((_, i) => (
+            <div key={i} className="animate-pulse">
+              <div className="bg-gray-200 h-48 rounded-t-lg"></div>
+              <div className="bg-white p-4 rounded-b-lg border border-t-0">
+                <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+                <div className="h-3 bg-gray-200 rounded w-1/2 mb-3"></div>
+                <div className="h-3 bg-gray-200 rounded w-full mb-2"></div>
+                <div className="h-3 bg-gray-200 rounded w-2/3"></div>
               </div>
-              <div className="flex gap-2">
-                <Select value={sortBy} onValueChange={setSortBy}>
-                  <SelectTrigger className="w-40">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="saved_at">Date Saved</SelectItem>
-                    <SelectItem value="price">Price</SelectItem>
-                    <SelectItem value="property_name">Address</SelectItem>
-                  </SelectContent>
-                </Select>
-                <Select value={order} onValueChange={setOrder}>
-                  <SelectTrigger className="w-32">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="desc">Newest</SelectItem>
-                    <SelectItem value="asc">Oldest</SelectItem>
-                  </SelectContent>
-                </Select>
-                <Button type="submit" variant="outline">
-                  <Filter className="h-4 w-4" />
-                </Button>
-              </div>
-            </form>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Properties Grid */}
-      {savedProperties.length === 0 ? (
+            </div>
+          ))}
+        </div>
+      ) : (
+        <>
+          {/* Properties Grid */}
+          {savedProperties.length === 0 ? (
         <div className="text-center py-16 text-muted-foreground min-h-[320px] flex flex-col items-center justify-center">
           <Heart className="h-10 w-10 mx-auto mb-3 opacity-50" />
           <p className="text-base font-medium mb-1.5">No Saved Properties</p>
@@ -215,9 +171,9 @@ export function InvestorDashboardSavedProperties() {
               Find Properties
             </Button>
           </Link>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
           {savedProperties.map((saved) => (
             <PropertyCard
               key={saved.savedPropertyId}
@@ -225,7 +181,9 @@ export function InvestorDashboardSavedProperties() {
               variant="default"
             />
           ))}
-        </div>
+            </div>
+          )}
+        </>
       )}
     </div>
   )
