@@ -46,7 +46,7 @@ export function DashboardNavigation({ activeTab, onTabChange, customButton }: Da
         </nav>
 
         {customButton || (
-          <Link href="/landlord/add-property">
+          <Link href="/landlord/add-property" className="hidden md:inline-flex">
             <Button className="
               group bg-accent hover:bg-accent/90 text-accent-foreground
               transition-all duration-200 ease-out

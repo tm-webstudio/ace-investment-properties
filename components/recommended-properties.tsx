@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge"
 import { Toggle } from "@/components/ui/toggle"
 import { PropertyCard } from "@/components/property-card"
 import { PreferencesModal } from "@/components/preferences-modal"
-import { Settings, Filter, RefreshCw, Heart, ChevronLeft, ChevronRight } from "lucide-react"
+import { Settings, Filter, RefreshCw, ChevronLeft, ChevronRight } from "lucide-react"
 import Link from "next/link"
 import { supabase } from "@/lib/supabase"
 
@@ -188,8 +188,7 @@ export function RecommendedProperties({ className, preferences }: RecommendedPro
     return (
       <Card className={className}>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Heart className="h-5 w-5 text-primary" />
+          <CardTitle>
             Recommended For You
           </CardTitle>
         </CardHeader>
@@ -224,8 +223,7 @@ export function RecommendedProperties({ className, preferences }: RecommendedPro
     return (
       <Card className={className}>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Heart className="h-5 w-5 text-primary" />
+          <CardTitle>
             Recommended For You
           </CardTitle>
         </CardHeader>
@@ -249,8 +247,7 @@ export function RecommendedProperties({ className, preferences }: RecommendedPro
     return (
       <Card className={className}>
         <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle className="flex items-center gap-2">
-            <Heart className="h-5 w-5 text-primary" />
+          <CardTitle>
             Recommended For You
           </CardTitle>
           <div className="flex items-center gap-2">
@@ -297,8 +294,7 @@ export function RecommendedProperties({ className, preferences }: RecommendedPro
     <Card className={className}>
       <CardHeader className="space-y-4">
         <div className="flex items-center justify-between mb-1">
-          <CardTitle className="flex items-center gap-2">
-            <Heart className="h-5 w-5 text-primary" />
+          <CardTitle>
             Recommended For You
           </CardTitle>
           <Link href="/investor/dashboard?tab=preferences">
