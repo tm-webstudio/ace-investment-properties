@@ -136,4 +136,9 @@
   .scrollbar-hide::-webkit-scrollbar {
     display: none; /* Chrome, Safari and Opera */
   }
+  .scroll-horizontal-only {
+    touch-action: pan-x; /* Only allow horizontal panning on touch devices */
+    overscroll-behavior-x: contain; /* Prevent scroll chaining */
+    overscroll-behavior-y: none; /* Disable vertical overscroll */
+  }
 }

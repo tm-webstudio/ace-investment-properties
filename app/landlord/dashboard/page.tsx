@@ -111,20 +111,6 @@ function LandlordDashboardContent() {
     }
   }, [activeTab])
 
-  const getPageTitle = () => {
-    switch (activeTab) {
-      case "properties":
-        return "My Properties"
-      case "viewings":
-        return "Viewing Requests"
-      case "documents":
-        return "Property Documents"
-      case "profile":
-        return `Welcome, ${user?.first_name || 'User'} ${user?.last_name || ''}`
-      default:
-        return `Welcome, ${user?.first_name || 'User'} ${user?.last_name || ''}`
-    }
-  }
 
   if (loading) {
     return (
@@ -194,7 +180,7 @@ function LandlordDashboardContent() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-8 sm:py-8">
           <PageHeader
             category="Landlord Dashboard"
-            title={getPageTitle()}
+            title={`Welcome, ${user?.first_name || 'User'} ${user?.last_name || ''}`}
             subtitle="Manage your properties and applications"
             variant="blue"
           />

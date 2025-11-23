@@ -127,7 +127,7 @@ export default function AdminDashboard() {
       <main className="flex-1 bg-background">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-8 sm:py-8">
           <Card className="mb-8 bg-gradient-to-r from-red-50 via-red-100/50 to-red-50 border-red-200/30">
-            <CardHeader className="pb-4 pt-4">
+            <CardHeader className="md:pb-4 md:pt-4">
               <p className="text-sm font-bold text-red-700/70 uppercase tracking-wide mb-1">
                 Admin Dashboard
               </p>

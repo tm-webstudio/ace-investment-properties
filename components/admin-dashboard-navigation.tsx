@@ -21,7 +21,7 @@ export function AdminDashboardNavigation({ activeTab, onTabChange, customButton 
   return (
     <div className="mb-8">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-        <nav className="flex gap-0 border-b border-gray-200 overflow-x-auto scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0">
+        <nav className="flex gap-0 border-b border-gray-200 overflow-x-auto overflow-y-hidden scrollbar-hide scroll-horizontal-only -mx-4 px-4 sm:mx-0 sm:px-0">
           {navItems.map((item) => (
             <button
               key={item.id}
