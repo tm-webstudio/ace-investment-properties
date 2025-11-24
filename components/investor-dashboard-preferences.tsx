@@ -105,6 +105,52 @@ export function InvestorDashboardPreferences({ preferences: initialPreferences }
 
   return (
     <div className="space-y-6">
+      {/* Preferences Summary - Always visible */}
+      {preferences && preferences.preference_data && (
+        <div className="py-4 border rounded-lg bg-gray-50/50 w-full md:w-1/2">
+          <div className="mb-3 px-4">
+            <h3 className="text-sm font-bold">Your Preferences</h3>
+          </div>
+          <div className="grid grid-cols-2 gap-2 text-sm px-4">
+            <div>
+              <span className="text-gray-900">Budget: </span>
+              <span className="text-gray-600">
+                £{prefData.budget?.min?.toLocaleString() || 500}-£{prefData.budget?.max?.toLocaleString() || 2000}/month
+              </span>
+            </div>
+            <div>
+              <span className="text-gray-900">Bedrooms: </span>
+              <span className="text-gray-600">
+                {prefData.bedrooms?.min === prefData.bedrooms?.max
+                  ? `${prefData.bedrooms?.min || 1} bedroom${prefData.bedrooms?.min !== 1 ? 's' : ''}`
+                  : `${prefData.bedrooms?.min || 1}-${prefData.bedrooms?.max || 4} bedrooms`
+                }
+              </span>
+            </div>
+            <div>
+              <span className="text-gray-900">Property Types: </span>
+              <span className="text-gray-600">
+                {prefData.property_types?.length > 0
+                  ? prefData.property_types.slice(0, 2).join(', ') +
+                    (prefData.property_types.length > 2 ? ` +${prefData.property_types.length - 2} more` : '')
+                  : 'Not specified'
+                }
+              </span>
+            </div>
+            <div>
+              <span className="text-gray-900">Locations: </span>
+              <span className="text-gray-600">
+                {prefData.locations?.length > 0
+                  ? prefData.locations.map((loc: any) => loc.city).slice(0, 2).join(', ') +
+                    (prefData.locations.length > 2 ? ` +${prefData.locations.length - 2} more` : '')
+                  : 'Not specified'
+                }
+              </span>
+            </div>
+          </div>
+        </div>
+      )}
+
       {loading ? (
         /* Loading Skeletons */
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -134,47 +180,6 @@ export function InvestorDashboardPreferences({ preferences: initialPreferences }
         </div>
       ) : (
         <>
-          {/* Preferences Summary */}
-          <div className="py-4 border rounded-lg bg-gray-50/50 w-full md:w-1/2">
-            <div className="mb-3 px-4">
-              <h3 className="text-sm font-bold">Your Preferences</h3>
-            </div>
-            <div className="grid grid-cols-2 gap-2 text-sm px-4">
-              <div>
-                <span className="text-gray-900">Budget: </span>
-                <span className="text-gray-600">
-                  £{prefData.budget?.min?.toLocaleString() || 500}-£{prefData.budget?.max?.toLocaleString() || 2000}/month
-                </span>
-              </div>
-              <div>
-                <span className="text-gray-900">Bedrooms: </span>
-                <span className="text-gray-600">
-                  {prefData.bedrooms?.min || 1}-{prefData.bedrooms?.max || 3} bedrooms
-                </span>
-              </div>
-              <div>
-                <span className="text-gray-900">Property Types: </span>
-                <span className="text-gray-600">
-                  {prefData.property_types?.length > 0
-                    ? prefData.property_types.slice(0, 2).join(', ') +
-                      (prefData.property_types.length > 2 ? ` +${prefData.property_types.length - 2} more` : '')
-                    : 'Any'
-                  }
-                </span>
-              </div>
-              <div>
-                <span className="text-gray-900">Locations: </span>
-                <span className="text-gray-600">
-                  {prefData.locations?.length > 0
-                    ? prefData.locations.map((loc: any) => loc.city).slice(0, 2).join(', ') +
-                      (prefData.locations.length > 2 ? ` +${prefData.locations.length - 2} more` : '')
-                    : 'Any'
-                  }
-                </span>
-              </div>
-            </div>
-          </div>
-
           {/* Matched Properties Grid */}
           {properties.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">

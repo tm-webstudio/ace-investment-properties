@@ -16,9 +16,10 @@ import { supabase } from "@/lib/supabase"
 
 interface InvestorDashboardOverviewProps {
   investor: Investor
+  preferences?: any
 }
 
-export function InvestorDashboardOverview({ investor }: InvestorDashboardOverviewProps) {
+export function InvestorDashboardOverview({ investor, preferences }: InvestorDashboardOverviewProps) {
   const { user } = useAuth()
   const [savedProperties, setSavedProperties] = useState<any[]>([])
   const [upcomingViewings, setUpcomingViewings] = useState<any[]>([])

@@ -73,7 +73,8 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const page = parseInt(searchParams.get('page') || '1')
     const limit = Math.min(parseInt(searchParams.get('limit') || '20'), 50) // Max 50 per page
-    const offset = (page - 1) * limit
+    const minScore = parseInt(searchParams.get('minScore') || '0') // Minimum match score filter
+    const offset = parseInt(searchParams.get('offset') || '0') || (page - 1) * limit
 
     // Check if user has preferences set up
     const { data: preferences, error: prefError } = await supabaseAdmin
@@ -101,7 +102,8 @@ export async function GET(request: NextRequest) {
       .rpc('get_matched_properties_for_investor', {
         investor_uuid: user.id,
         page_limit: limit,
-        page_offset: offset
+        page_offset: offset,
+        min_match_score: minScore
       })
 
     if (matchError) {
@@ -116,7 +118,8 @@ export async function GET(request: NextRequest) {
       .rpc('get_matched_properties_for_investor', {
         investor_uuid: user.id,
         page_limit: 1000, // Large number to get all matches for count
-        page_offset: 0
+        page_offset: 0,
+        min_match_score: minScore
       })
 
     const total = totalCountData?.length || 0

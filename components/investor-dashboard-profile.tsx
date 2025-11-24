@@ -97,7 +97,7 @@ export function InvestorDashboardProfile({ isEditing, setIsEditing }: InvestorDa
             const { data: preferencesData } = await supabase
               .from('investor_preferences')
               .select('*')
-              .eq('user_id', session.user.id)
+              .eq('investor_id', session.user.id)
               .single()
 
             setFormData({
@@ -181,7 +181,7 @@ export function InvestorDashboardProfile({ isEditing, setIsEditing }: InvestorDa
         const { data: existingPrefs } = await supabase
           .from('investor_preferences')
           .select('id')
-          .eq('user_id', session.user.id)
+          .eq('investor_id', session.user.id)
           .single()
 
         if (existingPrefs) {
@@ -193,12 +193,12 @@ export function InvestorDashboardProfile({ isEditing, setIsEditing }: InvestorDa
               properties_managing: formData.propertiesManaging,
               preference_data: preferencesForm
             })
-            .eq('user_id', session.user.id)
+            .eq('investor_id', session.user.id)
         } else {
           await supabase
             .from('investor_preferences')
             .insert({
-              user_id: session.user.id,
+              investor_id: session.user.id,
               operator_type: formData.operatorType,
               operator_type_other: formData.operatorTypeOther,
               properties_managing: formData.propertiesManaging,
@@ -229,7 +229,7 @@ export function InvestorDashboardProfile({ isEditing, setIsEditing }: InvestorDa
         const { data: preferencesData } = await supabase
           .from('investor_preferences')
           .select('*')
-          .eq('user_id', session.user.id)
+          .eq('investor_id', session.user.id)
           .single()
 
         if (profile) {
@@ -378,7 +378,7 @@ export function InvestorDashboardProfile({ isEditing, setIsEditing }: InvestorDa
                 <User className="h-10 w-10 text-accent-foreground" />
               </div>
               <div className="flex-1 min-w-0">
-                <CardTitle className="text-lg">{`${formData.firstName} ${formData.surname}`.trim()}</CardTitle>
+                <CardTitle className="text-md">{`${formData.firstName} ${formData.surname}`.trim()}</CardTitle>
                 <p className="text-muted-foreground text-sm mb-2">{formData.company}</p>
                 <div className="space-y-2">
                   <div className="flex items-center space-x-2">

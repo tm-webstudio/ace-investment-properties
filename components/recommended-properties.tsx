@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge"
 import { Toggle } from "@/components/ui/toggle"
 import { PropertyCard } from "@/components/property-card"
 import { PreferencesModal } from "@/components/preferences-modal"
-import { Settings, Filter, RefreshCw, ChevronLeft, ChevronRight } from "lucide-react"
+import { Settings, Filter, RefreshCw, ChevronLeft, ChevronRight, Edit3 } from "lucide-react"
 import Link from "next/link"
 import { supabase } from "@/lib/supabase"
 
@@ -40,7 +40,7 @@ export function RecommendedProperties({ className, preferences }: RecommendedPro
   const [loading, setLoading] = useState(true)
   const [loadingMore, setLoadingMore] = useState(false)
   const [error, setError] = useState("")
-  const [showBestOnly, setShowBestOnly] = useState(true)
+  const [showBestOnly, setShowBestOnly] = useState(false)
   const [totalMatches, setTotalMatches] = useState(0)
   const [savedProperties, setSavedProperties] = useState<Set<string>>(new Set())
   const [hasMore, setHasMore] = useState(true)
@@ -187,10 +187,63 @@ export function RecommendedProperties({ className, preferences }: RecommendedPro
   if (loading) {
     return (
       <Card className={className}>
-        <CardHeader>
-          <CardTitle>
-            Recommended For You
-          </CardTitle>
+        <CardHeader className="space-y-4">
+          <div className="flex items-center justify-between mb-1">
+            <CardTitle>
+              Recommended For You
+            </CardTitle>
+            <Link href="/investor/dashboard?tab=preferences">
+              <Button variant="outline" size="sm" className="bg-transparent">
+                View All
+              </Button>
+            </Link>
+          </div>
+
+          {/* Your Preferences Section */}
+          {preferences && preferences.preference_data && (
+            <div className="py-4 border rounded-lg bg-gray-50/50 w-full md:w-1/2 relative">
+              <div className="mb-3 px-4">
+                <h3 className="text-sm font-bold">Your Preferences</h3>
+              </div>
+              <div className="grid grid-cols-2 gap-2 text-sm px-4">
+                <div>
+                  <span className="text-gray-900">Budget: </span>
+                  <span className="text-gray-600">
+                    £{preferences.preference_data.budget.min.toLocaleString()}-£{preferences.preference_data.budget.max.toLocaleString()}/month
+                  </span>
+                </div>
+                <div>
+                  <span className="text-gray-900">Bedrooms: </span>
+                  <span className="text-gray-600">
+                    {preferences.preference_data.bedrooms.min === preferences.preference_data.bedrooms.max
+                      ? `${preferences.preference_data.bedrooms.min} bedroom${preferences.preference_data.bedrooms.min !== 1 ? 's' : ''}`
+                      : `${preferences.preference_data.bedrooms.min}-${preferences.preference_data.bedrooms.max} bedrooms`
+                    }
+                  </span>
+                </div>
+                <div>
+                  <span className="text-gray-900">Property Types: </span>
+                  <span className="text-gray-600">
+                    {preferences.preference_data.property_types?.length > 0
+                      ? preferences.preference_data.property_types.slice(0, 2).join(', ') +
+                        (preferences.preference_data.property_types.length > 2 ? ` +${preferences.preference_data.property_types.length - 2} more` : '')
+                      : 'Not specified'
+                    }
+                  </span>
+                </div>
+                <div>
+                  <span className="text-gray-900">Locations: </span>
+                  <span className="text-gray-600">
+                    {preferences.preference_data.locations?.length > 0
+                      ? preferences.preference_data.locations.map((loc: any) => loc.city).slice(0, 2).join(', ') +
+                        (preferences.preference_data.locations.length > 2 ? ` +${preferences.preference_data.locations.length - 2} more` : '')
+                      : 'Not specified'
+                    }
+                  </span>
+                </div>
+              </div>
+            </div>
+          )}
         </CardHeader>
         <CardContent>
           <div className="flex gap-4 overflow-hidden">
@@ -222,10 +275,56 @@ export function RecommendedProperties({ className, preferences }: RecommendedPro
   if (error) {
     return (
       <Card className={className}>
-        <CardHeader>
+        <CardHeader className="space-y-4">
           <CardTitle>
             Recommended For You
           </CardTitle>
+
+          {/* Your Preferences Section */}
+          {preferences && preferences.preference_data && (
+            <div className="py-4 border rounded-lg bg-gray-50/50 w-full md:w-1/2 relative">
+              <div className="mb-3 px-4">
+                <h3 className="text-sm font-bold">Your Preferences</h3>
+              </div>
+              <div className="grid grid-cols-2 gap-2 text-sm px-4">
+                <div>
+                  <span className="text-gray-900">Budget: </span>
+                  <span className="text-gray-600">
+                    £{preferences.preference_data.budget.min.toLocaleString()}-£{preferences.preference_data.budget.max.toLocaleString()}/month
+                  </span>
+                </div>
+                <div>
+                  <span className="text-gray-900">Bedrooms: </span>
+                  <span className="text-gray-600">
+                    {preferences.preference_data.bedrooms.min === preferences.preference_data.bedrooms.max
+                      ? `${preferences.preference_data.bedrooms.min} bedroom${preferences.preference_data.bedrooms.min !== 1 ? 's' : ''}`
+                      : `${preferences.preference_data.bedrooms.min}-${preferences.preference_data.bedrooms.max} bedrooms`
+                    }
+                  </span>
+                </div>
+                <div>
+                  <span className="text-gray-900">Property Types: </span>
+                  <span className="text-gray-600">
+                    {preferences.preference_data.property_types?.length > 0
+                      ? preferences.preference_data.property_types.slice(0, 2).join(', ') +
+                        (preferences.preference_data.property_types.length > 2 ? ` +${preferences.preference_data.property_types.length - 2} more` : '')
+                      : 'Not specified'
+                    }
+                  </span>
+                </div>
+                <div>
+                  <span className="text-gray-900">Locations: </span>
+                  <span className="text-gray-600">
+                    {preferences.preference_data.locations?.length > 0
+                      ? preferences.preference_data.locations.map((loc: any) => loc.city).slice(0, 2).join(', ') +
+                        (preferences.preference_data.locations.length > 2 ? ` +${preferences.preference_data.locations.length - 2} more` : '')
+                      : 'Not specified'
+                    }
+                  </span>
+                </div>
+              </div>
+            </div>
+          )}
         </CardHeader>
         <CardContent>
           <div className="text-center py-8">
@@ -246,44 +345,79 @@ export function RecommendedProperties({ className, preferences }: RecommendedPro
   if (properties.length === 0) {
     return (
       <Card className={className}>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>
-            Recommended For You
-          </CardTitle>
-          <div className="flex items-center gap-2">
-            <Button variant="ghost" size="sm" onClick={handleRefresh}>
-              <RefreshCw className="h-4 w-4" />
-            </Button>
-            <PreferencesModal onPreferencesUpdate={() => {
-              fetchRecommendedProperties()
-              fetchSavedProperties()
-            }} />
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="text-center py-12">
-            <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Filter className="h-8 w-8 text-gray-400" />
-            </div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">
-              No properties match your current preferences
-            </h3>
-            <p className="text-gray-600 mb-6 max-w-md mx-auto">
-              Adjust your preferences to see more properties or try showing all matches instead of best matches only.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+        <CardHeader className="space-y-4">
+          <div className="flex items-center justify-between">
+            <CardTitle>
+              Recommended For You
+            </CardTitle>
+            <div className="flex items-center gap-2">
+              <Button variant="ghost" size="sm" onClick={handleRefresh}>
+                <RefreshCw className="h-4 w-4" />
+              </Button>
               <PreferencesModal onPreferencesUpdate={() => {
                 fetchRecommendedProperties()
                 fetchSavedProperties()
               }} />
-              <Button 
-                variant="outline" 
-                onClick={() => setShowBestOnly(false)}
-                disabled={!showBestOnly}
-              >
-                Show All Matches
-              </Button>
             </div>
+          </div>
+
+          {/* Your Preferences Section */}
+          {preferences && preferences.preference_data && (
+            <div className="py-4 border rounded-lg bg-gray-50/50 w-full md:w-1/2 relative">
+              <div className="mb-3 px-4">
+                <h3 className="text-sm font-bold">Your Preferences</h3>
+              </div>
+              <div className="grid grid-cols-2 gap-2 text-sm px-4">
+                <div>
+                  <span className="text-gray-900">Budget: </span>
+                  <span className="text-gray-600">
+                    £{preferences.preference_data.budget.min.toLocaleString()}-£{preferences.preference_data.budget.max.toLocaleString()}/month
+                  </span>
+                </div>
+                <div>
+                  <span className="text-gray-900">Bedrooms: </span>
+                  <span className="text-gray-600">
+                    {preferences.preference_data.bedrooms.min === preferences.preference_data.bedrooms.max
+                      ? `${preferences.preference_data.bedrooms.min} bedroom${preferences.preference_data.bedrooms.min !== 1 ? 's' : ''}`
+                      : `${preferences.preference_data.bedrooms.min}-${preferences.preference_data.bedrooms.max} bedrooms`
+                    }
+                  </span>
+                </div>
+                <div>
+                  <span className="text-gray-900">Property Types: </span>
+                  <span className="text-gray-600">
+                    {preferences.preference_data.property_types?.length > 0
+                      ? preferences.preference_data.property_types.slice(0, 2).join(', ') +
+                        (preferences.preference_data.property_types.length > 2 ? ` +${preferences.preference_data.property_types.length - 2} more` : '')
+                      : 'Not specified'
+                    }
+                  </span>
+                </div>
+                <div>
+                  <span className="text-gray-900">Locations: </span>
+                  <span className="text-gray-600">
+                    {preferences.preference_data.locations?.length > 0
+                      ? preferences.preference_data.locations.map((loc: any) => loc.city).slice(0, 2).join(', ') +
+                        (preferences.preference_data.locations.length > 2 ? ` +${preferences.preference_data.locations.length - 2} more` : '')
+                      : 'Not specified'
+                    }
+                  </span>
+                </div>
+              </div>
+            </div>
+          )}
+        </CardHeader>
+        <CardContent>
+          <div className="text-center py-16 text-muted-foreground min-h-[280px] flex flex-col items-center justify-center">
+            <Settings className="h-10 w-10 mx-auto mb-3 opacity-50" />
+            <p className="text-base font-medium mb-1.5">No Matching Properties</p>
+            <p className="text-sm mb-4 max-w-[200px] mx-auto">Try adjusting your preferences to see more properties</p>
+            <Link href="/investor/preferences">
+              <Button variant="outline">
+                <Edit3 className="mr-2 h-4 w-4" />
+                Edit Preferences
+              </Button>
+            </Link>
           </div>
         </CardContent>
       </Card>

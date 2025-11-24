@@ -226,7 +226,7 @@ export function DashboardProfile({ isEditing, setIsEditing }: DashboardProfilePr
                 <User className="h-10 w-10 text-accent-foreground" />
               </div>
               <div className="flex-1 min-w-0">
-                <CardTitle className="text-lg">{`${formData.firstName} ${formData.surname}`.trim()}</CardTitle>
+                <CardTitle className="text-md">{`${formData.firstName} ${formData.surname}`.trim()}</CardTitle>
                 <p className="text-muted-foreground text-sm mb-2">{formData.company}</p>
                 <div className="space-y-2">
                   <div className="flex items-center space-x-2">

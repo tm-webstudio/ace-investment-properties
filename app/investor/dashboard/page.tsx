@@ -213,7 +213,7 @@ function InvestorDashboardContent() {
           {activeTab === "dashboard" && (
             <div className="space-y-8">
               <RecommendedProperties preferences={preferences} />
-              <InvestorDashboardOverview investor={currentInvestor} />
+              <InvestorDashboardOverview investor={currentInvestor} preferences={preferences} />
             </div>
           )}
           {activeTab === "preferences" && (
