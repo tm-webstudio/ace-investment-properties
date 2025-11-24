@@ -211,17 +211,9 @@ function InvestorDashboardContent() {
           />
 
           {activeTab === "dashboard" && (
-            <div className="space-y-6">
-              <div>
-                <h2 className="font-serif text-lg md:text-xl font-medium text-gray-900">For You</h2>
-                <p className="text-sm md:text-base text-gray-600 mt-1">
-                  Personalized property recommendations based on your preferences
-                </p>
-              </div>
-              <div className="space-y-8">
-                <RecommendedProperties preferences={preferences} />
-                <InvestorDashboardOverview investor={currentInvestor} />
-              </div>
+            <div className="space-y-8">
+              <RecommendedProperties preferences={preferences} />
+              <InvestorDashboardOverview investor={currentInvestor} />
             </div>
           )}
           {activeTab === "preferences" && (

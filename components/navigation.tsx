@@ -60,7 +60,7 @@ export function Navigation() {
                       <div className="grid grid-cols-4 gap-8">
                         {/* London Column */}
                         <div className="space-y-4">
-                          <h3 className="font-serif font-bold text-lg text-primary border-b border-gray-300 pb-2">
+                          <h3 className="font-serif font-medium text-lg text-primary border-b border-gray-300 pb-2">
                             London
                           </h3>
                           <div className="space-y-2">
@@ -99,7 +99,7 @@ export function Navigation() {
 
                         {/* Midlands Column */}
                         <div className="space-y-4">
-                          <h3 className="font-serif font-bold text-lg text-primary border-b border-gray-300 pb-2">
+                          <h3 className="font-serif font-medium text-lg text-primary border-b border-gray-300 pb-2">
                             Midlands
                           </h3>
                           <div className="space-y-2">
@@ -132,7 +132,7 @@ export function Navigation() {
 
                         {/* North England Column */}
                         <div className="space-y-4">
-                          <h3 className="font-serif font-bold text-lg text-primary border-b border-gray-300 pb-2">
+                          <h3 className="font-serif font-medium text-lg text-primary border-b border-gray-300 pb-2">
                             North England
                           </h3>
                           <div className="space-y-2">
@@ -165,7 +165,7 @@ export function Navigation() {
 
                         {/* South England Column */}
                         <div className="space-y-4">
-                          <h3 className="font-serif font-bold text-lg text-primary border-b border-gray-300 pb-2">
+                          <h3 className="font-serif font-medium text-lg text-primary border-b border-gray-300 pb-2">
                             South England
                           </h3>
                           <div className="space-y-2">
@@ -266,7 +266,7 @@ export function Navigation() {
         <div className="flex flex-col h-full">
           {/* Menu header */}
           <div className="flex items-center justify-between pl-6 pr-4 py-6 border-b border-primary-foreground/20">
-            <span className="font-serif font-bold text-lg text-primary-foreground">Menu</span>
+            <span className="font-serif font-medium text-lg text-primary-foreground">Menu</span>
             <Button
               variant="ghost"
               size="icon"

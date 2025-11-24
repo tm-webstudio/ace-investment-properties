@@ -1,10 +1,12 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Users, Mail, Phone, Building, Calendar, Filter } from "lucide-react"
+import { Users, Mail, Phone, Building, Calendar, Filter, Search } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { supabase } from "@/lib/supabase"
 
 interface User {
@@ -22,6 +24,7 @@ export function AdminDashboardUsers() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [filter, setFilter] = useState<'all' | 'landlord' | 'investor'>('all')
+  const [searchQuery, setSearchQuery] = useState('')
 
   useEffect(() => {
     fetchUsers()
@@ -69,45 +72,6 @@ export function AdminDashboardUsers() {
     }
   }
 
-  if (loading) {
-    return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {[1, 2, 3, 4, 5, 6].map((i) => (
-          <Card key={i} className="rounded-none">
-            <CardContent className="p-6">
-              <div className="flex items-start gap-4">
-                <div className="h-12 w-12 rounded-full bg-gray-300 animate-pulse"></div>
-                <div className="flex-1 space-y-3">
-                  <div className="h-5 bg-gray-200 rounded w-3/4 animate-pulse"></div>
-                  <div className="space-y-2">
-                    <div className="h-4 bg-gray-200 rounded w-full animate-pulse"></div>
-                    <div className="h-4 bg-gray-200 rounded w-2/3 animate-pulse"></div>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-    )
-  }
-
-  if (error) {
-    return (
-      <div className="text-center py-16 text-muted-foreground min-h-[320px] flex flex-col items-center justify-center">
-        <Users className="h-10 w-10 mx-auto mb-3 opacity-50 text-red-500" />
-        <p className="text-base font-medium mb-1.5 text-red-600">Error Loading Users</p>
-        <p className="text-sm mb-4 max-w-[200px] mx-auto">{error}</p>
-        <button
-          onClick={fetchUsers}
-          className="bg-accent hover:bg-accent/90 text-white px-4 py-2 rounded-md text-sm"
-        >
-          Try Again
-        </button>
-      </div>
-    )
-  }
-
   const getEmptyStateMessage = () => {
     switch (filter) {
       case 'landlord':
@@ -130,45 +94,88 @@ export function AdminDashboardUsers() {
 
   const emptyState = getEmptyStateMessage()
 
+  // Filter users based on search query
+  const filteredUsers = users.filter(user => {
+    const searchLower = searchQuery.toLowerCase()
+    return (
+      user.full_name.toLowerCase().includes(searchLower) ||
+      user.email.toLowerCase().includes(searchLower) ||
+      (user.phone && user.phone.toLowerCase().includes(searchLower))
+    )
+  })
+
   return (
     <>
-      {/* Filter Buttons */}
-      <div className="flex flex-wrap gap-2 mb-6">
-        <Button
-          variant={filter === 'all' ? "default" : "outline"}
-          onClick={() => setFilter('all')}
-          className="h-9"
-        >
-          <Filter className="h-4 w-4 mr-2" />
-          All Users
-        </Button>
-        <Button
-          variant={filter === 'landlord' ? "default" : "outline"}
-          onClick={() => setFilter('landlord')}
-          className="h-9"
-        >
-          <Filter className="h-4 w-4 mr-2" />
-          Landlords
-        </Button>
-        <Button
-          variant={filter === 'investor' ? "default" : "outline"}
-          onClick={() => setFilter('investor')}
-          className="h-9"
-        >
-          <Filter className="h-4 w-4 mr-2" />
-          Investors
-        </Button>
-      </div>
+      {/* Search and Filter Bar */}
+      <Card className="mb-6 bg-white shadow-sm">
+        <CardContent className="px-4">
+          <div className="flex flex-col sm:flex-row gap-3 items-stretch">
+            <div className="flex-1 relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Input
+                placeholder="Search by name, email, or phone..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-10 h-9 sm:h-10 bg-gray-50/30 border-gray-200 focus:bg-white focus:border-primary focus:ring-primary"
+              />
+            </div>
+            <Select value={filter} onValueChange={(value) => setFilter(value as any)}>
+              <SelectTrigger className="w-full sm:w-[220px] h-9 sm:h-10 sm:min-h-10 bg-gray-50/30 border-gray-200 focus:bg-white focus:border-primary focus:ring-primary py-2 px-3">
+                <div className="flex items-center">
+                  <Filter className="h-4 w-4 mr-2 text-gray-500" />
+                  <SelectValue placeholder="Filter by type" />
+                </div>
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Users</SelectItem>
+                <SelectItem value="landlord">Landlords</SelectItem>
+                <SelectItem value="investor">Investors</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </CardContent>
+      </Card>
 
-      {users.length === 0 ? (
+      {loading ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {[1, 2, 3, 4, 5, 6].map((i) => (
+            <Card key={i} className="rounded-none">
+              <CardContent className="p-6">
+                <div className="flex items-start gap-4">
+                  <div className="h-12 w-12 rounded-full bg-gray-300 animate-pulse"></div>
+                  <div className="flex-1 space-y-3">
+                    <div className="h-5 bg-gray-200 rounded w-3/4 animate-pulse"></div>
+                    <div className="space-y-2">
+                      <div className="h-4 bg-gray-200 rounded w-full animate-pulse"></div>
+                      <div className="h-4 bg-gray-200 rounded w-2/3 animate-pulse"></div>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      ) : error ? (
+        <div className="text-center py-16 text-muted-foreground min-h-[320px] flex flex-col items-center justify-center">
+          <Users className="h-10 w-10 mx-auto mb-3 opacity-50 text-red-500" />
+          <p className="text-base font-medium mb-1.5 text-red-600">Error Loading Users</p>
+          <p className="text-sm mb-4 max-w-[200px] mx-auto">{error}</p>
+          <button
+            onClick={fetchUsers}
+            className="bg-accent hover:bg-accent/90 text-white px-4 py-2 rounded-md text-sm"
+          >
+            Try Again
+          </button>
+        </div>
+      ) : filteredUsers.length === 0 ? (
         <div className="text-center py-16 text-muted-foreground min-h-[320px] flex flex-col items-center justify-center">
           <Users className="h-10 w-10 mx-auto mb-3 opacity-50" />
-          <p className="text-base font-medium mb-1.5">{emptyState.title}</p>
-          <p className="text-sm max-w-[200px] mx-auto">{emptyState.description}</p>
+          <p className="text-base font-medium mb-1.5">{users.length === 0 ? emptyState.title : "No Matching Users"}</p>
+          <p className="text-sm max-w-[200px] mx-auto">{users.length === 0 ? emptyState.description : "Try adjusting your search or filters"}</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {users.map((user) => (
+          {filteredUsers.map((user) => (
             <Card key={user.id} className="rounded-none hover:shadow-md transition-shadow">
               <CardContent className="p-6">
                 <div className="flex items-start gap-4">

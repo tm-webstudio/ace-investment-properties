@@ -10,7 +10,7 @@ export function HeroSection() {
         <div className="text-left space-y-6 max-w-xl">
           {/* Hero Content */}
           <div className="space-y-4">
-            <h1 className="font-serif text-3xl md:text-5xl lg:text-5xl font-bold leading-tight mb-3">
+            <h1 className="font-serif text-3xl md:text-5xl lg:text-5xl font-medium leading-tight mb-3">
               Find The Best Property Deals On The Market
             </h1>
             <p className="text-base md:text-lg text-primary-foreground/90 max-w-md leading-relaxed">

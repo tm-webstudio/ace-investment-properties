@@ -7,6 +7,8 @@ import { Badge } from "@/components/ui/badge"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
+import { Input } from "@/components/ui/input"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { PropertyTitle } from "@/components/property-title"
 import {
   Calendar,
@@ -23,7 +25,8 @@ import {
   Mail,
   User,
   Home,
-  PoundSterling
+  PoundSterling,
+  Search
 } from "lucide-react"
 import Link from "next/link"
 import { supabase } from "@/lib/supabase"
@@ -88,6 +91,7 @@ export function ViewingRequests({ variant = 'dashboard', limit, onTabChange, isA
     variant === 'dashboard' ? 'pending,approved,rejected,cancelled' :
     'all'
   )
+  const [searchQuery, setSearchQuery] = useState('')
   const [expandedCard, setExpandedCard] = useState<string | null>(null)
   const [approveModalOpen, setApproveModalOpen] = useState(false)
   const [rejectModalOpen, setRejectModalOpen] = useState(false)
@@ -400,45 +404,28 @@ export function ViewingRequests({ variant = 'dashboard', limit, onTabChange, isA
     return !isViewingPast(viewing)
   })
 
+  // Apply search filter for admin variant
+  const filteredViewings = variant === 'admin' && searchQuery ? upcomingViewings.filter(viewing => {
+    const searchLower = searchQuery.toLowerCase()
+    return (
+      viewing.property?.address?.toLowerCase().includes(searchLower) ||
+      viewing.property?.city?.toLowerCase().includes(searchLower) ||
+      viewing.property?.postcode?.toLowerCase().includes(searchLower) ||
+      viewing.user_profile?.full_name?.toLowerCase().includes(searchLower) ||
+      viewing.landlord_profile?.full_name?.toLowerCase().includes(searchLower)
+    )
+  }) : upcomingViewings
+
   // Stats cards - disabled
   const renderStatsCards = () => {
     return null
-  }
-
-  // Filter buttons for full variant
-  const renderFilterButtons = () => {
-    if (variant !== 'full' && variant !== 'admin') return null
-
-    const filters = [
-      { key: 'all', label: 'All', count: stats.pending + stats.approved + stats.rejected + stats.cancelled },
-      { key: 'pending', label: 'Pending', count: stats.pending },
-      { key: 'approved', label: 'Approved', count: stats.approved },
-      { key: 'rejected', label: 'Rejected', count: stats.rejected },
-      { key: 'cancelled', label: 'Cancelled', count: stats.cancelled }
-    ]
-
-    return (
-      <div className="flex flex-wrap gap-2 mb-6">
-        {filters.map((filterOption) => (
-          <Button
-            key={filterOption.key}
-            variant={filter === filterOption.key ? "default" : "outline"}
-            onClick={() => setFilter(filterOption.key)}
-            className="h-9"
-          >
-            <Filter className="h-4 w-4 mr-2" />
-            {filterOption.label} ({filterOption.count})
-          </Button>
-        ))}
-      </div>
-    )
   }
 
   const cardContent = (
     <>
       {variant === 'full' && renderStatsCards()}
 
-      <div className={(variant === 'admin' || variant === 'full') ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-start' : 'space-y-3'}>
+      <div className={variant === 'admin' ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-start' : 'space-y-3'}>
         {loading ? (
           <>
             {[...Array(variant === 'dashboard' ? 3 : 6)].map((_, i) => (
@@ -465,8 +452,8 @@ export function ViewingRequests({ variant = 'dashboard', limit, onTabChange, isA
               </div>
             ))}
           </>
-        ) : upcomingViewings.length > 0 ? (
-          upcomingViewings.map((viewing) => (
+        ) : filteredViewings.length > 0 ? (
+          filteredViewings.map((viewing) => (
             <div key={viewing.id} className="border rounded-lg p-4 space-y-3">
               {/* Main viewing info */}
               <div
@@ -717,8 +704,8 @@ export function ViewingRequests({ variant = 'dashboard', limit, onTabChange, isA
         ) : (
           <div className="text-center py-16 text-muted-foreground min-h-[280px] flex flex-col items-center justify-center col-span-full">
             <Calendar className="h-10 w-10 mx-auto mb-3 opacity-50" />
-            <p className="text-base font-medium mb-1.5">No Viewing Requests</p>
-            <p className="text-sm max-w-[200px] mx-auto">No viewing requests available at the moment</p>
+            <p className="text-base font-medium mb-1.5">{upcomingViewings.length === 0 ? "No Viewing Requests" : "No Matching Viewings"}</p>
+            <p className="text-sm max-w-[200px] mx-auto">{upcomingViewings.length === 0 ? "No viewing requests available at the moment" : "Try adjusting your search or filters"}</p>
           </div>
         )}
       </div>
@@ -887,6 +874,47 @@ export function ViewingRequests({ variant = 'dashboard', limit, onTabChange, isA
           {cardContent}
         </CardContent>
       </Card>
+    )
+  }
+
+  // For admin variant, show search/filter bar
+  if (variant === 'admin') {
+    return (
+      <>
+        {/* Search and Filter Bar */}
+        <Card className="mb-6 bg-white shadow-sm">
+          <CardContent className="px-4">
+            <div className="flex flex-col sm:flex-row gap-3 items-stretch">
+              <div className="flex-1 relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Input
+                  placeholder="Search by property, landlord, or investor..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-10 h-9 sm:h-10 bg-gray-50/30 border-gray-200 focus:bg-white focus:border-primary focus:ring-primary"
+                />
+              </div>
+              <Select value={filter} onValueChange={setFilter}>
+                <SelectTrigger className="w-full sm:w-[220px] h-9 sm:h-10 sm:min-h-10 bg-gray-50/30 border-gray-200 focus:bg-white focus:border-primary focus:ring-primary py-2 px-3">
+                  <div className="flex items-center">
+                    <Filter className="h-4 w-4 mr-2 text-gray-500" />
+                    <SelectValue placeholder="Filter by status" />
+                  </div>
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Viewings</SelectItem>
+                  <SelectItem value="pending">Pending</SelectItem>
+                  <SelectItem value="approved">Approved</SelectItem>
+                  <SelectItem value="rejected">Rejected</SelectItem>
+                  <SelectItem value="cancelled">Cancelled</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </CardContent>
+        </Card>
+
+        {cardContent}
+      </>
     )
   }
 

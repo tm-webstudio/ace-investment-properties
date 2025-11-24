@@ -145,7 +145,7 @@ export default function AdminDashboard() {
 
           {activeTab === "dashboard" && <AdminDashboardOverview admin={currentAdmin} onTabChange={setActiveTab} />}
           {activeTab === "properties" && (
-            <div className="space-y-6">
+            <div className="space-y-4">
               <div>
                 <h2 className="font-serif text-lg md:text-xl font-medium text-gray-900">Properties</h2>
                 <p className="text-sm md:text-base text-gray-600 mt-1">
@@ -156,7 +156,7 @@ export default function AdminDashboard() {
             </div>
           )}
           {activeTab === "users" && (
-            <div className="space-y-6">
+            <div className="space-y-4">
               <div>
                 <h2 className="font-serif text-lg md:text-xl font-medium text-gray-900">Users</h2>
                 <p className="text-sm md:text-base text-gray-600 mt-1">
@@ -167,7 +167,7 @@ export default function AdminDashboard() {
             </div>
           )}
           {activeTab === "viewings" && (
-            <div className="space-y-6">
+            <div className="space-y-4">
               <div>
                 <h2 className="font-serif text-lg md:text-xl font-medium text-gray-900">Viewings</h2>
                 <p className="text-sm md:text-base text-gray-600 mt-1">
@@ -178,7 +178,7 @@ export default function AdminDashboard() {
             </div>
           )}
           {activeTab === "documents" && (
-            <div className="space-y-6">
+            <div className="space-y-4">
               <div>
                 <h2 className="font-serif text-lg md:text-xl font-medium text-gray-900">Documents</h2>
                 <p className="text-sm md:text-base text-gray-600 mt-1">

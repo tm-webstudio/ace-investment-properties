@@ -99,7 +99,7 @@ export function FeaturedProperties() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col md:flex-row md:items-start md:justify-between mb-5 md:mb-6">
           <div>
-            <h2 className="font-serif text-2xl md:text-3xl font-bold text-foreground mb-2 md:mb-3">Newly Added Properties</h2>
+            <h2 className="font-serif text-2xl md:text-3xl font-medium text-foreground mb-2 md:mb-3">Newly Added Properties</h2>
             <p className="text-muted-foreground max-w-2xl text-base md:text-[17px]">
               Discover our handpicked selection of premium rental properties available now
             </p>

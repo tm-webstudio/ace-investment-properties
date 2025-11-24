@@ -118,19 +118,18 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Check for duplicate booking (same user, property, date, time)
+    // Check if user already has an active viewing request for this property
     const { data: existingViewing } = await supabase
       .from('property_viewings')
-      .select('id')
+      .select('id, status')
       .eq('user_id', req.user.id)
       .eq('property_id', body.propertyId)
-      .eq('viewing_date', body.viewingDate)
-      .eq('viewing_time', body.viewingTime)
-      .single()
+      .in('status', ['pending', 'approved'])
+      .maybeSingle()
 
     if (existingViewing) {
       return NextResponse.json(
-        { success: false, error: 'You have already requested a viewing for this property at this time' },
+        { success: false, error: 'You already have an active viewing request for this property' },
         { status: 409 }
       )
     }

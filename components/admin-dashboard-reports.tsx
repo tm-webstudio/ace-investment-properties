@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { FileText, Download, ExternalLink, CheckCircle, XCircle, Filter } from "lucide-react"
+import { FileText, Download, ExternalLink, CheckCircle, XCircle, Filter, Search } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -174,83 +174,78 @@ export function AdminDashboardReports() {
     return "bg-destructive"
   }
 
-  if (loading) {
-    return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {[1, 2, 3, 4, 5, 6].map((i) => (
-          <Card key={i} className="rounded-none">
-            <CardContent className="p-4">
-              <div className="mb-4">
-                <div className="h-5 bg-gray-200 rounded w-3/4 mb-1 animate-pulse"></div>
-                <div className="h-4 bg-gray-200 rounded w-full animate-pulse"></div>
-              </div>
-              <div className="flex items-end gap-6">
-                <div className="flex-1 space-y-1">
-                  <div className="h-4 bg-gray-200 rounded w-32 mb-1 animate-pulse"></div>
-                  <div className="h-2 bg-gray-200 rounded w-full animate-pulse"></div>
-                </div>
-                <div className="h-9 bg-gray-200 rounded w-[120px] animate-pulse"></div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-    )
-  }
-
-  if (error) {
-    return (
-      <div className="text-center py-16 text-muted-foreground min-h-[320px] flex flex-col items-center justify-center">
-        <FileText className="h-10 w-10 mx-auto mb-3 opacity-50 text-red-500" />
-        <p className="text-base font-medium mb-1.5 text-red-600">Error Loading Documents</p>
-        <p className="text-sm mb-4 max-w-[200px] mx-auto">{error}</p>
-        <button
-          onClick={fetchDocuments}
-          className="bg-accent hover:bg-accent/90 text-white px-4 py-2 rounded-md text-sm"
-        >
-          Try Again
-        </button>
-      </div>
-    )
-  }
-
-  if (documents.length === 0) {
-    return (
-      <div className="text-center py-16 text-muted-foreground min-h-[320px] flex flex-col items-center justify-center">
-        <FileText className="h-10 w-10 mx-auto mb-3 opacity-50" />
-        <p className="text-base font-medium mb-1.5">No Documents Found</p>
-        <p className="text-sm max-w-[200px] mx-auto">Landlord documents will appear here</p>
-      </div>
-    )
-  }
-
   return (
     <>
       {/* Filters */}
-      <div className="flex flex-col sm:flex-row gap-4 mb-6">
-        <div className="flex-1">
-          <Input
-            placeholder="Search by address, city, or postcode..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full"
-          />
-        </div>
-        <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-full sm:w-[200px]">
-            <Filter className="h-4 w-4 mr-2" />
-            <SelectValue placeholder="Filter by status" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Properties</SelectItem>
-            <SelectItem value="complete">Complete</SelectItem>
-            <SelectItem value="incomplete">Incomplete</SelectItem>
-            <SelectItem value="none">No Documents</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
+      <Card className="mb-6 bg-white shadow-sm">
+        <CardContent className="px-4">
+          <div className="flex flex-col sm:flex-row gap-3 items-stretch">
+            <div className="flex-1 relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Input
+                placeholder="Search by address, city, or postcode..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-10 h-9 sm:h-10 bg-gray-50/30 border-gray-200 focus:bg-white focus:border-primary focus:ring-primary"
+              />
+            </div>
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-full sm:w-[220px] h-9 sm:h-10 sm:min-h-10 bg-gray-50/30 border-gray-200 focus:bg-white focus:border-primary focus:ring-primary py-2 px-3">
+                <div className="flex items-center">
+                  <Filter className="h-4 w-4 mr-2 text-gray-500" />
+                  <SelectValue placeholder="Filter by status" />
+                </div>
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Properties</SelectItem>
+                <SelectItem value="complete">Complete</SelectItem>
+                <SelectItem value="incomplete">Incomplete</SelectItem>
+                <SelectItem value="none">No Documents</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </CardContent>
+      </Card>
 
-      {filteredDocuments.length === 0 ? (
+      {loading ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {[1, 2, 3, 4, 5, 6].map((i) => (
+            <Card key={i} className="rounded-none">
+              <CardContent className="p-4">
+                <div className="mb-4">
+                  <div className="h-5 bg-gray-200 rounded w-3/4 mb-1 animate-pulse"></div>
+                  <div className="h-4 bg-gray-200 rounded w-full animate-pulse"></div>
+                </div>
+                <div className="flex items-end gap-6">
+                  <div className="flex-1 space-y-1">
+                    <div className="h-4 bg-gray-200 rounded w-32 mb-1 animate-pulse"></div>
+                    <div className="h-2 bg-gray-200 rounded w-full animate-pulse"></div>
+                  </div>
+                  <div className="h-9 bg-gray-200 rounded w-[120px] animate-pulse"></div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      ) : error ? (
+        <div className="text-center py-16 text-muted-foreground min-h-[320px] flex flex-col items-center justify-center">
+          <FileText className="h-10 w-10 mx-auto mb-3 opacity-50 text-red-500" />
+          <p className="text-base font-medium mb-1.5 text-red-600">Error Loading Documents</p>
+          <p className="text-sm mb-4 max-w-[200px] mx-auto">{error}</p>
+          <button
+            onClick={fetchDocuments}
+            className="bg-accent hover:bg-accent/90 text-white px-4 py-2 rounded-md text-sm"
+          >
+            Try Again
+          </button>
+        </div>
+      ) : documents.length === 0 ? (
+        <div className="text-center py-16 text-muted-foreground min-h-[320px] flex flex-col items-center justify-center">
+          <FileText className="h-10 w-10 mx-auto mb-3 opacity-50" />
+          <p className="text-base font-medium mb-1.5">No Documents Found</p>
+          <p className="text-sm max-w-[200px] mx-auto">Landlord documents will appear here</p>
+        </div>
+      ) : filteredDocuments.length === 0 ? (
         <div className="text-center py-16 text-muted-foreground min-h-[320px] flex flex-col items-center justify-center">
           <FileText className="h-10 w-10 mx-auto mb-3 opacity-50" />
           <p className="text-base font-medium mb-1.5">No Matching Documents</p>
