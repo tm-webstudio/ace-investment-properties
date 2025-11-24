@@ -42,6 +42,14 @@ interface ViewingStats {
   upcoming: number
 }
 
+const formatTime = (timeStr: string) => {
+  // Parse time and convert to 12-hour format with am/pm
+  const [hours, minutes] = timeStr.split(':').map(Number)
+  const period = hours >= 12 ? 'pm' : 'am'
+  const displayHours = hours % 12 || 12
+  return `${displayHours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')} ${period}`
+}
+
 export default function MyViewingsPage() {
   const { user } = useAuth()
   const [viewings, setViewings] = useState<ViewingRequest[]>([])
@@ -435,7 +443,7 @@ export default function MyViewingsPage() {
                         <div className="flex items-center gap-4 text-sm">
                           <div className="flex items-center text-gray-600">
                             <Calendar className="h-4 w-4 mr-1" />
-                            Viewing: {new Date(viewing.viewing_date).toLocaleDateString('en-GB')} at {viewing.viewing_time}
+                            Viewing: {new Date(viewing.viewing_date).toLocaleDateString('en-GB')} at {formatTime(viewing.viewing_time)}
                           </div>
                         </div>
                         

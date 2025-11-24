@@ -264,10 +264,7 @@ export function AdminDashboardReports() {
               <CardContent className="p-4">
                 <div className="mb-4">
                   <p className="font-semibold text-[15px] mb-1 line-clamp-1">
-                    {property.address}, {property.city}
-                  </p>
-                  <p className="text-sm text-muted-foreground line-clamp-1">
-                    {property.postcode}
+                    {property.address.replace(/^\d+\s*/, '').replace(/^flat\s*\d+\s*/i, '').replace(/^unit\s*\d+\s*/i, '').replace(/^apartment\s*\d+\s*/i, '').trim()}, {property.city}{property.postcode ? ` ${property.postcode.split(' ')[0]}` : ''}
                   </p>
                 </div>
 
@@ -312,7 +309,7 @@ export function AdminDashboardReports() {
                   address={selectedProperty.address}
                   city={selectedProperty.city}
                   postcode={selectedProperty.postcode}
-                  variant="full"
+                  variant="title"
                 />
               )}
             </DialogDescription>

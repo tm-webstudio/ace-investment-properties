@@ -378,8 +378,8 @@ export function InvestorDashboardProfile({ isEditing, setIsEditing }: InvestorDa
                 <User className="h-10 w-10 text-accent-foreground" />
               </div>
               <div className="flex-1 min-w-0">
-                <CardTitle className="text-xl">{`${formData.firstName} ${formData.surname}`.trim()}</CardTitle>
-                <p className="text-muted-foreground text-sm mb-3">{formData.company}</p>
+                <CardTitle className="text-lg">{`${formData.firstName} ${formData.surname}`.trim()}</CardTitle>
+                <p className="text-muted-foreground text-sm mb-2">{formData.company}</p>
                 <div className="space-y-2">
                   <div className="flex items-center space-x-2">
                     <Phone className="h-4 w-4 text-muted-foreground flex-shrink-0" />

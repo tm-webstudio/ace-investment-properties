@@ -126,12 +126,12 @@ export default function AdminDashboard() {
       <DashboardNavigationHeader />
       <main className="flex-1 bg-background">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-8 sm:py-8">
-          <Card className="mb-8 bg-gradient-to-r from-red-50 via-red-100/50 to-red-50 border-red-200/30">
+          <Card className="mb-4 bg-gradient-to-r from-red-50 via-red-100/50 to-red-50 border-red-200/30">
             <CardHeader className="md:pb-4 md:pt-4">
               <p className="text-sm font-bold text-red-700/70 uppercase tracking-wide mb-1">
                 Admin Dashboard
               </p>
-              <h1 className="font-serif text-3xl md:text-4xl font-medium text-red-900 mb-1">
+              <h1 className="font-serif text-2xl md:text-4xl font-medium text-red-900 mb-1">
                 System Administration
               </h1>
               <p className="text-red-800/70 text-md">Manage properties, viewings, and platform operations</p>

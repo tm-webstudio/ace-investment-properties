@@ -9,6 +9,8 @@ import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Calendar as CalendarComponent } from "@/components/ui/calendar"
 import { PropertyTitle } from "@/components/property-title"
 import {
   Calendar,
@@ -26,10 +28,14 @@ import {
   User,
   Home,
   PoundSterling,
-  Search
+  Search,
+  CalendarIcon,
+  Loader2
 } from "lucide-react"
 import Link from "next/link"
 import { supabase } from "@/lib/supabase"
+import { format, addDays, isBefore, isAfter } from "date-fns"
+import { cn } from "@/lib/utils"
 
 interface ViewingRequest {
   id: string
@@ -96,11 +102,18 @@ export function ViewingRequests({ variant = 'dashboard', limit, onTabChange, isA
   const [approveModalOpen, setApproveModalOpen] = useState(false)
   const [rejectModalOpen, setRejectModalOpen] = useState(false)
   const [cancelModalOpen, setCancelModalOpen] = useState(false)
+  const [changeModalOpen, setChangeModalOpen] = useState(false)
   const [selectedViewing, setSelectedViewing] = useState<ViewingRequest | null>(null)
   const [rejectionReason, setRejectionReason] = useState('')
   const [actionLoading, setActionLoading] = useState(false)
   const [deleteModalOpen, setDeleteModalOpen] = useState(false)
   const [cancelError, setCancelError] = useState('')
+  const [changeError, setChangeError] = useState('')
+  const [newViewingDate, setNewViewingDate] = useState<Date | null>(null)
+  const [newViewingTime, setNewViewingTime] = useState('')
+  const [availableSlots, setAvailableSlots] = useState<{time: string, available: boolean}[]>([])
+  const [loadingSlots, setLoadingSlots] = useState(false)
+  const [allowedDays, setAllowedDays] = useState<number[]>([1, 2, 3, 4, 5, 6])
 
   const fetchViewings = async () => {
     try {
@@ -173,6 +186,78 @@ export function ViewingRequests({ variant = 'dashboard', limit, onTabChange, isA
   useEffect(() => {
     fetchViewings()
   }, [filter, limit])
+
+  const generateDefaultTimeSlots = () => {
+    const slots: {time: string, available: boolean}[] = []
+    for (let hour = 9; hour < 18; hour++) {
+      for (let minute = 0; minute < 60; minute += 30) {
+        const time = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`
+        slots.push({ time, available: true })
+      }
+    }
+    return slots
+  }
+
+  const fetchLandlordAvailability = async (propertyId: string) => {
+    try {
+      const response = await fetch(`/api/properties/${propertyId}/available-slots`)
+      if (response.ok) {
+        const data = await response.json()
+        if (data.success && data.landlordAvailability?.allowedDayNumbers) {
+          setAllowedDays(data.landlordAvailability.allowedDayNumbers)
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching landlord availability:', error)
+    }
+  }
+
+  const fetchAvailableSlots = async (date: Date, propertyId: string) => {
+    if (!date) return
+
+    setLoadingSlots(true)
+    try {
+      const dateString = format(date, 'yyyy-MM-dd')
+      const response = await fetch(`/api/properties/${propertyId}/available-slots?startDate=${dateString}&endDate=${dateString}`)
+
+      if (response.ok) {
+        const data = await response.json()
+
+        if (data.success && data.availability && data.availability.length > 0) {
+          const dayAvailability = data.availability[0]
+
+          // Generate all possible time slots and mark availability
+          const allSlots: {time: string, available: boolean}[] = []
+          for (let hour = 9; hour < 18; hour++) {
+            for (let minute = 0; minute < 60; minute += 30) {
+              const time = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`
+              const isAvailable = dayAvailability.availableSlots?.includes(time) ?? true
+              allSlots.push({ time, available: isAvailable })
+            }
+          }
+
+          setAvailableSlots(allSlots)
+        } else {
+          setAvailableSlots(generateDefaultTimeSlots())
+        }
+      } else {
+        setAvailableSlots(generateDefaultTimeSlots())
+      }
+    } catch (error) {
+      console.error('Error fetching availability:', error)
+      setAvailableSlots(generateDefaultTimeSlots())
+    } finally {
+      setLoadingSlots(false)
+    }
+  }
+
+  const formatTimeDisplay = (time: string) => {
+    const [hours, minutes] = time.split(':')
+    const hour = parseInt(hours)
+    const ampm = hour >= 12 ? 'PM' : 'AM'
+    const displayHour = hour > 12 ? hour - 12 : hour === 0 ? 12 : hour
+    return `${displayHour}:${minutes} ${ampm}`
+  }
 
   const handleApprove = async (viewing: ViewingRequest) => {
     setSelectedViewing(viewing)
@@ -350,6 +435,70 @@ export function ViewingRequests({ variant = 'dashboard', limit, onTabChange, isA
     }
   }
 
+  const handleChangeViewing = async (viewing: ViewingRequest) => {
+    setSelectedViewing(viewing)
+    const viewingDate = new Date(viewing.viewing_date)
+    setNewViewingDate(viewingDate)
+    setNewViewingTime(viewing.viewing_time)
+    setChangeError('')
+    setChangeModalOpen(true)
+
+    // Fetch landlord availability and available slots
+    if (viewing.property_id) {
+      await fetchLandlordAvailability(viewing.property_id)
+      await fetchAvailableSlots(viewingDate, viewing.property_id)
+    }
+  }
+
+  const confirmChangeViewing = async () => {
+    if (!selectedViewing) return
+
+    if (!newViewingDate || !newViewingTime) {
+      setChangeError('Please select both date and time')
+      return
+    }
+
+    try {
+      setActionLoading(true)
+
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session?.access_token) {
+        console.error('No access token available')
+        return
+      }
+
+      const response = await fetch(`/api/viewings/${selectedViewing.id}`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          viewing_date: format(newViewingDate, 'yyyy-MM-dd'),
+          viewing_time: newViewingTime
+        })
+      })
+
+      const result = await response.json()
+
+      if (result.success) {
+        setChangeModalOpen(false)
+        setSelectedViewing(null)
+        setChangeError('')
+        setNewViewingDate(null)
+        setNewViewingTime('')
+        setAvailableSlots([])
+        fetchViewings() // Refresh the list
+      } else {
+        setChangeError(result.error || 'Failed to update viewing request')
+      }
+    } catch (error) {
+      setChangeError(error instanceof Error ? error.message : 'Error updating viewing request')
+    } finally {
+      setActionLoading(false)
+    }
+  }
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case "approved":
@@ -425,7 +574,7 @@ export function ViewingRequests({ variant = 'dashboard', limit, onTabChange, isA
     <>
       {variant === 'full' && renderStatsCards()}
 
-      <div className={variant === 'admin' ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-start' : 'space-y-3'}>
+      <div className={(variant === 'admin' || variant === 'full') ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-start' : 'space-y-3'}>
         {loading ? (
           <>
             {[...Array(variant === 'dashboard' ? 3 : 6)].map((_, i) => (
@@ -464,7 +613,9 @@ export function ViewingRequests({ variant = 'dashboard', limit, onTabChange, isA
                   <div className="flex-1">
                     <p className="font-semibold text-[15px] mb-2 line-clamp-1">
                       {viewing.property?.address && viewing.property?.city
-                        ? `${viewing.property.address}, ${viewing.property.city}`
+                        ? variant === 'admin'
+                          ? `${viewing.property.address.replace(/^\d+\s*/, '').replace(/^flat\s*\d+\s*/i, '').replace(/^unit\s*\d+\s*/i, '').replace(/^apartment\s*\d+\s*/i, '').trim()}, ${viewing.property.city}${viewing.property.postcode ? ` ${viewing.property.postcode.split(' ')[0]}` : ''}`
+                          : `${viewing.property.address}, ${viewing.property.city}${viewing.property.postcode ? ` ${viewing.property.postcode.split(' ')[0]}` : ''}`
                         : `${viewing.property?.property_type} in ${viewing.property?.city}`
                       }
                     </p>
@@ -642,7 +793,14 @@ export function ViewingRequests({ variant = 'dashboard', limit, onTabChange, isA
                   {/* Actions for pending viewings - change and cancel */}
                   {viewing.status === 'pending' && (
                     <div className="flex gap-2 pt-2">
-                      <Button size="sm" variant="outline">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          handleChangeViewing(viewing)
+                        }}
+                      >
                         <Calendar className="h-4 w-4 mr-1" />
                         Change Viewing
                       </Button>
@@ -663,7 +821,14 @@ export function ViewingRequests({ variant = 'dashboard', limit, onTabChange, isA
                   {/* Actions for approved viewings - change and cancel */}
                   {viewing.status === 'approved' && (
                     <div className="flex gap-2 pt-2">
-                      <Button size="sm" variant="outline">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          handleChangeViewing(viewing)
+                        }}
+                      >
                         <Calendar className="h-4 w-4 mr-1" />
                         Change Viewing
                       </Button>
@@ -719,8 +884,15 @@ export function ViewingRequests({ variant = 'dashboard', limit, onTabChange, isA
           <div className="space-y-4">
             <p>
               Are you sure you want to approve the viewing request for{" "}
-              <strong>{selectedViewing?.property?.property_type} in {selectedViewing?.property?.city}</strong>{" "}
-              on {selectedViewing && formatDate(selectedViewing.viewing_date)} at {selectedViewing?.viewing_time}?
+              <strong>
+                {selectedViewing?.property?.address && selectedViewing?.property?.city
+                  ? (variant === 'admin' || isAdmin)
+                    ? `${selectedViewing.property.address.replace(/^\d+\s*/, '').replace(/^flat\s*\d+\s*/i, '').replace(/^unit\s*\d+\s*/i, '').replace(/^apartment\s*\d+\s*/i, '').trim()}, ${selectedViewing.property.city}${selectedViewing.property.postcode ? ` ${selectedViewing.property.postcode.split(' ')[0]}` : ''}`
+                    : `${selectedViewing.property.address}, ${selectedViewing.property.city}${selectedViewing.property.postcode ? ` ${selectedViewing.property.postcode.split(' ')[0]}` : ''}`
+                  : `${selectedViewing?.property?.property_type} in ${selectedViewing?.property?.city}`
+                }
+              </strong>{" "}
+              on {selectedViewing && formatDate(selectedViewing.viewing_date)} at {selectedViewing && formatTime(selectedViewing.viewing_time)}?
             </p>
             <p className="text-sm text-gray-600">
               The investor will be notified and the viewing will be confirmed.
@@ -750,8 +922,15 @@ export function ViewingRequests({ variant = 'dashboard', limit, onTabChange, isA
           <div className="space-y-4">
             <p>
               Are you sure you want to reject the viewing request for{" "}
-              <strong>{selectedViewing?.property?.property_type} in {selectedViewing?.property?.city}</strong>{" "}
-              on {selectedViewing && formatDate(selectedViewing.viewing_date)} at {selectedViewing?.viewing_time}?
+              <strong>
+                {selectedViewing?.property?.address && selectedViewing?.property?.city
+                  ? (variant === 'admin' || isAdmin)
+                    ? `${selectedViewing.property.address.replace(/^\d+\s*/, '').replace(/^flat\s*\d+\s*/i, '').replace(/^unit\s*\d+\s*/i, '').replace(/^apartment\s*\d+\s*/i, '').trim()}, ${selectedViewing.property.city}${selectedViewing.property.postcode ? ` ${selectedViewing.property.postcode.split(' ')[0]}` : ''}`
+                    : `${selectedViewing.property.address}, ${selectedViewing.property.city}${selectedViewing.property.postcode ? ` ${selectedViewing.property.postcode.split(' ')[0]}` : ''}`
+                  : `${selectedViewing?.property?.property_type} in ${selectedViewing?.property?.city}`
+                }
+              </strong>{" "}
+              on {selectedViewing && formatDate(selectedViewing.viewing_date)} at {selectedViewing && formatTime(selectedViewing.viewing_time)}?
             </p>
             <div className="space-y-2">
               <Label htmlFor="rejection-reason">Reason for rejection (optional)</Label>
@@ -788,7 +967,14 @@ export function ViewingRequests({ variant = 'dashboard', limit, onTabChange, isA
           <div className="space-y-4">
             <p>
               Are you sure you want to cancel the viewing for{" "}
-              <strong>{selectedViewing?.property?.property_type} in {selectedViewing?.property?.city}</strong>{" "}
+              <strong>
+                {selectedViewing?.property?.address && selectedViewing?.property?.city
+                  ? (variant === 'admin' || isAdmin)
+                    ? `${selectedViewing.property.address.replace(/^\d+\s*/, '').replace(/^flat\s*\d+\s*/i, '').replace(/^unit\s*\d+\s*/i, '').replace(/^apartment\s*\d+\s*/i, '').trim()}, ${selectedViewing.property.city}${selectedViewing.property.postcode ? ` ${selectedViewing.property.postcode.split(' ')[0]}` : ''}`
+                    : `${selectedViewing.property.address}, ${selectedViewing.property.city}${selectedViewing.property.postcode ? ` ${selectedViewing.property.postcode.split(' ')[0]}` : ''}`
+                  : `${selectedViewing?.property?.property_type} in ${selectedViewing?.property?.city}`
+                }
+              </strong>{" "}
               on {selectedViewing && formatDate(selectedViewing.viewing_date)} at {selectedViewing && formatTime(selectedViewing.viewing_time)}?
             </p>
             <p className="text-sm text-gray-600">
@@ -824,7 +1010,14 @@ export function ViewingRequests({ variant = 'dashboard', limit, onTabChange, isA
           <div className="space-y-4">
             <p>
               Are you sure you want to permanently delete the viewing for{" "}
-              <strong>{selectedViewing?.property?.property_type} in {selectedViewing?.property?.city}</strong>{" "}
+              <strong>
+                {selectedViewing?.property?.address && selectedViewing?.property?.city
+                  ? (variant === 'admin' || isAdmin)
+                    ? `${selectedViewing.property.address.replace(/^\d+\s*/, '').replace(/^flat\s*\d+\s*/i, '').replace(/^unit\s*\d+\s*/i, '').replace(/^apartment\s*\d+\s*/i, '').trim()}, ${selectedViewing.property.city}${selectedViewing.property.postcode ? ` ${selectedViewing.property.postcode.split(' ')[0]}` : ''}`
+                    : `${selectedViewing.property.address}, ${selectedViewing.property.city}${selectedViewing.property.postcode ? ` ${selectedViewing.property.postcode.split(' ')[0]}` : ''}`
+                  : `${selectedViewing?.property?.property_type} in ${selectedViewing?.property?.city}`
+                }
+              </strong>{" "}
               on {selectedViewing && formatDate(selectedViewing.viewing_date)} at {selectedViewing && formatTime(selectedViewing.viewing_time)}?
             </p>
             <p className="text-sm text-gray-600">
@@ -840,6 +1033,135 @@ export function ViewingRequests({ variant = 'dashboard', limit, onTabChange, isA
                 variant="destructive"
               >
                 {actionLoading ? 'Deleting...' : 'Delete Viewing'}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Change Viewing Modal */}
+      <Dialog open={changeModalOpen} onOpenChange={setChangeModalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Change Viewing Time</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p>
+              Update the viewing date and time for{" "}
+              <strong>
+                {selectedViewing?.property?.address && selectedViewing?.property?.city
+                  ? (variant === 'admin' || isAdmin)
+                    ? `${selectedViewing.property.address.replace(/^\d+\s*/, '').replace(/^flat\s*\d+\s*/i, '').replace(/^unit\s*\d+\s*/i, '').replace(/^apartment\s*\d+\s*/i, '').trim()}, ${selectedViewing.property.city}${selectedViewing.property.postcode ? ` ${selectedViewing.property.postcode.split(' ')[0]}` : ''}`
+                    : `${selectedViewing.property.address}, ${selectedViewing.property.city}${selectedViewing.property.postcode ? ` ${selectedViewing.property.postcode.split(' ')[0]}` : ''}`
+                  : `${selectedViewing?.property?.property_type} in ${selectedViewing?.property?.city}`
+                }
+              </strong>
+            </p>
+
+            <div className="space-y-4">
+              {/* Date Selection */}
+              <div>
+                <Label>Select Viewing Date *</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        "w-full justify-start text-left font-normal",
+                        !newViewingDate && "text-muted-foreground"
+                      )}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {newViewingDate ? (
+                        format(newViewingDate, "PPP")
+                      ) : (
+                        <span>Pick a date</span>
+                      )}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0">
+                    <CalendarComponent
+                      mode="single"
+                      selected={newViewingDate || undefined}
+                      onSelect={(date) => {
+                        if (date && selectedViewing?.property_id) {
+                          setNewViewingDate(date)
+                          setNewViewingTime('')
+                          fetchAvailableSlots(date, selectedViewing.property_id)
+                        }
+                      }}
+                      disabled={(date) =>
+                        isBefore(date, addDays(new Date(), 1)) ||
+                        isAfter(date, addDays(new Date(), 60)) ||
+                        !allowedDays.includes(date.getDay())
+                      }
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
+
+              {/* Time Selection */}
+              {newViewingDate && (
+                <div>
+                  <Label>Select Time *</Label>
+                  {loadingSlots ? (
+                    <div className="flex items-center gap-2 p-3 border rounded">
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      <span className="text-sm">Loading available times...</span>
+                    </div>
+                  ) : (
+                    <Select
+                      value={newViewingTime}
+                      onValueChange={(value) => setNewViewingTime(value)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a time" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {availableSlots.length > 0 ? (
+                          availableSlots.map((slot) => (
+                            <SelectItem
+                              key={slot.time}
+                              value={slot.time}
+                              disabled={!slot.available}
+                            >
+                              {formatTimeDisplay(slot.time)} {!slot.available && '(Booked)'}
+                            </SelectItem>
+                          ))
+                        ) : (
+                          <SelectItem value="no-slots" disabled>
+                            No time slots available
+                          </SelectItem>
+                        )}
+                      </SelectContent>
+                    </Select>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {selectedViewing?.status === 'approved' && (
+              <p className="text-sm text-amber-600 bg-amber-50 p-3 rounded">
+                Note: Changing an approved viewing will reset its status to pending and require re-approval.
+              </p>
+            )}
+
+            {changeError && (
+              <div className="p-4 bg-red-50 border border-red-200 rounded-md">
+                <p className="text-sm text-red-700">{changeError}</p>
+              </div>
+            )}
+
+            <div className="flex gap-3 justify-end">
+              <Button variant="outline" onClick={() => setChangeModalOpen(false)}>
+                Cancel
+              </Button>
+              <Button
+                onClick={confirmChangeViewing}
+                disabled={actionLoading || !newViewingDate || !newViewingTime}
+              >
+                {actionLoading ? 'Updating...' : 'Update Viewing'}
               </Button>
             </div>
           </div>

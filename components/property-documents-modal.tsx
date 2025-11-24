@@ -280,6 +280,7 @@ export function PropertyDocumentsModal({ property, open, onClose, isAdmin = fals
                 address={property.address}
                 city={property.city}
                 postcode={property.postcode}
+                variant={isAdmin ? "title" : "full"}
               />
             </DialogTitle>
           </DialogHeader>

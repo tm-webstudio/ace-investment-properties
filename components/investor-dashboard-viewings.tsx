@@ -27,6 +27,7 @@ interface ViewingRequest {
     property_type: string
     city: string
     address: string
+    postcode?: string
     monthly_rent: number
     photos: string[]
   }
@@ -37,6 +38,14 @@ interface ViewingStats {
   pending: number
   approved: number
   upcoming: number
+}
+
+const formatTime = (timeStr: string) => {
+  // Parse time and convert to 12-hour format with am/pm
+  const [hours, minutes] = timeStr.split(':').map(Number)
+  const period = hours >= 12 ? 'pm' : 'am'
+  const displayHours = hours % 12 || 12
+  return `${displayHours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')} ${period}`
 }
 
 export function InvestorDashboardViewings() {
@@ -329,7 +338,9 @@ export function InvestorDashboardViewings() {
       ) : (
         <div className="space-y-4">
           {filteredViewings.map((viewing) => {
-            const propertyTitle = viewing.property.title || `${viewing.property.property_type} in ${viewing.property.city}`
+            const propertyTitle = viewing.property.address && viewing.property.city
+              ? `${viewing.property.address.replace(/^\d+\s*/, '').replace(/^flat\s*\d+\s*/i, '').replace(/^unit\s*\d+\s*/i, '').replace(/^apartment\s*\d+\s*/i, '').trim()}, ${viewing.property.city}${viewing.property.postcode ? ` ${viewing.property.postcode.split(' ')[0]}` : ''}`
+              : viewing.property.title || `${viewing.property.property_type} in ${viewing.property.city}`
             const timeUntil = viewing.status === 'approved' ? getTimeUntilViewing(viewing.viewing_date, viewing.viewing_time) : null
 
             return (
@@ -364,7 +375,7 @@ export function InvestorDashboardViewings() {
                         </div>
                         <div className="flex items-center text-gray-600">
                           <Clock className="h-3 w-3 mr-1" />
-                          {viewing.viewing_time}
+                          {formatTime(viewing.viewing_time)}
                         </div>
                       </div>
 

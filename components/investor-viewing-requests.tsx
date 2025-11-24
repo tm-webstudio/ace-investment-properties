@@ -7,6 +7,9 @@ import { Badge } from "@/components/ui/badge"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Calendar as CalendarComponent } from "@/components/ui/calendar"
 import { PropertyTitle } from "@/components/property-title"
 import {
   Calendar,
@@ -19,10 +22,15 @@ import {
   Home,
   Wallet,
   X,
-  Filter
+  Filter,
+  Trash2,
+  CalendarIcon,
+  Loader2
 } from "lucide-react"
 import Link from "next/link"
 import { supabase } from "@/lib/supabase"
+import { format, addDays, isBefore, isAfter } from "date-fns"
+import { cn } from "@/lib/utils"
 
 interface ViewingRequest {
   id: string
@@ -76,13 +84,17 @@ export function InvestorViewingRequests({ variant = 'dashboard', limit }: Invest
   const [expandedCard, setExpandedCard] = useState<string | null>(null)
   const [cancelModalOpen, setCancelModalOpen] = useState(false)
   const [changeModalOpen, setChangeModalOpen] = useState(false)
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false)
   const [selectedViewing, setSelectedViewing] = useState<ViewingRequest | null>(null)
   const [cancelError, setCancelError] = useState('')
   const [changeError, setChangeError] = useState('')
   const [actionLoading, setActionLoading] = useState(false)
-  const [newViewingDate, setNewViewingDate] = useState('')
+  const [newViewingDate, setNewViewingDate] = useState<Date | null>(null)
   const [newViewingTime, setNewViewingTime] = useState('')
   const [filter, setFilter] = useState<string>('all')
+  const [availableSlots, setAvailableSlots] = useState<{time: string, available: boolean}[]>([])
+  const [loadingSlots, setLoadingSlots] = useState(false)
+  const [allowedDays, setAllowedDays] = useState<number[]>([1, 2, 3, 4, 5, 6])
   const [stats, setStats] = useState<ViewingStats>({
     pending: 0,
     approved: 0,
@@ -154,6 +166,83 @@ export function InvestorViewingRequests({ variant = 'dashboard', limit }: Invest
     fetchViewings()
   }, [limit, filter])
 
+  const generateDefaultTimeSlots = () => {
+    const slots: {time: string, available: boolean}[] = []
+    for (let hour = 9; hour < 18; hour++) {
+      for (let minute = 0; minute < 60; minute += 30) {
+        const time = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`
+        slots.push({ time, available: true })
+      }
+    }
+    return slots
+  }
+
+  const fetchLandlordAvailability = async (propertyId: string) => {
+    try {
+      const response = await fetch(`/api/properties/${propertyId}/available-slots`)
+      if (response.ok) {
+        const data = await response.json()
+        if (data.success && data.landlordAvailability?.allowedDayNumbers) {
+          setAllowedDays(data.landlordAvailability.allowedDayNumbers)
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching landlord availability:', error)
+    }
+  }
+
+  const fetchAvailableSlots = async (date: Date, propertyId: string) => {
+    if (!date) return
+
+    setLoadingSlots(true)
+    try {
+      const dateString = format(date, 'yyyy-MM-dd')
+      const response = await fetch(`/api/properties/${propertyId}/available-slots?startDate=${dateString}&endDate=${dateString}`)
+
+      if (response.ok) {
+        const data = await response.json()
+
+        if (data.success && data.availability && data.availability.length > 0) {
+          const dayAvailability = data.availability[0]
+
+          // Generate all possible time slots and mark availability
+          const allSlots: {time: string, available: boolean}[] = []
+          for (let hour = 9; hour < 18; hour++) {
+            for (let minute = 0; minute < 60; minute += 30) {
+              const time = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`
+              const isAvailable = dayAvailability.availableSlots?.includes(time) ?? true
+              allSlots.push({ time, available: isAvailable })
+            }
+          }
+
+          setAvailableSlots(allSlots)
+        } else {
+          setAvailableSlots(generateDefaultTimeSlots())
+        }
+      } else {
+        setAvailableSlots(generateDefaultTimeSlots())
+      }
+    } catch (error) {
+      console.error('Error fetching availability:', error)
+      setAvailableSlots(generateDefaultTimeSlots())
+    } finally {
+      setLoadingSlots(false)
+    }
+  }
+
+  const formatTimeDisplay = (time: string) => {
+    const [hours, minutes] = time.split(':')
+    const hour = parseInt(hours)
+    const ampm = hour >= 12 ? 'PM' : 'AM'
+    const displayHour = hour > 12 ? hour - 12 : hour === 0 ? 12 : hour
+    return `${displayHour}:${minutes} ${ampm}`
+  }
+
+  const isViewingPast = (viewing: ViewingRequest) => {
+    const viewingDateTime = new Date(`${viewing.viewing_date}T${viewing.viewing_time}`)
+    return viewingDateTime < new Date()
+  }
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case "approved":
@@ -164,6 +253,8 @@ export function InvestorViewingRequests({ variant = 'dashboard', limit }: Invest
         return "bg-destructive/10 text-destructive"
       case "cancelled":
         return "bg-gray-100 text-gray-800"
+      case "completed":
+        return "bg-blue-100 text-blue-800"
       default:
         return "bg-gray-100 text-gray-800"
     }
@@ -263,10 +354,17 @@ export function InvestorViewingRequests({ variant = 'dashboard', limit }: Invest
 
   const handleChangeViewing = async (viewing: ViewingRequest) => {
     setSelectedViewing(viewing)
-    setNewViewingDate(viewing.viewing_date)
+    const viewingDate = new Date(viewing.viewing_date)
+    setNewViewingDate(viewingDate)
     setNewViewingTime(viewing.viewing_time)
     setChangeError('')
     setChangeModalOpen(true)
+
+    // Fetch landlord availability and available slots
+    if (viewing.property_id) {
+      await fetchLandlordAvailability(viewing.property_id)
+      await fetchAvailableSlots(viewingDate, viewing.property_id)
+    }
   }
 
   const confirmChangeViewing = async () => {
@@ -293,7 +391,7 @@ export function InvestorViewingRequests({ variant = 'dashboard', limit }: Invest
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          viewing_date: newViewingDate,
+          viewing_date: format(newViewingDate, 'yyyy-MM-dd'),
           viewing_time: newViewingTime
         })
       })
@@ -304,14 +402,58 @@ export function InvestorViewingRequests({ variant = 'dashboard', limit }: Invest
         setChangeModalOpen(false)
         setSelectedViewing(null)
         setChangeError('')
-        setNewViewingDate('')
+        setNewViewingDate(null)
         setNewViewingTime('')
+        setAvailableSlots([])
         fetchViewings() // Refresh the list
       } else {
         setChangeError(result.error || 'Failed to update viewing request')
       }
     } catch (error) {
       setChangeError(error instanceof Error ? error.message : 'Error updating viewing request')
+    } finally {
+      setActionLoading(false)
+    }
+  }
+
+  const handleDelete = async (viewing: ViewingRequest) => {
+    setSelectedViewing(viewing)
+    setDeleteModalOpen(true)
+  }
+
+  const confirmDelete = async () => {
+    if (!selectedViewing) return
+
+    try {
+      setActionLoading(true)
+
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session?.access_token) {
+        console.error('No access token available')
+        return
+      }
+
+      const response = await fetch(`/api/viewings/${selectedViewing.id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+          'Content-Type': 'application/json'
+        }
+      })
+
+      const result = await response.json()
+
+      if (result.success) {
+        setDeleteModalOpen(false)
+        setSelectedViewing(null)
+        fetchViewings() // Refresh the list
+      } else {
+        console.error('Error deleting viewing:', result.error)
+        alert('Error deleting viewing: ' + result.error)
+      }
+    } catch (error) {
+      console.error('Error:', error)
+      alert('Error deleting viewing')
     } finally {
       setActionLoading(false)
     }
@@ -354,13 +496,14 @@ export function InvestorViewingRequests({ variant = 'dashboard', limit }: Invest
                   <div className="flex-1">
                     <p className="font-semibold text-[15px] mb-2 line-clamp-1">
                       {viewing.property?.address && viewing.property?.city
-                        ? `${viewing.property.address.replace(/^\d+\s*/, '').replace(/^flat\s*\d+\s*/i, '').replace(/^unit\s*\d+\s*/i, '').replace(/^apartment\s*\d+\s*/i, '').trim()}, ${viewing.property.city}`
+                        ? `${viewing.property.address.replace(/^\d+\s*/, '').replace(/^flat\s*\d+\s*/i, '').replace(/^unit\s*\d+\s*/i, '').replace(/^apartment\s*\d+\s*/i, '').trim()}, ${viewing.property.city}${viewing.property.postcode ? ` ${viewing.property.postcode.split(' ')[0]}` : ''}`
                         : `${viewing.property?.property_type} in ${viewing.property?.city}`
                       }
                     </p>
 
-                    <Badge className={`${getStatusColor(viewing.status)} capitalize`}>
-                      {viewing.status === 'pending' ? 'awaiting approval' :
+                    <Badge className={`${getStatusColor((viewing.status === 'pending' || viewing.status === 'approved') && isViewingPast(viewing) ? 'completed' : viewing.status)} capitalize`}>
+                      {(viewing.status === 'pending' || viewing.status === 'approved') && isViewingPast(viewing) ? 'Completed' :
+                       viewing.status === 'pending' ? 'awaiting approval' :
                        viewing.status === 'approved' ? 'Approved' :
                        viewing.status === 'rejected' ? 'Rejected' :
                        viewing.status === 'cancelled' ? 'Cancelled' :
@@ -437,8 +580,8 @@ export function InvestorViewingRequests({ variant = 'dashboard', limit }: Invest
                     </div>
                   )}
 
-                  {/* Actions for pending and approved viewings */}
-                  {(viewing.status === 'pending' || viewing.status === 'approved') && (
+                  {/* Actions for active pending and approved viewings */}
+                  {(viewing.status === 'pending' || viewing.status === 'approved') && !isViewingPast(viewing) && (
                     <div className="flex gap-2 pt-2">
                       <Button
                         size="sm"
@@ -464,6 +607,24 @@ export function InvestorViewingRequests({ variant = 'dashboard', limit }: Invest
                       </Button>
                     </div>
                   )}
+
+                  {/* Delete button for completed viewings */}
+                  {(viewing.status === 'pending' || viewing.status === 'approved') && isViewingPast(viewing) && (
+                    <div className="flex gap-2 pt-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          handleDelete(viewing)
+                        }}
+                        className="text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200"
+                      >
+                        <Trash2 className="h-4 w-4 mr-1" />
+                        Delete Viewing
+                      </Button>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -486,7 +647,12 @@ export function InvestorViewingRequests({ variant = 'dashboard', limit }: Invest
           <div className="space-y-4">
             <p>
               Are you sure you want to cancel the viewing for{" "}
-              <strong>{selectedViewing?.property?.property_type} in {selectedViewing?.property?.city}</strong>{" "}
+              <strong>
+                {selectedViewing?.property?.address && selectedViewing?.property?.city
+                  ? `${selectedViewing.property.address.replace(/^\d+\s*/, '').replace(/^flat\s*\d+\s*/i, '').replace(/^unit\s*\d+\s*/i, '').replace(/^apartment\s*\d+\s*/i, '').trim()}, ${selectedViewing.property.city}${selectedViewing.property.postcode ? ` ${selectedViewing.property.postcode.split(' ')[0]}` : ''}`
+                  : `${selectedViewing?.property?.property_type} in ${selectedViewing?.property?.city}`
+                }
+              </strong>{" "}
               on {selectedViewing && formatDate(selectedViewing.viewing_date)} at {selectedViewing && formatTime(selectedViewing.viewing_time)}?
             </p>
             <p className="text-sm text-gray-600">
@@ -522,30 +688,95 @@ export function InvestorViewingRequests({ variant = 'dashboard', limit }: Invest
           <div className="space-y-4">
             <p>
               Update the viewing date and time for{" "}
-              <strong>{selectedViewing?.property?.property_type} in {selectedViewing?.property?.city}</strong>
+              <strong>
+                {selectedViewing?.property?.address && selectedViewing?.property?.city
+                  ? `${selectedViewing.property.address.replace(/^\d+\s*/, '').replace(/^flat\s*\d+\s*/i, '').replace(/^unit\s*\d+\s*/i, '').replace(/^apartment\s*\d+\s*/i, '').trim()}, ${selectedViewing.property.city}${selectedViewing.property.postcode ? ` ${selectedViewing.property.postcode.split(' ')[0]}` : ''}`
+                  : `${selectedViewing?.property?.property_type} in ${selectedViewing?.property?.city}`
+                }
+              </strong>
             </p>
 
             <div className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="viewing_date">Viewing Date</Label>
-                <Input
-                  id="viewing_date"
-                  type="date"
-                  value={newViewingDate}
-                  onChange={(e) => setNewViewingDate(e.target.value)}
-                  min={new Date().toISOString().split('T')[0]}
-                />
+              {/* Date Selection */}
+              <div>
+                <Label>Select Viewing Date *</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        "w-full justify-start text-left font-normal",
+                        !newViewingDate && "text-muted-foreground"
+                      )}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {newViewingDate ? (
+                        format(newViewingDate, "PPP")
+                      ) : (
+                        <span>Pick a date</span>
+                      )}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0">
+                    <CalendarComponent
+                      mode="single"
+                      selected={newViewingDate || undefined}
+                      onSelect={(date) => {
+                        if (date && selectedViewing?.property_id) {
+                          setNewViewingDate(date)
+                          setNewViewingTime('')
+                          fetchAvailableSlots(date, selectedViewing.property_id)
+                        }
+                      }}
+                      disabled={(date) =>
+                        isBefore(date, addDays(new Date(), 1)) ||
+                        isAfter(date, addDays(new Date(), 60)) ||
+                        !allowedDays.includes(date.getDay())
+                      }
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="viewing_time">Viewing Time</Label>
-                <Input
-                  id="viewing_time"
-                  type="time"
-                  value={newViewingTime}
-                  onChange={(e) => setNewViewingTime(e.target.value)}
-                />
-              </div>
+              {/* Time Selection */}
+              {newViewingDate && (
+                <div>
+                  <Label>Select Time *</Label>
+                  {loadingSlots ? (
+                    <div className="flex items-center gap-2 p-3 border rounded">
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      <span className="text-sm">Loading available times...</span>
+                    </div>
+                  ) : (
+                    <Select
+                      value={newViewingTime}
+                      onValueChange={(value) => setNewViewingTime(value)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a time" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {availableSlots.length > 0 ? (
+                          availableSlots.map((slot) => (
+                            <SelectItem
+                              key={slot.time}
+                              value={slot.time}
+                              disabled={!slot.available}
+                            >
+                              {formatTimeDisplay(slot.time)} {!slot.available && '(Booked)'}
+                            </SelectItem>
+                          ))
+                        ) : (
+                          <SelectItem value="no-slots" disabled>
+                            No time slots available
+                          </SelectItem>
+                        )}
+                      </SelectContent>
+                    </Select>
+                  )}
+                </div>
+              )}
             </div>
 
             {selectedViewing?.status === 'approved' && (
@@ -566,9 +797,42 @@ export function InvestorViewingRequests({ variant = 'dashboard', limit }: Invest
               </Button>
               <Button
                 onClick={confirmChangeViewing}
-                disabled={actionLoading}
+                disabled={actionLoading || !newViewingDate || !newViewingTime}
               >
                 {actionLoading ? 'Updating...' : 'Update Viewing'}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Modal */}
+      <Dialog open={deleteModalOpen} onOpenChange={setDeleteModalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Viewing</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p>
+              Are you sure you want to delete this completed viewing for{" "}
+              <strong>
+                {selectedViewing?.property?.address && selectedViewing?.property?.city
+                  ? `${selectedViewing.property.address.replace(/^\d+\s*/, '').replace(/^flat\s*\d+\s*/i, '').replace(/^unit\s*\d+\s*/i, '').replace(/^apartment\s*\d+\s*/i, '').trim()}, ${selectedViewing.property.city}${selectedViewing.property.postcode ? ` ${selectedViewing.property.postcode.split(' ')[0]}` : ''}`
+                  : `${selectedViewing?.property?.property_type} in ${selectedViewing?.property?.city}`
+                }
+              </strong>?
+            </p>
+            <p className="text-sm text-gray-600">This action cannot be undone.</p>
+            <div className="flex gap-3 justify-end">
+              <Button variant="outline" onClick={() => setDeleteModalOpen(false)}>
+                Cancel
+              </Button>
+              <Button
+                onClick={confirmDelete}
+                disabled={actionLoading}
+                variant="destructive"
+              >
+                {actionLoading ? 'Deleting...' : 'Delete'}
               </Button>
             </div>
           </div>

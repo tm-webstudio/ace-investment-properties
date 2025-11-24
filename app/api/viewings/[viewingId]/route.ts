@@ -174,15 +174,16 @@ export async function PUT(
       )
     }
 
-    // If landlord approved the viewing and investor is changing it, reset status to pending
+    // Prepare update data
     const updateData: any = {
       viewing_date,
       viewing_time,
       updated_at: new Date().toISOString()
     }
 
-    // If viewing was approved and investor is making the change, reset to pending
-    if (viewing.status === 'approved' && isOwner) {
+    // If viewing was approved and date/time is being changed, reset to pending for re-approval
+    // This applies to changes made by both investor and landlord
+    if (viewing.status === 'approved') {
       updateData.status = 'pending'
     }
 
