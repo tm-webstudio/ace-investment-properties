@@ -65,7 +65,7 @@ export function PageHeader({
             {category}
           </p>
         )}
-        <h1 className={`font-serif text-2xl md:text-4xl font-bold mb-1 ${variantClasses.title}`}>
+        <h1 className={`font-serif text-2xl md:text-4xl font-medium mb-1 ${variantClasses.title}`}>
           {title}
         </h1>
         <p className={`text-md ${variantClasses.subtitle}`}>

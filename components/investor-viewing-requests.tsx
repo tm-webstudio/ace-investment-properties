@@ -319,8 +319,6 @@ export function InvestorViewingRequests({ variant = 'dashboard', limit }: Invest
 
   const cardContent = (
     <>
-      {renderFilterButtons()}
-
       <div className={variant === 'full' ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-start' : 'space-y-3'}>
         {loading ? (
           <>
@@ -474,7 +472,7 @@ export function InvestorViewingRequests({ variant = 'dashboard', limit }: Invest
           <div className="text-center py-16 text-muted-foreground min-h-[280px] flex flex-col items-center justify-center">
             <Calendar className="h-10 w-10 mx-auto mb-3 opacity-50" />
             <p className="text-base font-medium mb-1.5">No Viewing Requests</p>
-            <p className="text-sm">You haven't requested any viewings yet</p>
+            <p className="text-sm max-w-[200px] mx-auto">You haven't requested any viewings yet</p>
           </div>
         )}
       </div>

@@ -111,7 +111,7 @@ export function DashboardProperties({ userId }: DashboardPropertiesProps) {
       <div className="text-center py-16 text-muted-foreground min-h-[320px] flex flex-col items-center justify-center">
         <Home className="h-10 w-10 mx-auto mb-3 opacity-50" />
         <p className="text-base font-medium mb-1.5">No Properties Listed</p>
-        <p className="text-sm mb-4">Get started by adding your first property</p>
+        <p className="text-sm mb-4 max-w-[200px] mx-auto">Get started by adding your first property</p>
         <Link href="/landlord/add-property">
           <Button className="bg-accent hover:bg-accent/90 text-accent-foreground">
             <Plus className="h-4 w-4 mr-2" />

@@ -547,7 +547,7 @@ export function AdminDashboardOverview({ admin, onTabChange }: AdminDashboardOve
             <div className="text-center py-16 text-muted-foreground min-h-[320px] flex flex-col items-center justify-center">
               <Building className="h-10 w-10 mx-auto mb-3 opacity-50" />
               <p className="text-base font-medium mb-1.5">No Pending Approvals</p>
-              <p className="text-sm">All submitted properties have been reviewed</p>
+              <p className="text-sm max-w-[200px] mx-auto">All submitted properties have been reviewed</p>
             </div>
           ) : (
             <div className="relative">
@@ -707,7 +707,7 @@ export function AdminDashboardOverview({ admin, onTabChange }: AdminDashboardOve
               <div className="text-center py-16 text-muted-foreground min-h-[280px] flex flex-col items-center justify-center">
                 <FileText className="h-10 w-10 mx-auto mb-3 opacity-50" />
                 <p className="text-base font-medium mb-1.5">No Documents Found</p>
-                <p className="text-sm">Landlord documents will appear here</p>
+                <p className="text-sm max-w-[200px] mx-auto">Landlord documents will appear here</p>
               </div>
             )}
           </CardContent>
@@ -882,7 +882,7 @@ export function AdminDashboardOverview({ admin, onTabChange }: AdminDashboardOve
               <div className="text-center py-12 text-muted-foreground">
                 <FileText className="h-12 w-12 mx-auto mb-3 opacity-50" />
                 <p className="text-base font-medium mb-1.5">No Documents Found</p>
-                <p className="text-sm">No documents have been uploaded for this property yet</p>
+                <p className="text-sm max-w-[200px] mx-auto">No documents have been uploaded for this property yet</p>
               </div>
             )}
           </div>

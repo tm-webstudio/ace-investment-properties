@@ -90,7 +90,7 @@ export function InvestorDashboardPreferences({ preferences: initialPreferences }
       <div className="text-center py-16 text-muted-foreground min-h-[320px] flex flex-col items-center justify-center">
         <Settings className="h-10 w-10 mx-auto mb-3 opacity-50" />
         <p className="text-base font-medium mb-1.5">No Preferences Set</p>
-        <p className="text-sm mb-4">Set your investment preferences to get personalized property recommendations</p>
+        <p className="text-sm mb-4 max-w-[240px] mx-auto">Set your investment preferences to get personalized property recommendations</p>
         <Link href="/investor/preferences">
           <Button className="bg-accent hover:bg-accent/90 text-accent-foreground">
             <Settings className="mr-2 h-4 w-4" />
@@ -105,14 +105,6 @@ export function InvestorDashboardPreferences({ preferences: initialPreferences }
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div>
-        <h2 className="text-lg md:text-xl font-medium text-gray-900">Properties For You</h2>
-        <p className="text-sm md:text-base text-gray-600 mt-1">
-          Properties curated based on your preferences
-        </p>
-      </div>
-
       {loading ? (
         /* Loading Skeletons */
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -132,7 +124,7 @@ export function InvestorDashboardPreferences({ preferences: initialPreferences }
         <div className="text-center py-16 text-muted-foreground min-h-[320px] flex flex-col items-center justify-center">
           <Settings className="h-10 w-10 mx-auto mb-3 opacity-50" />
           <p className="text-base font-medium mb-1.5">No Preferences Set</p>
-          <p className="text-sm mb-4">Set your investment preferences to get personalized property recommendations</p>
+          <p className="text-sm mb-4 max-w-[240px] mx-auto">Set your investment preferences to get personalized property recommendations</p>
           <Link href="/investor/preferences">
             <Button className="bg-accent hover:bg-accent/90 text-accent-foreground">
               <Settings className="mr-2 h-4 w-4" />
@@ -226,7 +218,7 @@ export function InvestorDashboardPreferences({ preferences: initialPreferences }
             <div className="text-center py-16 text-muted-foreground min-h-[280px] flex flex-col items-center justify-center">
               <Settings className="h-10 w-10 mx-auto mb-3 opacity-50" />
               <p className="text-base font-medium mb-1.5">No Matching Properties</p>
-              <p className="text-sm mb-4">Try adjusting your preferences to see more properties</p>
+              <p className="text-sm mb-4 max-w-[200px] mx-auto">Try adjusting your preferences to see more properties</p>
               <Link href="/investor/preferences">
                 <Button variant="outline">
                   <Edit3 className="mr-2 h-4 w-4" />

@@ -208,9 +208,39 @@ function LandlordDashboardContent() {
           />
 
           {activeTab === "dashboard" && <DashboardOverview userId={user.user_id} onTabChange={setActiveTab} />}
-          {activeTab === "properties" && <DashboardProperties userId={user.user_id} />}
-          {activeTab === "viewings" && <ViewingRequests variant="full" />}
-          {activeTab === "documents" && <DashboardDocuments />}
+          {activeTab === "properties" && (
+            <div className="space-y-6">
+              <div>
+                <h2 className="font-serif text-lg md:text-xl font-medium text-gray-900">My Properties</h2>
+                <p className="text-sm md:text-base text-gray-600 mt-1">
+                  Manage your property listings and track their status
+                </p>
+              </div>
+              <DashboardProperties userId={user.user_id} />
+            </div>
+          )}
+          {activeTab === "viewings" && (
+            <div className="space-y-6">
+              <div>
+                <h2 className="font-serif text-lg md:text-xl font-medium text-gray-900">Viewing Requests</h2>
+                <p className="text-sm md:text-base text-gray-600 mt-1">
+                  Review and manage property viewing requests from potential investors
+                </p>
+              </div>
+              <ViewingRequests variant="full" />
+            </div>
+          )}
+          {activeTab === "documents" && (
+            <div className="space-y-6">
+              <div>
+                <h2 className="font-serif text-lg md:text-xl font-medium text-gray-900">Property Documents</h2>
+                <p className="text-sm md:text-base text-gray-600 mt-1">
+                  Upload and manage important documents for your properties
+                </p>
+              </div>
+              <DashboardDocuments />
+            </div>
+          )}
           {activeTab === "profile" && <DashboardProfile isEditing={isEditingProfile} setIsEditing={setIsEditingProfile} />}
         </div>
       </main>

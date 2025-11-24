@@ -312,7 +312,7 @@ export function InvestorDashboardViewings() {
           <p className="text-base font-medium mb-1.5">
             {stats.total === 0 ? "No Viewing Requests" : "No Matching Viewings"}
           </p>
-          <p className="text-sm mb-4">
+          <p className="text-sm mb-4 max-w-[240px] mx-auto">
             {stats.total === 0
               ? "Browse properties and book a viewing to get started"
               : "Try adjusting your filters"

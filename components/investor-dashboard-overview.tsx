@@ -215,7 +215,7 @@ export function InvestorDashboardOverview({ investor }: InvestorDashboardOvervie
             <div className="text-center py-16 text-muted-foreground min-h-[280px] flex flex-col items-center justify-center">
               <Heart className="h-10 w-10 mx-auto mb-3 opacity-50" />
               <p className="text-base font-medium mb-1.5">No Saved Properties</p>
-              <p className="text-sm mb-4">Start exploring and save properties you're interested in</p>
+              <p className="text-sm mb-4 max-w-[200px] mx-auto">Start exploring and save properties you're interested in</p>
               <Link href="/investor/property-matching">
                 <Button className="bg-accent hover:bg-accent/90 text-accent-foreground">
                   Find Properties

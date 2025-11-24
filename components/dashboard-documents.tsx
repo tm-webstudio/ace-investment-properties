@@ -101,7 +101,7 @@ export function DashboardDocuments() {
       <div className="text-center py-16 text-muted-foreground min-h-[320px] flex flex-col items-center justify-center">
         <FileText className="h-10 w-10 mx-auto mb-3 opacity-50" />
         <p className="text-base font-medium mb-1.5">No Properties Found</p>
-        <p className="text-sm">Add a property to start managing documents</p>
+        <p className="text-sm max-w-[200px] mx-auto">Add a property to start managing documents</p>
       </div>
     )
   }

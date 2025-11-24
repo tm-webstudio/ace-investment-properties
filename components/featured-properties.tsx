@@ -156,7 +156,7 @@ export function FeaturedProperties() {
             ) : (
               // No properties message
               <div className="flex-none w-full text-center py-12">
-                <p className="text-muted-foreground">No properties available at the moment.</p>
+                <p className="text-muted-foreground max-w-[200px] mx-auto">No properties available at the moment.</p>
               </div>
             )}
           </div>

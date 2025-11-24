@@ -97,7 +97,7 @@ export function AdminDashboardUsers() {
       <div className="text-center py-16 text-muted-foreground min-h-[320px] flex flex-col items-center justify-center">
         <Users className="h-10 w-10 mx-auto mb-3 opacity-50 text-red-500" />
         <p className="text-base font-medium mb-1.5 text-red-600">Error Loading Users</p>
-        <p className="text-sm mb-4">{error}</p>
+        <p className="text-sm mb-4 max-w-[200px] mx-auto">{error}</p>
         <button
           onClick={fetchUsers}
           className="bg-accent hover:bg-accent/90 text-white px-4 py-2 rounded-md text-sm"
@@ -164,7 +164,7 @@ export function AdminDashboardUsers() {
         <div className="text-center py-16 text-muted-foreground min-h-[320px] flex flex-col items-center justify-center">
           <Users className="h-10 w-10 mx-auto mb-3 opacity-50" />
           <p className="text-base font-medium mb-1.5">{emptyState.title}</p>
-          <p className="text-sm">{emptyState.description}</p>
+          <p className="text-sm max-w-[200px] mx-auto">{emptyState.description}</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

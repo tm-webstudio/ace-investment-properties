@@ -131,7 +131,7 @@ export default function AdminDashboard() {
               <p className="text-sm font-bold text-red-700/70 uppercase tracking-wide mb-1">
                 Admin Dashboard
               </p>
-              <h1 className="font-serif text-3xl md:text-4xl font-bold text-red-900 mb-1">
+              <h1 className="font-serif text-3xl md:text-4xl font-medium text-red-900 mb-1">
                 System Administration
               </h1>
               <p className="text-red-800/70 text-md">Manage properties, viewings, and platform operations</p>
@@ -144,10 +144,50 @@ export default function AdminDashboard() {
           />
 
           {activeTab === "dashboard" && <AdminDashboardOverview admin={currentAdmin} onTabChange={setActiveTab} />}
-          {activeTab === "properties" && <AdminDashboardProperties />}
-          {activeTab === "users" && <AdminDashboardUsers />}
-          {activeTab === "viewings" && <AdminDashboardViewings />}
-          {activeTab === "documents" && <AdminDashboardReports />}
+          {activeTab === "properties" && (
+            <div className="space-y-6">
+              <div>
+                <h2 className="font-serif text-lg md:text-xl font-medium text-gray-900">Properties</h2>
+                <p className="text-sm md:text-base text-gray-600 mt-1">
+                  Review and manage all property listings on the platform
+                </p>
+              </div>
+              <AdminDashboardProperties />
+            </div>
+          )}
+          {activeTab === "users" && (
+            <div className="space-y-6">
+              <div>
+                <h2 className="font-serif text-lg md:text-xl font-medium text-gray-900">Users</h2>
+                <p className="text-sm md:text-base text-gray-600 mt-1">
+                  Manage landlords, investors, and their account details
+                </p>
+              </div>
+              <AdminDashboardUsers />
+            </div>
+          )}
+          {activeTab === "viewings" && (
+            <div className="space-y-6">
+              <div>
+                <h2 className="font-serif text-lg md:text-xl font-medium text-gray-900">Viewings</h2>
+                <p className="text-sm md:text-base text-gray-600 mt-1">
+                  Monitor and manage all property viewing requests
+                </p>
+              </div>
+              <AdminDashboardViewings />
+            </div>
+          )}
+          {activeTab === "documents" && (
+            <div className="space-y-6">
+              <div>
+                <h2 className="font-serif text-lg md:text-xl font-medium text-gray-900">Documents</h2>
+                <p className="text-sm md:text-base text-gray-600 mt-1">
+                  Review and manage property documents submitted by landlords
+                </p>
+              </div>
+              <AdminDashboardReports />
+            </div>
+          )}
         </div>
       </main>
       <DashboardFooter />

@@ -437,7 +437,6 @@ export function ViewingRequests({ variant = 'dashboard', limit, onTabChange, isA
   const cardContent = (
     <>
       {variant === 'full' && renderStatsCards()}
-      {(variant === 'full' || variant === 'admin') && renderFilterButtons()}
 
       <div className={(variant === 'admin' || variant === 'full') ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-start' : 'space-y-3'}>
         {loading ? (
@@ -719,7 +718,7 @@ export function ViewingRequests({ variant = 'dashboard', limit, onTabChange, isA
           <div className="text-center py-16 text-muted-foreground min-h-[280px] flex flex-col items-center justify-center col-span-full">
             <Calendar className="h-10 w-10 mx-auto mb-3 opacity-50" />
             <p className="text-base font-medium mb-1.5">No Viewing Requests</p>
-            <p className="text-sm">No viewing requests available at the moment</p>
+            <p className="text-sm max-w-[200px] mx-auto">No viewing requests available at the moment</p>
           </div>
         )}
       </div>

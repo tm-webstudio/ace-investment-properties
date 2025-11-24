@@ -211,17 +211,45 @@ function InvestorDashboardContent() {
           />
 
           {activeTab === "dashboard" && (
-            <div className="space-y-8">
-              <RecommendedProperties preferences={preferences} />
-              <InvestorDashboardOverview investor={currentInvestor} />
+            <div className="space-y-6">
+              <div>
+                <h2 className="font-serif text-lg md:text-xl font-medium text-gray-900">For You</h2>
+                <p className="text-sm md:text-base text-gray-600 mt-1">
+                  Personalized property recommendations based on your preferences
+                </p>
+              </div>
+              <div className="space-y-8">
+                <RecommendedProperties preferences={preferences} />
+                <InvestorDashboardOverview investor={currentInvestor} />
+              </div>
             </div>
           )}
-          {activeTab === "preferences" && <InvestorDashboardPreferences preferences={preferences} />}
-          {activeTab === "saved-properties" && <InvestorDashboardSavedProperties />}
+          {activeTab === "preferences" && (
+            <div className="space-y-6">
+              <div>
+                <h2 className="font-serif text-lg md:text-xl font-medium text-gray-900">Investment Preferences</h2>
+                <p className="text-sm md:text-base text-gray-600 mt-1">
+                  Set your investment criteria to get tailored property recommendations
+                </p>
+              </div>
+              <InvestorDashboardPreferences preferences={preferences} />
+            </div>
+          )}
+          {activeTab === "saved-properties" && (
+            <div className="space-y-6">
+              <div>
+                <h2 className="font-serif text-lg md:text-xl font-medium text-gray-900">Saved Properties</h2>
+                <p className="text-sm md:text-base text-gray-600 mt-1">
+                  View and manage properties you've bookmarked for later
+                </p>
+              </div>
+              <InvestorDashboardSavedProperties />
+            </div>
+          )}
           {activeTab === "viewings" && (
             <div className="space-y-6">
               <div>
-                <h2 className="text-lg md:text-xl font-medium text-gray-900">My Viewings</h2>
+                <h2 className="font-serif text-lg md:text-xl font-medium text-gray-900">My Viewings</h2>
                 <p className="text-sm md:text-base text-gray-600 mt-1">
                   Track and manage your property viewing appointments
                 </p>

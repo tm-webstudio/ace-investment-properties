@@ -135,14 +135,6 @@ export function InvestorDashboardSavedProperties() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div>
-        <h2 className="text-lg md:text-xl font-medium text-gray-900">My Saved Properties</h2>
-        <p className="text-sm md:text-base text-gray-600 mt-1">
-          Properties you've saved for future consideration
-        </p>
-      </div>
-
       {loading ? (
         /* Loading Skeletons */
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
@@ -165,7 +157,7 @@ export function InvestorDashboardSavedProperties() {
         <div className="text-center py-16 text-muted-foreground min-h-[320px] flex flex-col items-center justify-center">
           <Heart className="h-10 w-10 mx-auto mb-3 opacity-50" />
           <p className="text-base font-medium mb-1.5">No Saved Properties</p>
-          <p className="text-sm mb-4">Start browsing properties and save the ones you're interested in</p>
+          <p className="text-sm mb-4 max-w-[240px] mx-auto">Start browsing properties and save the ones you're interested in</p>
           <Link href="/investor/property-matching">
             <Button className="bg-accent hover:bg-accent/90 text-accent-foreground">
               Find Properties

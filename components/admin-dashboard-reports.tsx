@@ -203,7 +203,7 @@ export function AdminDashboardReports() {
       <div className="text-center py-16 text-muted-foreground min-h-[320px] flex flex-col items-center justify-center">
         <FileText className="h-10 w-10 mx-auto mb-3 opacity-50 text-red-500" />
         <p className="text-base font-medium mb-1.5 text-red-600">Error Loading Documents</p>
-        <p className="text-sm mb-4">{error}</p>
+        <p className="text-sm mb-4 max-w-[200px] mx-auto">{error}</p>
         <button
           onClick={fetchDocuments}
           className="bg-accent hover:bg-accent/90 text-white px-4 py-2 rounded-md text-sm"
@@ -219,7 +219,7 @@ export function AdminDashboardReports() {
       <div className="text-center py-16 text-muted-foreground min-h-[320px] flex flex-col items-center justify-center">
         <FileText className="h-10 w-10 mx-auto mb-3 opacity-50" />
         <p className="text-base font-medium mb-1.5">No Documents Found</p>
-        <p className="text-sm">Landlord documents will appear here</p>
+        <p className="text-sm max-w-[200px] mx-auto">Landlord documents will appear here</p>
       </div>
     )
   }
@@ -254,7 +254,7 @@ export function AdminDashboardReports() {
         <div className="text-center py-16 text-muted-foreground min-h-[320px] flex flex-col items-center justify-center">
           <FileText className="h-10 w-10 mx-auto mb-3 opacity-50" />
           <p className="text-base font-medium mb-1.5">No Matching Documents</p>
-          <p className="text-sm">Try adjusting your filters</p>
+          <p className="text-sm max-w-[200px] mx-auto">Try adjusting your filters</p>
         </div>
       ) : (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -423,7 +423,7 @@ export function AdminDashboardReports() {
               <div className="text-center py-12 text-muted-foreground">
                 <FileText className="h-12 w-12 mx-auto mb-3 opacity-50" />
                 <p className="text-base font-medium mb-1.5">No Documents Found</p>
-                <p className="text-sm">No documents have been uploaded for this property yet</p>
+                <p className="text-sm max-w-[200px] mx-auto">No documents have been uploaded for this property yet</p>
               </div>
             )}
           </div>
