@@ -3,6 +3,7 @@ import {
   Text,
   Section,
   Button,
+  Hr,
 } from '@react-email/components';
 import * as React from 'react';
 import EmailLayout from './components/EmailLayout';
@@ -11,23 +12,23 @@ export default function PasswordReset({
   name = 'User',
   resetLink = `${process.env.NEXT_PUBLIC_SITE_URL}/reset-password?token=abc123`,
   expiryMinutes = 60,
-  dashboardLink = `${process.env.NEXT_PUBLIC_SITE_URL}/dashboard`,
 }) {
   return (
     <EmailLayout preview="Reset your password">
-      <Heading style={heading}>🔐 Password Reset Request</Heading>
+      {/* Icon + Title */}
+      <Section style={titleSection}>
+        <Text style={icon}>🔐</Text>
+        <Heading style={heading}>Password Reset Request</Heading>
+        <Text style={subtitle}>
+          Hi {name}, we received a request to reset the password for your Ace Properties account.
+        </Text>
+      </Section>
 
-      <Text style={text}>
-        Hi {name},
-      </Text>
-
-      <Text style={text}>
-        We received a request to reset the password for your Ace Properties account.
-      </Text>
-
-      {/* Security Notice */}
-      <Section style={securitySection}>
-        <Text style={securityHeading}>🛡️ Security Notice</Text>
+      {/* Security Notice - Orange Box */}
+      <Section style={securityBox}>
+        <Heading as="h3" style={securityHeading}>
+          🛡️ Security Notice
+        </Heading>
         <Text style={securityText}>
           If you didn't request this password reset, please ignore this email. Your account is safe and no changes have been made.
         </Text>
@@ -43,27 +44,35 @@ export default function PasswordReset({
         </Button>
       </Section>
 
-      {/* Link Alternative */}
-      <Section style={alternativeSection}>
-        <Text style={alternativeHeading}>Button not working?</Text>
+      <Hr style={hr} />
+
+      {/* Link Alternative - Light Gray Box */}
+      <Section style={alternativeBox}>
+        <Heading as="h3" style={alternativeHeading}>
+          Button not working?
+        </Heading>
         <Text style={alternativeText}>
           Copy and paste this link into your browser:
         </Text>
         <Text style={linkText}>{resetLink}</Text>
       </Section>
 
-      {/* Important Info */}
-      <Section style={infoSection}>
-        <Text style={infoHeading}>Important Information:</Text>
+      {/* Important Info - Light Yellow Box */}
+      <Section style={infoBox}>
+        <Heading as="h3" style={infoHeading}>
+          Important Information:
+        </Heading>
         <Text style={infoItem}>⏰ This link will expire in {expiryMinutes} minutes</Text>
         <Text style={infoItem}>🔒 This link can only be used once</Text>
         <Text style={infoItem}>🌐 Make sure you're on aceinvestmentproperties.co.uk</Text>
         <Text style={infoItem}>❌ Never share this link with anyone</Text>
       </Section>
 
-      {/* Password Tips */}
-      <Section style={tipsSection}>
-        <Text style={tipsHeading}>Create a Strong Password:</Text>
+      {/* Password Tips - Green Box */}
+      <Section style={tipsBox}>
+        <Heading as="h3" style={tipsHeading}>
+          Create a Strong Password:
+        </Heading>
         <Text style={tipText}>• Use at least 8 characters</Text>
         <Text style={tipText}>• Mix uppercase and lowercase letters</Text>
         <Text style={tipText}>• Include numbers and symbols</Text>
@@ -71,8 +80,8 @@ export default function PasswordReset({
         <Text style={tipText}>• Don't reuse passwords from other accounts</Text>
       </Section>
 
-      {/* Help Section */}
-      <Section style={helpSection}>
+      {/* Help Section - Red Box */}
+      <Section style={helpBox}>
         <Text style={helpText}>
           <strong>Didn't request this?</strong><br />
           If you didn't request a password reset, please contact our security team immediately at{' '}
@@ -82,6 +91,8 @@ export default function PasswordReset({
         </Text>
       </Section>
 
+      <Hr style={hr} />
+
       <Text style={footerText}>
         For your security, this email was sent from a secure server. Do not reply to this email.
       </Text>
@@ -89,155 +100,167 @@ export default function PasswordReset({
   );
 }
 
-const heading = {
-  color: '#0066cc',
-  fontSize: '28px',
-  fontWeight: 'bold',
-  margin: '0 0 20px 0',
+// Styles matching ACE Investment Properties brand
+const titleSection = {
   textAlign: 'center',
+  marginBottom: '32px',
 };
 
-const text = {
-  color: '#333',
+const icon = {
+  fontSize: '48px',
+  margin: '0 0 16px 0',
+};
+
+const heading = {
+  color: '#1f2937',
+  fontSize: '32px',
+  fontFamily: '"Playfair Display", Georgia, serif',
+  fontWeight: '500',
+  margin: '0 0 8px 0',
+};
+
+const subtitle = {
+  color: '#6b7280',
   fontSize: '16px',
-  lineHeight: '24px',
-  margin: '0 0 15px 0',
+  margin: 0,
 };
 
-const securitySection = {
-  margin: '30px 0',
-  padding: '20px',
+const securityBox = {
   backgroundColor: '#fffbeb',
-  borderRadius: '8px',
-  borderLeft: '4px solid #f59e0b',
+  borderLeft: '4px solid #f97316',
+  borderRadius: '0',
+  padding: '20px',
+  marginBottom: '24px',
 };
 
 const securityHeading = {
-  fontSize: '16px',
-  fontWeight: 'bold',
   color: '#92400e',
-  margin: '0 0 10px 0',
+  fontSize: '18px',
+  fontWeight: '500',
+  margin: '0 0 12px 0',
 };
 
 const securityText = {
-  fontSize: '14px',
   color: '#78350f',
+  fontSize: '14px',
   margin: '0',
   lineHeight: '22px',
 };
 
 const buttonSection = {
   textAlign: 'center',
-  margin: '30px 0',
+  margin: '32px 0',
 };
 
 const instructionText = {
+  color: '#1f2937',
   fontSize: '16px',
-  color: '#333',
   margin: '0 0 20px 0',
   textAlign: 'center',
 };
 
 const resetButton = {
-  backgroundColor: '#0066cc',
-  borderRadius: '6px',
-  color: '#fff',
-  fontSize: '16px',
-  fontWeight: 'bold',
-  textDecoration: 'none',
-  textAlign: 'center',
+  backgroundColor: '#4169E1',
+  color: '#ffffff',
   padding: '14px 32px',
+  borderRadius: '0',
+  textDecoration: 'none',
+  fontWeight: 'bold',
   display: 'inline-block',
 };
 
-const alternativeSection = {
-  margin: '30px 0',
+const hr = {
+  borderColor: '#e5e7eb',
+  margin: '32px 0',
+};
+
+const alternativeBox = {
+  backgroundColor: '#f8f9fa',
+  borderRadius: '0',
   padding: '20px',
-  backgroundColor: '#f5f5f5',
-  borderRadius: '8px',
+  marginBottom: '24px',
 };
 
 const alternativeHeading = {
-  fontSize: '14px',
-  fontWeight: 'bold',
-  color: '#1a1a1a',
+  color: '#1f2937',
+  fontSize: '16px',
+  fontWeight: '500',
   margin: '0 0 10px 0',
 };
 
 const alternativeText = {
+  color: '#6b7280',
   fontSize: '14px',
-  color: '#666',
   margin: '0 0 10px 0',
   lineHeight: '20px',
 };
 
 const linkText = {
+  color: '#4169E1',
   fontSize: '12px',
-  color: '#0066cc',
   wordBreak: 'break-all',
   fontFamily: 'monospace',
-  backgroundColor: '#f9fafb',
+  backgroundColor: '#ffffff',
   padding: '10px',
-  borderRadius: '4px',
-  border: '1px solid #e5e5e5',
+  borderRadius: '0',
+  border: '1px solid #e5e7eb',
 };
 
-const infoSection = {
-  margin: '30px 0',
+const infoBox = {
+  backgroundColor: '#fef3c7',
+  borderRadius: '0',
   padding: '20px',
-  backgroundColor: '#f0f9ff',
-  borderRadius: '8px',
-  borderLeft: '4px solid #0066cc',
+  marginBottom: '24px',
 };
 
 const infoHeading = {
-  fontSize: '16px',
-  fontWeight: 'bold',
-  color: '#1a1a1a',
-  margin: '0 0 12px 0',
+  color: '#1f2937',
+  fontSize: '18px',
+  fontWeight: '500',
+  margin: '0 0 16px 0',
 };
 
 const infoItem = {
+  color: '#6b7280',
   fontSize: '14px',
-  color: '#333',
   margin: '8px 0',
   lineHeight: '22px',
   paddingLeft: '5px',
 };
 
-const tipsSection = {
-  margin: '30px 0',
-  padding: '20px',
+const tipsBox = {
   backgroundColor: '#ecfdf5',
-  borderRadius: '8px',
+  borderRadius: '0',
+  padding: '20px',
+  marginBottom: '24px',
 };
 
 const tipsHeading = {
-  fontSize: '16px',
-  fontWeight: 'bold',
   color: '#047857',
-  margin: '0 0 10px 0',
+  fontSize: '18px',
+  fontWeight: '500',
+  margin: '0 0 16px 0',
 };
 
 const tipText = {
-  fontSize: '14px',
   color: '#065f46',
+  fontSize: '14px',
   margin: '6px 0',
   lineHeight: '22px',
   paddingLeft: '5px',
 };
 
-const helpSection = {
-  margin: '30px 0',
-  padding: '20px',
+const helpBox = {
   backgroundColor: '#fef2f2',
-  borderRadius: '8px',
   borderLeft: '4px solid #ef4444',
+  borderRadius: '0',
+  padding: '20px',
+  marginBottom: '24px',
 };
 
 const helpText = {
-  fontSize: '14px',
   color: '#991b1b',
+  fontSize: '14px',
   margin: '0',
   lineHeight: '22px',
 };
@@ -248,8 +271,8 @@ const link = {
 };
 
 const footerText = {
+  color: '#9ca3af',
   fontSize: '12px',
-  color: '#999',
   textAlign: 'center',
   margin: '30px 0 0 0',
   lineHeight: '20px',

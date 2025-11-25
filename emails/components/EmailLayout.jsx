@@ -7,19 +7,41 @@ import {
   Text,
   Link,
   Hr,
+  Font,
 } from '@react-email/components';
 import * as React from 'react';
 
 export default function EmailLayout({ children, preview }) {
   return (
     <Html>
-      <Head />
+      <Head>
+        <Font
+          fontFamily="Playfair Display"
+          fallbackFontFamily="Georgia"
+          webFont={{
+            url: 'https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&display=swap',
+            format: 'woff2',
+          }}
+          fontWeight={500}
+          fontStyle="normal"
+        />
+        <Font
+          fontFamily="Inter"
+          fallbackFontFamily="Arial"
+          webFont={{
+            url: 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap',
+            format: 'woff2',
+          }}
+          fontWeight={400}
+          fontStyle="normal"
+        />
+      </Head>
       {preview && <preview>{preview}</preview>}
       <Body style={main}>
         {/* Header */}
         <Section style={header}>
           <Container style={headerContainer}>
-            <Text style={headerText}>ACE PROPERTIES</Text>
+            <Text style={headerText}>ACE INVESTMENT PROPERTIES</Text>
           </Container>
         </Section>
 
@@ -62,13 +84,16 @@ export default function EmailLayout({ children, preview }) {
 }
 
 const main = {
-  backgroundColor: '#f5f5f5',
-  fontFamily: 'Arial, sans-serif',
+  backgroundColor: '#f8f9fa',
+  fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+  margin: 0,
+  padding: 0,
 };
 
 const header = {
-  backgroundColor: '#1a1a1a',
-  padding: '20px 0',
+  backgroundColor: '#1a1a2e',
+  padding: '24px 0',
+  textAlign: 'center',
 };
 
 const headerContainer = {
@@ -79,10 +104,11 @@ const headerContainer = {
 
 const headerText = {
   color: '#ffffff',
-  fontSize: '24px',
+  fontSize: '20px',
   fontWeight: 'bold',
   margin: '0',
-  letterSpacing: '2px',
+  letterSpacing: '1px',
+  textAlign: 'center',
 };
 
 const container = {
@@ -109,7 +135,7 @@ const hr = {
 };
 
 const footerText = {
-  color: '#666',
+  color: '#6b7280',
   fontSize: '12px',
   lineHeight: '20px',
   textAlign: 'center',
@@ -117,19 +143,19 @@ const footerText = {
 };
 
 const footerLinks = {
-  color: '#666',
+  color: '#6b7280',
   fontSize: '12px',
   textAlign: 'center',
   margin: '10px 0',
 };
 
 const footerLink = {
-  color: '#0066cc',
+  color: '#4169E1',
   textDecoration: 'none',
 };
 
 const footerContact = {
-  color: '#666',
+  color: '#6b7280',
   fontSize: '12px',
   textAlign: 'center',
   margin: '10px 0',

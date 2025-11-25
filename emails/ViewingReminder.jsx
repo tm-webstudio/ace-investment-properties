@@ -1,15 +1,15 @@
 import {
   Heading,
   Text,
-  Img,
   Section,
   Button,
   Hr,
+  Img,
 } from '@react-email/components';
 import * as React from 'react';
 import EmailLayout from './components/EmailLayout';
 
-export default function ViewingConfirmation({
+export default function ViewingReminder({
   propertyTitle = 'Modern 2 Bedroom Apartment',
   propertyAddress = '123 Nash Road, London, E1 1AA',
   propertyImage = '',
@@ -17,19 +17,26 @@ export default function ViewingConfirmation({
   viewingTime = '14:00',
   landlordName = 'John Smith',
   landlordPhone = '+44 7700 900000',
+  directionsLink = '',
   dashboardLink = `${process.env.NEXT_PUBLIC_SITE_URL}/investor/dashboard`,
 }) {
-  const calendarLink = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=Property+Viewing:+${encodeURIComponent(propertyTitle)}&dates=${viewingDate.replace(/-/g, '')}T${viewingTime.replace(':', '')}00/${viewingDate.replace(/-/g, '')}T${viewingTime.replace(':', '')}00&details=${encodeURIComponent(propertyAddress)}&location=${encodeURIComponent(propertyAddress)}`;
-  const directionsLink = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(propertyAddress)}`;
+  const formattedDate = new Date(viewingDate).toLocaleDateString('en-GB', {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
+
+  const mapsLink = directionsLink || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(propertyAddress)}`;
 
   return (
-    <EmailLayout preview="Your viewing has been confirmed!">
+    <EmailLayout preview="Viewing reminder - Tomorrow">
       {/* Icon + Title */}
       <Section style={titleSection}>
-        <Text style={icon}>✓</Text>
-        <Heading style={heading}>Viewing Confirmed!</Heading>
+        <Text style={icon}>⏰</Text>
+        <Heading style={heading}>Viewing Tomorrow!</Heading>
         <Text style={subtitle}>
-          Great news! Your viewing request has been approved by the landlord.
+          This is a friendly reminder about your upcoming property viewing.
         </Text>
       </Section>
 
@@ -50,7 +57,7 @@ export default function ViewingConfirmation({
         </Text>
       </Section>
 
-      {/* Viewing Details - Light Yellow Box */}
+      {/* Viewing Details - Yellow Box */}
       <Section style={infoBox}>
         <Heading as="h3" style={infoHeading}>
           Viewing Details
@@ -59,14 +66,7 @@ export default function ViewingConfirmation({
           <tbody>
             <tr>
               <td style={infoLabel}>Date:</td>
-              <td style={infoValue}>
-                {new Date(viewingDate).toLocaleDateString('en-GB', {
-                  weekday: 'long',
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric',
-                })}
-              </td>
+              <td style={infoValue}>{formattedDate}</td>
             </tr>
             <tr>
               <td style={infoLabel}>Time:</td>
@@ -84,27 +84,26 @@ export default function ViewingConfirmation({
         </table>
       </Section>
 
-      {/* Action Buttons */}
+      {/* Action Button */}
       <Section style={buttonSection}>
-        <Button href={calendarLink} style={calendarButton}>
-          📅 Add to Calendar
-        </Button>
-        <Button href={directionsLink} style={directionsButton}>
+        <Button href={mapsLink} style={directionsButton}>
           🗺️ Get Directions
         </Button>
       </Section>
 
       <Hr style={hr} />
 
-      {/* Viewing Tips */}
+      {/* Tips Box - Green */}
       <Section style={tipsBox}>
         <Heading as="h3" style={tipsHeading}>
-          💡 Viewing Tips
+          💡 Viewing Checklist
         </Heading>
-        <Text style={tipText}>• Arrive 5 minutes early</Text>
-        <Text style={tipText}>• Bring a list of questions</Text>
-        <Text style={tipText}>• Take photos/notes if permitted</Text>
-        <Text style={tipText}>• Check all rooms and amenities</Text>
+        <Text style={tipText}>✓ Arrive 5 minutes early</Text>
+        <Text style={tipText}>✓ Bring photo ID</Text>
+        <Text style={tipText}>✓ Prepare your questions</Text>
+        <Text style={tipText}>✓ Take photos/notes if permitted</Text>
+        <Text style={tipText}>✓ Check all rooms and amenities</Text>
+        <Text style={tipText}>✓ Note any concerns or repairs needed</Text>
       </Section>
 
       <Section style={dashboardSection}>
@@ -112,6 +111,10 @@ export default function ViewingConfirmation({
           View My Dashboard
         </Button>
       </Section>
+
+      <Text style={footerText}>
+        Need to cancel or reschedule? Please contact the landlord as soon as possible.
+      </Text>
     </EmailLayout>
   );
 }
@@ -124,9 +127,7 @@ const titleSection = {
 
 const icon = {
   fontSize: '48px',
-  color: '#10b981',
   margin: '0 0 16px 0',
-  display: 'block',
 };
 
 const heading = {
@@ -210,17 +211,6 @@ const buttonSection = {
   margin: '32px 0',
 };
 
-const calendarButton = {
-  backgroundColor: '#10b981',
-  color: '#ffffff',
-  padding: '14px 32px',
-  borderRadius: '0',
-  textDecoration: 'none',
-  fontWeight: 'bold',
-  display: 'inline-block',
-  margin: '0 8px 12px 8px',
-};
-
 const directionsButton = {
   backgroundColor: '#4169E1',
   color: '#ffffff',
@@ -229,7 +219,6 @@ const directionsButton = {
   textDecoration: 'none',
   fontWeight: 'bold',
   display: 'inline-block',
-  margin: '0 8px 12px 8px',
 };
 
 const hr = {
@@ -238,22 +227,21 @@ const hr = {
 };
 
 const tipsBox = {
-  backgroundColor: '#fffbeb',
-  borderLeft: '4px solid #f97316',
+  backgroundColor: '#ecfdf5',
   borderRadius: '0',
   padding: '20px',
   marginBottom: '24px',
 };
 
 const tipsHeading = {
-  color: '#1f2937',
+  color: '#047857',
   fontSize: '18px',
   fontWeight: '500',
   margin: '0 0 16px 0',
 };
 
 const tipText = {
-  color: '#6b7280',
+  color: '#065f46',
   fontSize: '14px',
   margin: '5px 0',
   lineHeight: '20px',
@@ -272,4 +260,12 @@ const dashboardButton = {
   textDecoration: 'none',
   fontWeight: 'bold',
   display: 'inline-block',
+};
+
+const footerText = {
+  color: '#6b7280',
+  fontSize: '14px',
+  textAlign: 'center',
+  margin: '20px 0',
+  lineHeight: '22px',
 };

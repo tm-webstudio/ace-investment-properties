@@ -3,8 +3,8 @@ import {
   Text,
   Section,
   Button,
-  Row,
-  Column,
+  Hr,
+  Img,
 } from '@react-email/components';
 import * as React from 'react';
 import EmailLayout from './components/EmailLayout';
@@ -12,6 +12,7 @@ import EmailLayout from './components/EmailLayout';
 export default function ViewingRequest({
   propertyTitle = 'Modern 2 Bedroom Apartment',
   propertyAddress = '123 Nash Road, London, E1 1AA',
+  propertyImage = '',
   viewerName = 'Jane Doe',
   viewerEmail = 'jane@example.com',
   viewerPhone = '+44 7700 900001',
@@ -21,272 +22,261 @@ export default function ViewingRequest({
   message = 'I am interested in viewing this property. Please let me know if this time works for you.',
   approveLink = `${process.env.NEXT_PUBLIC_SITE_URL}/api/viewings/approve?id=123`,
   declineLink = `${process.env.NEXT_PUBLIC_SITE_URL}/api/viewings/decline?id=123`,
-  dashboardLink = `${process.env.NEXT_PUBLIC_SITE_URL}/landlord/dashboard`,
 }) {
   return (
     <EmailLayout preview="New viewing request for your property">
-      <Heading style={heading}>📬 New Viewing Request</Heading>
-
-      <Text style={text}>
-        You have received a new viewing request for your property.
-      </Text>
-
-      {/* Property Details */}
-      <Section style={propertySection}>
-        <Heading style={propertyTitle}>{propertyTitle}</Heading>
-        <Text style={propertyAddress}>📍 {propertyAddress}</Text>
+      {/* Icon + Title */}
+      <Section style={titleSection}>
+        <Text style={icon}>🏠</Text>
+        <Heading style={heading}>New Viewing Request</Heading>
+        <Text style={subtitle}>
+          You have received a new viewing request for your property.
+        </Text>
       </Section>
 
-      {/* Requester Details */}
-      <Section style={requesterSection}>
-        <Text style={sectionHeading}>Requester Information</Text>
+      {/* Property Box - Blue Border */}
+      <Section style={propertyBox}>
+        {propertyImage && (
+          <Img
+            src={propertyImage}
+            alt={propertyTitle}
+            style={propertyImageStyle}
+          />
+        )}
+        <Heading as="h2" style={propertyTitle}>
+          {propertyTitle}
+        </Heading>
+        <Text style={propertyAddress}>
+          📍 {propertyAddress}
+        </Text>
+      </Section>
 
-        <Row style={detailRow}>
-          <Column style={detailLabel}>Name:</Column>
-          <Column style={detailValue}>{viewerName}</Column>
-        </Row>
-
-        <Row style={detailRow}>
-          <Column style={detailLabel}>Email:</Column>
-          <Column style={detailValue}>{viewerEmail}</Column>
-        </Row>
-
-        <Row style={detailRow}>
-          <Column style={detailLabel}>Phone:</Column>
-          <Column style={detailValue}>{viewerPhone}</Column>
-        </Row>
-
-        <Row style={detailRow}>
-          <Column style={detailLabel}>Type:</Column>
-          <Column style={detailValue}>
-            <span style={userTypeBadge}>{viewerType}</span>
-          </Column>
-        </Row>
+      {/* Requester Info - Light Yellow Box */}
+      <Section style={infoBox}>
+        <Heading as="h3" style={infoHeading}>
+          Requester Information
+        </Heading>
+        <table style={infoTable}>
+          <tbody>
+            <tr>
+              <td style={infoLabel}>Name:</td>
+              <td style={infoValue}>{viewerName}</td>
+            </tr>
+            <tr>
+              <td style={infoLabel}>Email:</td>
+              <td style={infoValue}>{viewerEmail}</td>
+            </tr>
+            <tr>
+              <td style={infoLabel}>Phone:</td>
+              <td style={infoValue}>{viewerPhone}</td>
+            </tr>
+            <tr>
+              <td style={infoLabel}>Type:</td>
+              <td>
+                <span style={badge}>{viewerType}</span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </Section>
 
       {/* Viewing Details */}
-      <Section style={viewingSection}>
-        <Text style={sectionHeading}>Requested Viewing Time</Text>
-
-        <Row style={detailRow}>
-          <Column style={detailLabel}>Date:</Column>
-          <Column style={detailValue}>
-            {new Date(viewingDate).toLocaleDateString('en-GB', {
-              weekday: 'long',
-              year: 'numeric',
-              month: 'long',
-              day: 'numeric'
-            })}
-          </Column>
-        </Row>
-
-        <Row style={detailRow}>
-          <Column style={detailLabel}>Time:</Column>
-          <Column style={detailValue}>{viewingTime}</Column>
-        </Row>
+      <Section style={detailsSection}>
+        <Text style={detailsText}>
+          <strong>Requested Date:</strong>{' '}
+          {new Date(viewingDate).toLocaleDateString('en-GB', {
+            weekday: 'long',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+          })}
+        </Text>
+        <Text style={detailsText}>
+          <strong>Requested Time:</strong> {viewingTime}
+        </Text>
+        {message && (
+          <>
+            <Text style={detailsText}>
+              <strong>Message:</strong>
+            </Text>
+            <Text style={messageText}>"{message}"</Text>
+          </>
+        )}
       </Section>
-
-      {/* Message */}
-      {message && (
-        <Section style={messageSection}>
-          <Text style={sectionHeading}>Message from Requester</Text>
-          <Text style={messageText}>"{message}"</Text>
-        </Section>
-      )}
 
       {/* Action Buttons */}
       <Section style={buttonSection}>
-        <Text style={actionText}>
-          Please respond to this viewing request:
-        </Text>
-
-        <Row>
-          <Column align="center" style={{ padding: '10px 5px' }}>
-            <Button href={approveLink} style={approveButton}>
-              ✓ Approve Viewing
-            </Button>
-          </Column>
-          <Column align="center" style={{ padding: '10px 5px' }}>
-            <Button href={declineLink} style={declineButton}>
-              ✕ Decline Request
-            </Button>
-          </Column>
-        </Row>
-      </Section>
-
-      <Text style={noteText}>
-        💡 <strong>Tip:</strong> Quick responses lead to better tenant relationships and faster bookings!
-      </Text>
-
-      <Section style={dashboardSection}>
-        <Button href={dashboardLink} style={dashboardButton}>
-          Manage All Viewings
+        <Button href={approveLink} style={approveButton}>
+          ✓ Approve Viewing
+        </Button>
+        <Button href={declineLink} style={declineButton}>
+          ✗ Decline Request
         </Button>
       </Section>
+
+      <Hr style={hr} />
+
+      <Text style={tipText}>
+        💡 <strong>Tip:</strong> Quick responses lead to better tenant relationships and faster bookings!
+      </Text>
     </EmailLayout>
   );
 }
 
-const heading = {
-  color: '#1a1a1a',
-  fontSize: '28px',
-  fontWeight: 'bold',
-  margin: '0 0 20px 0',
+// Styles matching ACE Investment Properties brand
+const titleSection = {
   textAlign: 'center',
+  marginBottom: '32px',
 };
 
-const text = {
-  color: '#333',
+const icon = {
+  fontSize: '48px',
+  margin: '0 0 16px 0',
+};
+
+const heading = {
+  color: '#1f2937',
+  fontSize: '32px',
+  fontFamily: '"Playfair Display", Georgia, serif',
+  fontWeight: '500',
+  margin: '0 0 8px 0',
+};
+
+const subtitle = {
+  color: '#6b7280',
   fontSize: '16px',
-  lineHeight: '24px',
-  margin: '0 0 20px 0',
+  margin: 0,
 };
 
-const propertySection = {
-  margin: '20px 0',
-  padding: '20px',
-  backgroundColor: '#f9fafb',
-  borderRadius: '8px',
-  borderLeft: '4px solid #0066cc',
+const propertyBox = {
+  border: '3px solid #4169E1',
+  borderRadius: '0',
+  padding: '24px',
+  marginBottom: '24px',
+  backgroundColor: '#ffffff',
+};
+
+const propertyImageStyle = {
+  width: '100%',
+  height: 'auto',
+  borderRadius: '0',
+  marginBottom: '16px',
 };
 
 const propertyTitle = {
-  fontSize: '20px',
-  fontWeight: 'bold',
-  color: '#1a1a1a',
+  color: '#1f2937',
+  fontSize: '24px',
+  fontFamily: '"Playfair Display", Georgia, serif',
+  fontWeight: '500',
   margin: '0 0 8px 0',
 };
 
 const propertyAddress = {
+  color: '#6b7280',
   fontSize: '14px',
-  color: '#666',
-  margin: '0',
+  margin: 0,
 };
 
-const requesterSection = {
-  margin: '20px 0',
+const infoBox = {
+  backgroundColor: '#fef3c7',
+  borderRadius: '0',
   padding: '20px',
-  backgroundColor: '#fefce8',
-  borderRadius: '8px',
+  marginBottom: '24px',
 };
 
-const viewingSection = {
-  margin: '20px 0',
-  padding: '20px',
-  backgroundColor: '#f0f9ff',
-  borderRadius: '8px',
-};
-
-const messageSection = {
-  margin: '20px 0',
-  padding: '20px',
-  backgroundColor: '#f5f5f5',
-  borderRadius: '8px',
-  borderLeft: '4px solid #666',
-};
-
-const sectionHeading = {
-  fontSize: '16px',
+const infoHeading = {
+  color: '#1f2937',
+  fontSize: '18px',
   fontWeight: 'bold',
-  color: '#1a1a1a',
-  margin: '0 0 15px 0',
+  margin: '0 0 16px 0',
 };
 
-const detailRow = {
-  marginBottom: '10px',
+const infoTable = {
+  width: '100%',
+  borderCollapse: 'collapse',
 };
 
-const detailLabel = {
+const infoLabel = {
+  color: '#6b7280',
   fontSize: '14px',
-  fontWeight: 'bold',
-  color: '#666',
+  fontWeight: '600',
+  padding: '8px 0',
   width: '100px',
 };
 
-const detailValue = {
+const infoValue = {
+  color: '#1f2937',
   fontSize: '14px',
-  color: '#1a1a1a',
+  padding: '8px 0',
 };
 
-const userTypeBadge = {
-  backgroundColor: '#0066cc',
-  color: '#fff',
+const badge = {
+  backgroundColor: '#4169E1',
+  color: '#ffffff',
   padding: '4px 12px',
-  borderRadius: '12px',
+  borderRadius: '0',
   fontSize: '12px',
   fontWeight: 'bold',
 };
 
-const messageText = {
+const detailsSection = {
+  marginBottom: '24px',
+};
+
+const detailsText = {
+  color: '#1f2937',
   fontSize: '14px',
-  color: '#333',
+  margin: '8px 0',
+};
+
+const messageText = {
+  color: '#6b7280',
+  fontSize: '14px',
   fontStyle: 'italic',
-  lineHeight: '22px',
-  margin: '0',
+  padding: '12px',
+  backgroundColor: '#f8f9fa',
+  borderLeft: '3px solid #4169E1',
+  margin: '8px 0',
 };
 
 const buttonSection = {
-  margin: '30px 0',
   textAlign: 'center',
-};
-
-const actionText = {
-  fontSize: '16px',
-  fontWeight: 'bold',
-  color: '#1a1a1a',
-  margin: '0 0 20px 0',
-  textAlign: 'center',
+  margin: '32px 0',
 };
 
 const approveButton = {
   backgroundColor: '#10b981',
-  borderRadius: '6px',
-  color: '#fff',
-  fontSize: '16px',
-  fontWeight: 'bold',
+  color: '#ffffff',
+  padding: '14px 32px',
+  borderRadius: '0',
   textDecoration: 'none',
-  textAlign: 'center',
-  padding: '14px 24px',
+  fontWeight: 'bold',
   display: 'inline-block',
-  width: '100%',
+  margin: '0 8px 12px 8px',
 };
 
 const declineButton = {
   backgroundColor: '#ef4444',
-  borderRadius: '6px',
-  color: '#fff',
-  fontSize: '16px',
-  fontWeight: 'bold',
+  color: '#ffffff',
+  padding: '14px 32px',
+  borderRadius: '0',
   textDecoration: 'none',
-  textAlign: 'center',
-  padding: '14px 24px',
+  fontWeight: 'bold',
   display: 'inline-block',
-  width: '100%',
+  margin: '0 8px 12px 8px',
 };
 
-const noteText = {
+const hr = {
+  borderColor: '#e5e7eb',
+  margin: '32px 0',
+};
+
+const tipText = {
+  color: '#6b7280',
   fontSize: '14px',
-  color: '#666',
   lineHeight: '22px',
   margin: '20px 0',
   padding: '15px',
   backgroundColor: '#fffbeb',
-  borderRadius: '6px',
-};
-
-const dashboardSection = {
-  textAlign: 'center',
-  margin: '30px 0',
-};
-
-const dashboardButton = {
-  backgroundColor: '#1a1a1a',
-  borderRadius: '6px',
-  color: '#fff',
-  fontSize: '14px',
-  fontWeight: 'bold',
-  textDecoration: 'none',
-  textAlign: 'center',
-  padding: '12px 24px',
-  display: 'inline-block',
+  borderRadius: '0',
 };

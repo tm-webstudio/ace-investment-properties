@@ -3,8 +3,7 @@ import {
   Text,
   Section,
   Button,
-  Row,
-  Column,
+  Hr,
 } from '@react-email/components';
 import * as React from 'react';
 import EmailLayout from './components/EmailLayout';
@@ -31,104 +30,100 @@ export default function DocumentExpiring({
 
   return (
     <EmailLayout preview="Document expiring soon - Action required">
-      <Heading style={heading}>
-        {isExpired ? '⚠️ Document Expired' : '⏰ Document Expiring Soon'}
-      </Heading>
-
-      <Text style={text}>
-        Hi {landlordName},
-      </Text>
-
-      <Text style={text}>
-        This is a reminder that {isExpired ? 'a document has expired' : 'one of your documents is expiring soon'} for your property.
-      </Text>
-
-      {/* Property Details */}
-      <Section style={propertySection}>
-        <Heading style={propertyTitle}>{propertyTitle}</Heading>
-        <Text style={propertyAddress}>📍 {propertyAddress}</Text>
-      </Section>
-
-      {/* Warning Box */}
-      <Section style={isExpired ? expiredSection : (isUrgent ? urgentSection : warningSection)}>
-        <Text style={warningHeading}>
-          {isExpired ? '❌ Expired Document' : (isUrgent ? '⚠️ Urgent Action Required' : '📋 Document Status')}
+      {/* Icon + Title */}
+      <Section style={titleSection}>
+        <Text style={icon}>
+          {isExpired ? '⚠️' : '⏰'}
         </Text>
-
-        <Row style={detailRow}>
-          <Column style={detailLabel}>Document:</Column>
-          <Column style={detailValue}>{documentType}</Column>
-        </Row>
-
-        <Row style={detailRow}>
-          <Column style={detailLabel}>
-            {isExpired ? 'Expired on:' : 'Expires on:'}
-          </Column>
-          <Column style={detailValue}>{formattedDate}</Column>
-        </Row>
-
-        {!isExpired && (
-          <Row style={detailRow}>
-            <Column style={detailLabel}>Days remaining:</Column>
-            <Column style={detailValue}>
-              <span style={isUrgent ? urgentBadge : daysBadge}>
-                {daysUntilExpiry} {daysUntilExpiry === 1 ? 'day' : 'days'}
-              </span>
-            </Column>
-          </Row>
-        )}
+        <Heading style={heading}>
+          {isExpired ? 'Document Expired' : 'Document Expiring Soon'}
+        </Heading>
+        <Text style={subtitle}>
+          Hi {landlordName}, this is a reminder that {isExpired ? 'a document has expired' : 'one of your documents is expiring soon'} for your property.
+        </Text>
       </Section>
 
-      {/* Why This Matters */}
-      <Section style={infoSection}>
-        <Text style={infoHeading}>Why This Matters</Text>
+      {/* Property Box - Blue Border */}
+      <Section style={propertyBox}>
+        <Heading as="h2" style={propertyTitle}>
+          {propertyTitle}
+        </Heading>
+        <Text style={propertyAddress}>
+          📍 {propertyAddress}
+        </Text>
+      </Section>
+
+      {/* Warning Box - Orange/Red */}
+      <Section style={isExpired ? expiredBox : (isUrgent ? urgentBox : warningBox)}>
+        <Heading as="h3" style={warningHeading}>
+          {isExpired ? '❌ Expired Document' : (isUrgent ? '⚠️ Urgent Action Required' : '📋 Document Status')}
+        </Heading>
+        <table style={infoTable}>
+          <tbody>
+            <tr>
+              <td style={infoLabel}>Document:</td>
+              <td style={infoValue}>{documentType}</td>
+            </tr>
+            <tr>
+              <td style={infoLabel}>
+                {isExpired ? 'Expired on:' : 'Expires on:'}
+              </td>
+              <td style={infoValue}>{formattedDate}</td>
+            </tr>
+            {!isExpired && (
+              <tr>
+                <td style={infoLabel}>Days remaining:</td>
+                <td>
+                  <span style={isUrgent ? urgentBadge : warningBadge}>
+                    {daysUntilExpiry} {daysUntilExpiry === 1 ? 'day' : 'days'}
+                  </span>
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </Section>
+
+      {/* Why This Matters - Light Yellow Box */}
+      <Section style={infoBox}>
+        <Heading as="h3" style={infoHeading}>
+          Why This Matters
+        </Heading>
         {isExpired ? (
           <>
-            <Text style={infoText}>
-              • Your property is currently non-compliant with legal requirements
-            </Text>
-            <Text style={infoText}>
-              • This may affect your insurance coverage
-            </Text>
-            <Text style={infoText}>
-              • You could face legal penalties
-            </Text>
-            <Text style={infoText}>
-              • Your property listing may be suspended until updated
-            </Text>
+            <Text style={infoText}>• Your property is currently non-compliant with legal requirements</Text>
+            <Text style={infoText}>• This may affect your insurance coverage</Text>
+            <Text style={infoText}>• You could face legal penalties</Text>
+            <Text style={infoText}>• Your property listing may be suspended until updated</Text>
           </>
         ) : (
           <>
-            <Text style={infoText}>
-              • Maintaining up-to-date documents is a legal requirement
-            </Text>
-            <Text style={infoText}>
-              • Expired documents may affect your insurance
-            </Text>
-            <Text style={infoText}>
-              • Keep your property listing active and compliant
-            </Text>
-            <Text style={infoText}>
-              • Protect yourself and your tenants
-            </Text>
+            <Text style={infoText}>• Maintaining up-to-date documents is a legal requirement</Text>
+            <Text style={infoText}>• Expired documents may affect your insurance</Text>
+            <Text style={infoText}>• Keep your property listing active and compliant</Text>
+            <Text style={infoText}>• Protect yourself and your tenants</Text>
           </>
         )}
       </Section>
 
-      {/* Next Steps */}
-      <Section style={nextStepsSection}>
-        <Text style={nextStepsHeading}>What You Need To Do:</Text>
+      {/* Next Steps - Green Box */}
+      <Section style={nextStepsBox}>
+        <Heading as="h3" style={nextStepsHeading}>
+          What You Need To Do:
+        </Heading>
         <Text style={stepText}>1. Arrange a new {documentType.toLowerCase()} inspection</Text>
         <Text style={stepText}>2. Once completed, upload the new document to your dashboard</Text>
         <Text style={stepText}>3. We'll verify and update your property records</Text>
       </Section>
 
-      {/* Action Button */}
+      {/* Action Buttons */}
       <Section style={buttonSection}>
         <Button href={uploadLink} style={uploadButton}>
           Upload New Document
         </Button>
       </Section>
+
+      <Hr style={hr} />
 
       <Section style={dashboardSection}>
         <Button href={dashboardLink} style={dashboardButton}>
@@ -147,164 +142,182 @@ export default function DocumentExpiring({
   );
 }
 
-const heading = {
-  color: '#f97316',
-  fontSize: '28px',
-  fontWeight: 'bold',
-  margin: '0 0 20px 0',
+// Styles matching ACE Investment Properties brand
+const titleSection = {
   textAlign: 'center',
+  marginBottom: '32px',
 };
 
-const text = {
-  color: '#333',
+const icon = {
+  fontSize: '48px',
+  margin: '0 0 16px 0',
+};
+
+const heading = {
+  color: '#1f2937',
+  fontSize: '32px',
+  fontFamily: '"Playfair Display", Georgia, serif',
+  fontWeight: '500',
+  margin: '0 0 8px 0',
+};
+
+const subtitle = {
+  color: '#6b7280',
   fontSize: '16px',
-  lineHeight: '24px',
-  margin: '0 0 15px 0',
+  margin: 0,
 };
 
-const propertySection = {
-  margin: '20px 0',
-  padding: '20px',
-  backgroundColor: '#f9fafb',
-  borderRadius: '8px',
+const propertyBox = {
+  border: '3px solid #4169E1',
+  borderRadius: '0',
+  padding: '24px',
+  marginBottom: '24px',
+  backgroundColor: '#ffffff',
 };
 
 const propertyTitle = {
-  fontSize: '18px',
-  fontWeight: 'bold',
-  color: '#1a1a1a',
+  color: '#1f2937',
+  fontSize: '24px',
+  fontFamily: '"Playfair Display", Georgia, serif',
+  fontWeight: '500',
   margin: '0 0 8px 0',
 };
 
 const propertyAddress = {
+  color: '#6b7280',
   fontSize: '14px',
-  color: '#666',
-  margin: '0',
+  margin: 0,
 };
 
-const warningSection = {
-  margin: '30px 0',
-  padding: '20px',
+const warningBox = {
   backgroundColor: '#fffbeb',
-  borderRadius: '8px',
   borderLeft: '4px solid #f97316',
+  borderRadius: '0',
+  padding: '20px',
+  marginBottom: '24px',
 };
 
-const urgentSection = {
-  margin: '30px 0',
-  padding: '20px',
+const urgentBox = {
   backgroundColor: '#fef2f2',
-  borderRadius: '8px',
   borderLeft: '4px solid #ef4444',
+  borderRadius: '0',
+  padding: '20px',
+  marginBottom: '24px',
 };
 
-const expiredSection = {
-  margin: '30px 0',
-  padding: '20px',
+const expiredBox = {
   backgroundColor: '#fef2f2',
-  borderRadius: '8px',
   borderLeft: '4px solid #dc2626',
+  borderRadius: '0',
+  padding: '20px',
+  marginBottom: '24px',
 };
 
 const warningHeading = {
-  fontSize: '18px',
-  fontWeight: 'bold',
   color: '#92400e',
-  margin: '0 0 15px 0',
+  fontSize: '18px',
+  fontWeight: '500',
+  margin: '0 0 16px 0',
 };
 
-const detailRow = {
-  marginBottom: '10px',
+const infoTable = {
+  width: '100%',
+  borderCollapse: 'collapse',
 };
 
-const detailLabel = {
+const infoLabel = {
+  color: '#6b7280',
   fontSize: '14px',
-  fontWeight: 'bold',
-  color: '#666',
+  fontWeight: '600',
+  padding: '8px 0',
   width: '150px',
 };
 
-const detailValue = {
+const infoValue = {
+  color: '#1f2937',
   fontSize: '14px',
-  color: '#1a1a1a',
+  padding: '8px 0',
 };
 
-const daysBadge = {
+const warningBadge = {
   backgroundColor: '#f97316',
-  color: '#fff',
+  color: '#ffffff',
   padding: '4px 12px',
-  borderRadius: '12px',
+  borderRadius: '0',
   fontSize: '12px',
   fontWeight: 'bold',
 };
 
 const urgentBadge = {
   backgroundColor: '#ef4444',
-  color: '#fff',
+  color: '#ffffff',
   padding: '4px 12px',
-  borderRadius: '12px',
+  borderRadius: '0',
   fontSize: '12px',
   fontWeight: 'bold',
 };
 
-const infoSection = {
-  margin: '30px 0',
+const infoBox = {
+  backgroundColor: '#fef3c7',
+  borderRadius: '0',
   padding: '20px',
-  backgroundColor: '#f0f9ff',
-  borderRadius: '8px',
+  marginBottom: '24px',
 };
 
 const infoHeading = {
-  fontSize: '16px',
-  fontWeight: 'bold',
-  color: '#1a1a1a',
-  margin: '0 0 10px 0',
+  color: '#1f2937',
+  fontSize: '18px',
+  fontWeight: '500',
+  margin: '0 0 16px 0',
 };
 
 const infoText = {
+  color: '#6b7280',
   fontSize: '14px',
-  color: '#333',
   margin: '6px 0',
   lineHeight: '22px',
   paddingLeft: '5px',
 };
 
-const nextStepsSection = {
-  margin: '30px 0',
-  padding: '20px',
+const nextStepsBox = {
   backgroundColor: '#ecfdf5',
-  borderRadius: '8px',
+  borderRadius: '0',
+  padding: '20px',
+  marginBottom: '24px',
 };
 
 const nextStepsHeading = {
-  fontSize: '16px',
-  fontWeight: 'bold',
   color: '#047857',
-  margin: '0 0 10px 0',
+  fontSize: '18px',
+  fontWeight: '500',
+  margin: '0 0 16px 0',
 };
 
 const stepText = {
-  fontSize: '14px',
   color: '#065f46',
+  fontSize: '14px',
   margin: '6px 0',
   lineHeight: '22px',
 };
 
 const buttonSection = {
   textAlign: 'center',
-  margin: '30px 0',
+  margin: '32px 0',
 };
 
 const uploadButton = {
   backgroundColor: '#f97316',
-  borderRadius: '6px',
-  color: '#fff',
-  fontSize: '16px',
-  fontWeight: 'bold',
-  textDecoration: 'none',
-  textAlign: 'center',
+  color: '#ffffff',
   padding: '14px 32px',
+  borderRadius: '0',
+  textDecoration: 'none',
+  fontWeight: 'bold',
   display: 'inline-block',
+};
+
+const hr = {
+  borderColor: '#e5e7eb',
+  margin: '32px 0',
 };
 
 const dashboardSection = {
@@ -313,30 +326,28 @@ const dashboardSection = {
 };
 
 const dashboardButton = {
-  backgroundColor: '#1a1a1a',
-  borderRadius: '6px',
-  color: '#fff',
-  fontSize: '14px',
-  fontWeight: 'bold',
-  textDecoration: 'none',
-  textAlign: 'center',
+  backgroundColor: '#1a1a2e',
+  color: '#ffffff',
   padding: '12px 24px',
+  borderRadius: '0',
+  textDecoration: 'none',
+  fontWeight: 'bold',
   display: 'inline-block',
 };
 
 const reminderText = {
+  color: '#6b7280',
   fontSize: '14px',
-  color: '#666',
   lineHeight: '22px',
   margin: '20px 0',
   padding: '15px',
   backgroundColor: '#fffbeb',
-  borderRadius: '6px',
+  borderRadius: '0',
 };
 
 const footerText = {
+  color: '#6b7280',
   fontSize: '14px',
-  color: '#666',
   textAlign: 'center',
   margin: '20px 0',
   lineHeight: '22px',

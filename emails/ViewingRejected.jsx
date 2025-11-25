@@ -3,6 +3,7 @@ import {
   Text,
   Section,
   Button,
+  Hr,
 } from '@react-email/components';
 import * as React from 'react';
 import EmailLayout from './components/EmailLayout';
@@ -16,43 +17,58 @@ export default function ViewingRejected({
 }) {
   return (
     <EmailLayout preview="Viewing request update">
-      <Heading style={heading}>Viewing Request Update</Heading>
-
-      <Text style={text}>
-        Thank you for your interest in viewing this property.
-      </Text>
-
-      {/* Property Details */}
-      <Section style={propertySection}>
-        <Heading style={propertyTitle}>{propertyTitle}</Heading>
-        <Text style={propertyAddress}>📍 {propertyAddress}</Text>
+      {/* Icon + Title */}
+      <Section style={titleSection}>
+        <Text style={icon}>📬</Text>
+        <Heading style={heading}>Viewing Request Update</Heading>
+        <Text style={subtitle}>
+          Thank you for your interest in viewing this property.
+        </Text>
       </Section>
 
-      {/* Declined Message */}
-      <Section style={declinedSection}>
+      {/* Property Box - Blue Border */}
+      <Section style={propertyBox}>
+        <Heading as="h2" style={propertyTitle}>
+          {propertyTitle}
+        </Heading>
+        <Text style={propertyAddress}>
+          📍 {propertyAddress}
+        </Text>
+      </Section>
+
+      {/* Declined Message - Red Box */}
+      <Section style={declinedBox}>
+        <Heading as="h3" style={declinedHeading}>
+          Request Declined
+        </Heading>
         <Text style={declinedText}>
           Unfortunately, the landlord is unable to accommodate your viewing request at this time.
         </Text>
 
         {rejectionReason && (
-          <Section style={reasonSection}>
+          <>
+            <Hr style={hrLight} />
             <Text style={reasonHeading}>Reason provided:</Text>
             <Text style={reasonText}>"{rejectionReason}"</Text>
-          </Section>
+          </>
         )}
       </Section>
 
-      {/* Encouraging Message */}
-      <Section style={encouragingSection}>
-        <Text style={encouragingHeading}>Don't worry!</Text>
+      {/* Encouraging Message - Green Box */}
+      <Section style={encouragingBox}>
+        <Heading as="h3" style={encouragingHeading}>
+          Don't worry!
+        </Heading>
         <Text style={encouragingText}>
           We have many other great properties available that match your preferences.
         </Text>
       </Section>
 
-      {/* Next Steps */}
-      <Section style={nextStepsSection}>
-        <Text style={nextStepsHeading}>What's Next?</Text>
+      {/* Next Steps - Light Yellow Box */}
+      <Section style={nextStepsBox}>
+        <Heading as="h3" style={nextStepsHeading}>
+          What's Next?
+        </Heading>
         <Text style={stepText}>✓ Browse similar properties in your area</Text>
         <Text style={stepText}>✓ Save properties you're interested in</Text>
         <Text style={stepText}>✓ Request viewings for other listings</Text>
@@ -65,6 +81,8 @@ export default function ViewingRejected({
           Browse Similar Properties
         </Button>
       </Section>
+
+      <Hr style={hr} />
 
       <Section style={dashboardSection}>
         <Button href={dashboardLink} style={dashboardButton}>
@@ -79,135 +97,156 @@ export default function ViewingRejected({
   );
 }
 
-const heading = {
-  color: '#1a1a1a',
-  fontSize: '28px',
-  fontWeight: 'bold',
-  margin: '0 0 20px 0',
+// Styles matching ACE Investment Properties brand
+const titleSection = {
   textAlign: 'center',
+  marginBottom: '32px',
 };
 
-const text = {
-  color: '#333',
+const icon = {
+  fontSize: '48px',
+  margin: '0 0 16px 0',
+};
+
+const heading = {
+  color: '#1f2937',
+  fontSize: '32px',
+  fontFamily: '"Playfair Display", Georgia, serif',
+  fontWeight: '500',
+  margin: '0 0 8px 0',
+};
+
+const subtitle = {
+  color: '#6b7280',
   fontSize: '16px',
-  lineHeight: '24px',
-  margin: '0 0 20px 0',
+  margin: 0,
 };
 
-const propertySection = {
-  margin: '20px 0',
-  padding: '20px',
-  backgroundColor: '#f9fafb',
-  borderRadius: '8px',
+const propertyBox = {
+  border: '3px solid #4169E1',
+  borderRadius: '0',
+  padding: '24px',
+  marginBottom: '24px',
+  backgroundColor: '#ffffff',
 };
 
 const propertyTitle = {
-  fontSize: '18px',
-  fontWeight: 'bold',
-  color: '#1a1a1a',
+  color: '#1f2937',
+  fontSize: '24px',
+  fontFamily: '"Playfair Display", Georgia, serif',
+  fontWeight: '500',
   margin: '0 0 8px 0',
 };
 
 const propertyAddress = {
+  color: '#6b7280',
   fontSize: '14px',
-  color: '#666',
-  margin: '0',
+  margin: 0,
 };
 
-const declinedSection = {
-  margin: '30px 0',
-  padding: '20px',
+const declinedBox = {
   backgroundColor: '#fef2f2',
-  borderRadius: '8px',
   borderLeft: '4px solid #ef4444',
+  borderRadius: '0',
+  padding: '20px',
+  marginBottom: '24px',
+};
+
+const declinedHeading = {
+  color: '#991b1b',
+  fontSize: '18px',
+  fontWeight: '500',
+  margin: '0 0 12px 0',
 };
 
 const declinedText = {
-  fontSize: '16px',
   color: '#991b1b',
-  margin: '0 0 15px 0',
-  fontWeight: '500',
+  fontSize: '14px',
+  margin: '0',
+  lineHeight: '22px',
 };
 
-const reasonSection = {
-  marginTop: '15px',
-  paddingTop: '15px',
-  borderTop: '1px solid #fecaca',
+const hrLight = {
+  borderColor: '#fecaca',
+  margin: '16px 0',
 };
 
 const reasonHeading = {
-  fontSize: '14px',
-  fontWeight: 'bold',
   color: '#7f1d1d',
+  fontSize: '14px',
+  fontWeight: '500',
   margin: '0 0 8px 0',
 };
 
 const reasonText = {
-  fontSize: '14px',
   color: '#991b1b',
+  fontSize: '14px',
   fontStyle: 'italic',
   margin: '0',
   lineHeight: '22px',
 };
 
-const encouragingSection = {
-  margin: '30px 0',
-  padding: '20px',
+const encouragingBox = {
   backgroundColor: '#ecfdf5',
-  borderRadius: '8px',
+  borderRadius: '0',
+  padding: '20px',
+  marginBottom: '24px',
   textAlign: 'center',
 };
 
 const encouragingHeading = {
-  fontSize: '20px',
-  fontWeight: 'bold',
   color: '#047857',
+  fontSize: '20px',
+  fontWeight: '500',
   margin: '0 0 10px 0',
 };
 
 const encouragingText = {
-  fontSize: '16px',
   color: '#065f46',
+  fontSize: '16px',
   margin: '0',
   lineHeight: '24px',
 };
 
-const nextStepsSection = {
-  margin: '30px 0',
+const nextStepsBox = {
+  backgroundColor: '#fef3c7',
+  borderRadius: '0',
   padding: '20px',
-  backgroundColor: '#f0f9ff',
-  borderRadius: '8px',
+  marginBottom: '24px',
 };
 
 const nextStepsHeading = {
+  color: '#1f2937',
   fontSize: '18px',
-  fontWeight: 'bold',
-  color: '#1a1a1a',
-  margin: '0 0 15px 0',
+  fontWeight: '500',
+  margin: '0 0 16px 0',
 };
 
 const stepText = {
+  color: '#6b7280',
   fontSize: '14px',
-  color: '#333',
   margin: '8px 0',
   lineHeight: '22px',
 };
 
 const buttonSection = {
   textAlign: 'center',
-  margin: '30px 0',
+  margin: '32px 0',
 };
 
 const browseButton = {
-  backgroundColor: '#0066cc',
-  borderRadius: '6px',
-  color: '#fff',
-  fontSize: '16px',
-  fontWeight: 'bold',
-  textDecoration: 'none',
-  textAlign: 'center',
+  backgroundColor: '#4169E1',
+  color: '#ffffff',
   padding: '14px 32px',
+  borderRadius: '0',
+  textDecoration: 'none',
+  fontWeight: 'bold',
   display: 'inline-block',
+};
+
+const hr = {
+  borderColor: '#e5e7eb',
+  margin: '32px 0',
 };
 
 const dashboardSection = {
@@ -216,20 +255,18 @@ const dashboardSection = {
 };
 
 const dashboardButton = {
-  backgroundColor: '#1a1a1a',
-  borderRadius: '6px',
-  color: '#fff',
-  fontSize: '14px',
-  fontWeight: 'bold',
-  textDecoration: 'none',
-  textAlign: 'center',
+  backgroundColor: '#1a1a2e',
+  color: '#ffffff',
   padding: '12px 24px',
+  borderRadius: '0',
+  textDecoration: 'none',
+  fontWeight: 'bold',
   display: 'inline-block',
 };
 
 const footerText = {
+  color: '#6b7280',
   fontSize: '14px',
-  color: '#666',
   textAlign: 'center',
   margin: '30px 0 0 0',
   lineHeight: '22px',
