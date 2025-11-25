@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase'
 import { requireAuth } from '@/lib/middleware'
+import { sendEmail } from '@/lib/email'
+import ViewingRequest from '@/emails/ViewingRequest'
+import { formatDate, formatTime, getUserDisplayName, formatPropertyAddress } from '@/lib/emailHelpers'
 
 // Validate environment variables
 if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
@@ -171,7 +174,7 @@ export async function POST(request: NextRequest) {
 
     if (insertError) {
       console.error('Error creating viewing:', insertError)
-      
+
       // Provide more specific error messages
       if (insertError.code === '42P01') {
         return NextResponse.json(
@@ -179,18 +182,64 @@ export async function POST(request: NextRequest) {
           { status: 503 }
         )
       }
-      
+
       if (insertError.code === '23505') {
         return NextResponse.json(
           { success: false, error: 'You have already requested a viewing for this property at this time' },
           { status: 409 }
         )
       }
-      
+
       return NextResponse.json(
         { success: false, error: `Failed to create viewing request: ${insertError.message}` },
         { status: 500 }
       )
+    }
+
+    // Send email notification to landlord
+    try {
+      // Fetch property details and landlord info
+      const { data: propertyDetails } = await supabase
+        .from('properties')
+        .select('title, address, street_address, city, postcode')
+        .eq('id', body.propertyId)
+        .single()
+
+      const { data: landlordProfile } = await supabase
+        .from('user_profiles')
+        .select('email, first_name, last_name, full_name')
+        .eq('id', property.landlord_id)
+        .single()
+
+      const { data: userProfile } = await supabase
+        .from('user_profiles')
+        .select('user_type')
+        .eq('id', req.user.id)
+        .single()
+
+      if (landlordProfile?.email && propertyDetails) {
+        await sendEmail({
+          to: landlordProfile.email,
+          subject: `New Viewing Request - ${propertyDetails.title || 'Your Property'}`,
+          react: ViewingRequest({
+            propertyTitle: propertyDetails.title || 'Property',
+            propertyAddress: formatPropertyAddress(propertyDetails),
+            viewerName: body.userName,
+            viewerEmail: body.userEmail,
+            viewerPhone: body.userPhone,
+            viewerType: userProfile?.user_type === 'investor' ? 'Investor' : 'Tenant',
+            viewingDate: body.viewingDate,
+            viewingTime: body.viewingTime,
+            message: body.message || '',
+            approveLink: `${process.env.NEXT_PUBLIC_SITE_URL}/landlord/viewings/${viewing.id}/approve`,
+            declineLink: `${process.env.NEXT_PUBLIC_SITE_URL}/landlord/viewings/${viewing.id}/decline`,
+            dashboardLink: `${process.env.NEXT_PUBLIC_SITE_URL}/landlord/viewing-requests`
+          })
+        })
+      }
+    } catch (emailError) {
+      console.error('Failed to send viewing request email:', emailError)
+      // Don't fail the request if email fails
     }
 
     return NextResponse.json({

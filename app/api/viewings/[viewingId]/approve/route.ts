@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase'
 import { requireAuth } from '@/lib/middleware'
+import { sendEmail } from '@/lib/email'
+import ViewingConfirmation from '@/emails/ViewingConfirmation'
+import { formatDate, formatTime, getUserDisplayName, formatPropertyAddress } from '@/lib/emailHelpers'
 
 // Validate environment variables
 if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
@@ -100,6 +103,54 @@ export async function PUT(
         { success: false, error: 'Failed to approve viewing' },
         { status: 500 }
       )
+    }
+
+    // Send confirmation email to requester
+    try {
+      // Fetch property details
+      const { data: propertyDetails } = await supabase
+        .from('properties')
+        .select('title, address, street_address, city, postcode, images')
+        .eq('id', viewing.property_id)
+        .single()
+
+      // Fetch landlord info
+      const { data: landlordProfile } = await supabase
+        .from('user_profiles')
+        .select('first_name, last_name, full_name, phone')
+        .eq('id', viewing.landlord_id)
+        .single()
+
+      // Fetch requester info for user_type
+      const { data: requesterProfile } = await supabase
+        .from('user_profiles')
+        .select('user_type')
+        .eq('id', viewing.user_id)
+        .single()
+
+      if (viewing.user_email && propertyDetails) {
+        const propertyImage = propertyDetails.images?.[0] || 'https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=600&h=400&fit=crop'
+
+        await sendEmail({
+          to: viewing.user_email,
+          subject: `Viewing Confirmed - ${propertyDetails.title || 'Your Viewing'}`,
+          react: ViewingConfirmation({
+            propertyTitle: propertyDetails.title || 'Property',
+            propertyAddress: formatPropertyAddress(propertyDetails),
+            propertyImage: propertyImage,
+            viewingDate: viewing.viewing_date,
+            viewingTime: viewing.viewing_time,
+            landlordName: getUserDisplayName(landlordProfile),
+            landlordPhone: landlordProfile?.phone || '',
+            dashboardLink: requesterProfile?.user_type === 'investor'
+              ? `${process.env.NEXT_PUBLIC_SITE_URL}/investor/viewings`
+              : `${process.env.NEXT_PUBLIC_SITE_URL}/dashboard/viewings`
+          })
+        })
+      }
+    } catch (emailError) {
+      console.error('Failed to send viewing confirmation email:', emailError)
+      // Don't fail the request if email fails
     }
 
     return NextResponse.json({

@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase'
 import { requireAuth } from '@/lib/middleware'
+import { sendEmail } from '@/lib/email'
+import ViewingRejected from '@/emails/ViewingRejected'
+import { formatPropertyAddress } from '@/lib/emailHelpers'
 
 // Validate environment variables
 if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
@@ -103,6 +106,44 @@ export async function PUT(
         { success: false, error: 'Failed to reject viewing' },
         { status: 500 }
       )
+    }
+
+    // Send rejection email to requester
+    try {
+      // Fetch property details
+      const { data: propertyDetails } = await supabase
+        .from('properties')
+        .select('title, address, street_address, city, postcode')
+        .eq('id', viewing.property_id)
+        .single()
+
+      // Fetch requester info for user_type
+      const { data: requesterProfile } = await supabase
+        .from('user_profiles')
+        .select('user_type')
+        .eq('id', viewing.user_id)
+        .single()
+
+      if (viewing.user_email && propertyDetails) {
+        await sendEmail({
+          to: viewing.user_email,
+          subject: `Viewing Request Update - ${propertyDetails.title || 'Property'}`,
+          react: ViewingRejected({
+            propertyTitle: propertyDetails.title || 'Property',
+            propertyAddress: formatPropertyAddress(propertyDetails),
+            rejectionReason: rejectionReason || '',
+            browseLink: requesterProfile?.user_type === 'investor'
+              ? `${process.env.NEXT_PUBLIC_SITE_URL}/investor/property-matching`
+              : `${process.env.NEXT_PUBLIC_SITE_URL}/properties`,
+            dashboardLink: requesterProfile?.user_type === 'investor'
+              ? `${process.env.NEXT_PUBLIC_SITE_URL}/investor/dashboard`
+              : `${process.env.NEXT_PUBLIC_SITE_URL}/dashboard`
+          })
+        })
+      }
+    } catch (emailError) {
+      console.error('Failed to send viewing rejection email:', emailError)
+      // Don't fail the request if email fails
     }
 
     return NextResponse.json({

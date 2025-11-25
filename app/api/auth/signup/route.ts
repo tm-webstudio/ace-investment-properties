@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase'
 import { rateLimit } from '@/lib/middleware'
+import { sendEmail } from '@/lib/email'
+import Welcome from '@/emails/Welcome'
 
 export async function POST(request: NextRequest) {
   try {
@@ -138,7 +140,7 @@ export async function POST(request: NextRequest) {
           .from('properties')
           .select('*')
           .eq('status', 'active')
-        
+
         if (properties) {
           matchedProperties = properties.length // Simplified count
         }
@@ -146,6 +148,28 @@ export async function POST(request: NextRequest) {
         console.error('Error counting matched properties:', matchError)
         // Don't fail signup if matching fails
       }
+    }
+
+    // Send welcome email
+    try {
+      await sendEmail({
+        to: email,
+        subject: 'Welcome to Ace Properties!',
+        react: Welcome({
+          name: first_name,
+          userType: user_type === 'investor' ? 'Investor' : 'Landlord',
+          dashboardLink: user_type === 'investor'
+            ? `${process.env.NEXT_PUBLIC_SITE_URL}/investor/dashboard`
+            : `${process.env.NEXT_PUBLIC_SITE_URL}/landlord/dashboard`,
+          profileLink: user_type === 'investor'
+            ? `${process.env.NEXT_PUBLIC_SITE_URL}/investor/profile`
+            : `${process.env.NEXT_PUBLIC_SITE_URL}/landlord/profile`,
+          helpLink: `${process.env.NEXT_PUBLIC_SITE_URL}/help`
+        })
+      })
+    } catch (emailError) {
+      console.error('Failed to send welcome email:', emailError)
+      // Don't fail signup if email fails
     }
 
     return NextResponse.json({
