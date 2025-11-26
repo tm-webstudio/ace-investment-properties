@@ -2,6 +2,7 @@ import type React from "react"
 import type { Metadata } from "next"
 import { Inter, Playfair_Display } from "next/font/google"
 import Script from "next/script"
+import { Analytics } from "@vercel/analytics/react"
 import "./globals.css"
 import { ErrorBoundary } from "@/components/error-boundary"
 import { ToastProvider } from "@/components/toast-provider"
@@ -65,6 +66,7 @@ export default function RootLayout({
             <ToastProvider />
           </ErrorBoundary>
         </AuthProvider>
+        <Analytics />
       </body>
     </html>
   )
