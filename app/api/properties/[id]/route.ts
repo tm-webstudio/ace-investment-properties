@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase'
 import { requireLandlord, optionalAuth } from '@/lib/middleware'
+import { geocodeAddress } from '@/lib/geocoding'
 
 export async function GET(
   request: NextRequest,
@@ -100,7 +101,7 @@ export async function PUT(
     const updateData: any = {
       updated_at: new Date().toISOString()
     }
-    
+
     // Only update provided fields
     const allowedFields = [
       'property_type', 'bedrooms', 'bathrooms', 'monthly_rent',
@@ -115,6 +116,39 @@ export async function PUT(
         } else {
           updateData[field] = body[field]
         }
+      }
+    }
+
+    // If address, city, or postcode changed, re-geocode the property
+    if (body.address || body.city || body.postcode) {
+      try {
+        // Get current property data to fill in missing fields
+        const { data: currentProperty } = await supabase
+          .from('properties')
+          .select('address, city, postcode')
+          .eq('id', id)
+          .single()
+
+        const addressToGeocode = body.address || currentProperty?.address
+        const cityToGeocode = body.city || currentProperty?.city
+        const postcodeToGeocode = body.postcode || currentProperty?.postcode
+
+        if (addressToGeocode && cityToGeocode) {
+          const coordinates = await geocodeAddress(
+            addressToGeocode,
+            cityToGeocode,
+            postcodeToGeocode
+          )
+
+          if (coordinates) {
+            updateData.latitude = coordinates.latitude
+            updateData.longitude = coordinates.longitude
+            console.log('Re-geocoded property:', coordinates)
+          }
+        }
+      } catch (geocodeError) {
+        console.error('Error geocoding updated address:', geocodeError)
+        // Continue with update even if geocoding fails
       }
     }
     

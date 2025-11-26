@@ -160,8 +160,8 @@ export function PropertyDetails({ property }: PropertyDetailsProps) {
                 <MapPin className="h-12 w-12 mx-auto mb-2" />
                 <p className="text-lg font-medium">Map will be available soon</p>
                 <p className="text-sm mt-2">
-                  {property.address}, {property.city}
-                  {property.postcode && `, ${property.postcode}`}
+                  {property.city}
+                  {property.postcode && `, ${property.postcode.split(' ')[0]}`}
                 </p>
               </div>
             </div>

@@ -26,6 +26,8 @@ export interface Property {
   photos?: string[]
   available_date?: string
   postcode?: string
+  latitude?: number
+  longitude?: number
 }
 
 export interface Landlord {

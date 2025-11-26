@@ -36,6 +36,7 @@ import Link from "next/link"
 import { supabase } from "@/lib/supabase"
 import { format, addDays, isBefore, isAfter } from "date-fns"
 import { cn } from "@/lib/utils"
+import { customEvents } from "@/lib/facebook-pixel"
 
 interface ViewingRequest {
   id: string
@@ -292,6 +293,13 @@ export function ViewingRequests({ variant = 'dashboard', limit, onTabChange, isA
       const result = await response.json()
 
       if (result.success) {
+        // Track viewing approval
+        customEvents.viewingApproved(
+          selectedViewing.property_id,
+          selectedViewing.property?.address && selectedViewing.property?.city
+            ? `${selectedViewing.property.address}, ${selectedViewing.property.city}`
+            : `${selectedViewing.property?.property_type} in ${selectedViewing.property?.city}`
+        )
         setApproveModalOpen(false)
         setSelectedViewing(null)
         fetchViewings() // Refresh the list
@@ -333,6 +341,13 @@ export function ViewingRequests({ variant = 'dashboard', limit, onTabChange, isA
       const result = await response.json()
 
       if (result.success) {
+        // Track viewing rejection
+        customEvents.viewingRejected(
+          selectedViewing.property_id,
+          selectedViewing.property?.address && selectedViewing.property?.city
+            ? `${selectedViewing.property.address}, ${selectedViewing.property.city}`
+            : `${selectedViewing.property?.property_type} in ${selectedViewing.property?.city}`
+        )
         setRejectModalOpen(false)
         setSelectedViewing(null)
         setRejectionReason('')
@@ -506,7 +521,7 @@ export function ViewingRequests({ variant = 'dashboard', limit, onTabChange, isA
       case "pending":
         return "bg-orange-100 text-orange-800"
       case "rejected":
-        return "bg-destructive/10 text-destructive"
+        return "bg-red-50 text-red-700"
       case "cancelled":
         return "bg-gray-100 text-gray-800"
       default:

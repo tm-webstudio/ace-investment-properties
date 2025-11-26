@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { geocodeAddress } from '@/lib/geocoding'
 
 // Create admin client for database operations (only if env vars are available)
 const supabaseAdmin = process.env.SUPABASE_SERVICE_ROLE_KEY 
@@ -131,7 +132,25 @@ export async function POST(request: NextRequest) {
       contact_email: propertyData.contactEmail,
       contact_phone: propertyData.contactPhone
     })
-    
+
+    // Geocode the address to get coordinates for map display
+    let coordinates = null
+    try {
+      coordinates = await geocodeAddress(
+        propertyData.address,
+        propertyData.city,
+        propertyData.postcode
+      )
+      if (coordinates) {
+        console.log('Successfully geocoded property:', coordinates)
+      } else {
+        console.warn('Could not geocode address - map will not be available')
+      }
+    } catch (geocodeError) {
+      console.error('Error geocoding address:', geocodeError)
+      // Continue without coordinates - non-critical error
+    }
+
     // Create the property in properties table
     const { data: newProperty, error: propertyError } = await supabaseAdmin
       .from('properties')
@@ -156,7 +175,9 @@ export async function POST(request: NextRequest) {
         contact_email: propertyData.contactEmail || userProfile?.email || user.email,
         contact_phone: propertyData.contactPhone || userProfile?.phone,
         status: 'draft',
-        published_at: new Date().toISOString()
+        published_at: new Date().toISOString(),
+        latitude: coordinates?.latitude || null,
+        longitude: coordinates?.longitude || null
       })
       .select()
       .single()

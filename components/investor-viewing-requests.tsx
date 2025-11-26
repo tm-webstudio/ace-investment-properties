@@ -250,7 +250,7 @@ export function InvestorViewingRequests({ variant = 'dashboard', limit }: Invest
       case "pending":
         return "bg-orange-100 text-orange-800"
       case "rejected":
-        return "bg-destructive/10 text-destructive"
+        return "bg-red-50 text-red-700"
       case "cancelled":
         return "bg-gray-100 text-gray-800"
       case "completed":
