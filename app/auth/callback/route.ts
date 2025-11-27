@@ -7,10 +7,22 @@ export async function GET(request: NextRequest) {
   const code = requestUrl.searchParams.get('code')
   const next = requestUrl.searchParams.get('next') ?? '/'
 
+  console.log('[CALLBACK] ===== AUTH CALLBACK ROUTE =====')
+  console.log('[CALLBACK] Full URL:', requestUrl.toString())
+  console.log('[CALLBACK] Code:', code ? code.substring(0, 20) + '...' : 'none')
+  console.log('[CALLBACK] Next:', next)
+
   if (code) {
+    console.log('[CALLBACK] Exchanging code for session...')
     const { data, error } = await supabase.auth.exchangeCodeForSession(code)
 
+    if (error) {
+      console.error('[CALLBACK] ❌ Exchange failed:', error)
+    }
+
     if (!error && data.user) {
+      console.log('[CALLBACK] ✅ Session created for user:', data.user.id)
+      console.log('[CALLBACK] User type:', data.user.user_metadata?.user_type)
       const userType = data.user.user_metadata?.user_type || 'investor'
       const response = NextResponse.redirect(new URL(`/${userType}/dashboard?verified=true`, requestUrl.origin))
 

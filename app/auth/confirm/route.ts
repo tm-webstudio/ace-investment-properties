@@ -8,13 +8,26 @@ export async function GET(request: NextRequest) {
   const type = requestUrl.searchParams.get('type')
   const next = requestUrl.searchParams.get('next') ?? '/'
 
+  console.log('[CONFIRM] ===== EMAIL CONFIRM ROUTE =====')
+  console.log('[CONFIRM] Full URL:', requestUrl.toString())
+  console.log('[CONFIRM] Token hash:', token_hash ? token_hash.substring(0, 20) + '...' : 'none')
+  console.log('[CONFIRM] Type:', type)
+  console.log('[CONFIRM] Next:', next)
+
   if (token_hash && type) {
+    console.log('[CONFIRM] Verifying OTP...')
     const { data, error } = await supabase.auth.verifyOtp({
       type: type as any,
       token_hash,
     })
 
+    if (error) {
+      console.error('[CONFIRM] ❌ Verification failed:', error)
+    }
+
     if (!error && data.user) {
+      console.log('[CONFIRM] ✅ Email verified for user:', data.user.id)
+      console.log('[CONFIRM] User type:', data.user.user_metadata?.user_type)
       const userType = data.user.user_metadata?.user_type || 'investor'
       const response = NextResponse.redirect(new URL(`/${userType}/dashboard?verified=true`, requestUrl.origin))
 
