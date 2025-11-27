@@ -127,7 +127,7 @@ export default function SignUpPage() {
                 onClick={() => setAccountType("landlord")}
                 className={`p-3 border-2 rounded-lg text-sm font-medium transition-colors ${
                   accountType === "landlord"
-                    ? "border-primary bg-primary/10 text-primary"
+                    ? "border-primary bg-emerald-50 text-primary"
                     : "border-gray-300 hover:border-gray-400"
                 }`}
               >
@@ -138,7 +138,7 @@ export default function SignUpPage() {
                 onClick={() => setAccountType("admin")}
                 className={`p-3 border-2 rounded-lg text-sm font-medium transition-colors ${
                   accountType === "admin"
-                    ? "border-primary bg-primary/10 text-primary"
+                    ? "border-primary bg-emerald-50 text-primary"
                     : "border-gray-300 hover:border-gray-400"
                 }`}
               >
@@ -288,7 +288,7 @@ export default function SignUpPage() {
                 required
                 className="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded"
               />
-              <Label htmlFor="terms" className="ml-2 block text-sm text-gray-900">
+              <Label htmlFor="terms" className="ml-2 block text-xs text-gray-900">
                 I agree to the{" "}
                 <Link href="/terms" className="text-primary hover:text-primary/80">
                   Terms of Service
