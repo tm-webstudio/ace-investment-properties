@@ -16,6 +16,7 @@ import { PropertySubmissionConfirmationModal } from "@/components/property-submi
 import { supabase } from "@/lib/supabase"
 import { Button } from "@/components/ui/button"
 import { Edit3 } from "lucide-react"
+import { trackCustomEvent } from "@/lib/facebook-pixel"
 
 interface UserProfile {
   user_id: string
@@ -103,6 +104,26 @@ function LandlordDashboardContent() {
       window.history.replaceState({}, '', newUrl)
     }
   }, []) // Empty dependency array - only run once on mount
+
+  // Track dashboard page view when user loads
+  useEffect(() => {
+    if (user) {
+      trackCustomEvent('LandlordDashboardView', {
+        user_id: user.user_id,
+        user_type: 'landlord',
+      })
+    }
+  }, [user])
+
+  // Track tab changes
+  useEffect(() => {
+    if (user && activeTab) {
+      trackCustomEvent('LandlordTabChange', {
+        tab: activeTab,
+        user_id: user.user_id,
+      })
+    }
+  }, [activeTab, user])
 
   // Reset editing state when switching away from profile tab
   useEffect(() => {

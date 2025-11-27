@@ -97,6 +97,10 @@ export function AdminDashboardOverview({ admin, onTabChange }: AdminDashboardOve
                     landlordName: property.contact_name
                   }
                 }))
+
+              console.log('Admin Dashboard Overview - First pending property:', pendingForDisplay[0])
+              console.log('Licence:', pendingForDisplay[0]?.property_licence)
+              console.log('Condition:', pendingForDisplay[0]?.property_condition)
             }
           }
         } catch (error) {

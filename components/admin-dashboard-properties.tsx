@@ -32,8 +32,8 @@ interface Property {
   landlordName: string
   landlordEmail: string
   landlordPhone: string
-  licence?: string
-  condition?: string
+  property_licence?: string
+  property_condition?: string
   latitude?: number
   longitude?: number
 }
@@ -81,6 +81,9 @@ export function AdminDashboardProperties() {
       }
 
       if (data.success) {
+        console.log('Admin Dashboard - First property data:', data.properties[0])
+        console.log('Admin Dashboard - Property licence:', data.properties[0]?.property_licence)
+        console.log('Admin Dashboard - Property condition:', data.properties[0]?.property_condition)
         setProperties(data.properties)
       }
     } catch (err: any) {
@@ -122,10 +125,10 @@ export function AdminDashboardProperties() {
   const filteredProperties = properties.filter(property => {
     const searchLower = searchQuery.toLowerCase()
     return (
-      property.address.toLowerCase().includes(searchLower) ||
-      property.city.toLowerCase().includes(searchLower) ||
-      property.postcode.toLowerCase().includes(searchLower) ||
-      property.county.toLowerCase().includes(searchLower)
+      (property.address || '').toLowerCase().includes(searchLower) ||
+      (property.city || '').toLowerCase().includes(searchLower) ||
+      (property.postcode || '').toLowerCase().includes(searchLower) ||
+      (property.county || '').toLowerCase().includes(searchLower)
     )
   })
 

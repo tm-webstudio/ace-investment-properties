@@ -7,6 +7,7 @@ import {
 } from '@react-email/components';
 import * as React from 'react';
 import EmailLayout from './components/EmailLayout';
+import { EmailIcon } from './components/EmailIcon';
 
 export default function MagicLink({
   email = 'user@example.com',
@@ -107,7 +108,7 @@ const subtitle = {
 };
 
 const infoBox = {
-  backgroundColor: '#fef3c7',
+  backgroundColor: '#ffffff',
   borderRadius: '0',
   padding: '20px',
   marginBottom: '24px',
@@ -138,7 +139,7 @@ const buttonSection = {
 };
 
 const signInButton = {
-  backgroundColor: '#4169E1',
+  backgroundColor: '#10b981',
   color: '#ffffff',
   padding: '14px 32px',
   borderRadius: '0',
@@ -153,7 +154,7 @@ const hr = {
 };
 
 const securityBox = {
-  backgroundColor: '#fffbeb',
+  backgroundColor: '#f8f9fa',
   borderLeft: '4px solid #f97316',
   borderRadius: '0',
   padding: '20px',
@@ -197,7 +198,7 @@ const alternativeText = {
 };
 
 const linkText = {
-  color: '#4169E1',
+  color: '#10b981',
   fontSize: '12px',
   wordBreak: 'break-all',
   fontFamily: 'monospace',

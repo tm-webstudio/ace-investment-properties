@@ -8,6 +8,7 @@ import {
 } from '@react-email/components';
 import * as React from 'react';
 import EmailLayout from './components/EmailLayout';
+import { EmailIcon } from './components/EmailIcon';
 
 export default function ViewingConfirmation({
   propertyTitle = 'Modern 2 Bedroom Apartment',
@@ -26,14 +27,16 @@ export default function ViewingConfirmation({
     <EmailLayout preview="Your viewing has been confirmed!">
       {/* Icon + Title */}
       <Section style={titleSection}>
-        <Text style={icon}>✓</Text>
+        <div style={{ textAlign: 'center', marginBottom: '16px' }}>
+          <EmailIcon name="checkCircle" color="#10b981" size={48} />
+        </div>
         <Heading style={heading}>Viewing Confirmed!</Heading>
         <Text style={subtitle}>
           Great news! Your viewing request has been approved by the landlord.
         </Text>
       </Section>
 
-      {/* Property Box - Blue Border */}
+      {/* Property Box - White with Border */}
       <Section style={propertyBox}>
         {propertyImage && (
           <Img
@@ -42,15 +45,16 @@ export default function ViewingConfirmation({
             style={propertyImageStyle}
           />
         )}
-        <Heading as="h2" style={propertyTitle}>
+        <Heading as="h2" style={propertyTitleStyle}>
           {propertyTitle}
         </Heading>
-        <Text style={propertyAddress}>
-          📍 {propertyAddress}
+        <Text style={propertyAddressStyle}>
+          <EmailIcon name="mapPin" color="#6b7280" size={16} />
+          {propertyAddress}
         </Text>
       </Section>
 
-      {/* Viewing Details - Light Yellow Box */}
+      {/* Viewing Details - White Box with Border */}
       <Section style={infoBox}>
         <Heading as="h3" style={infoHeading}>
           Viewing Details
@@ -87,10 +91,10 @@ export default function ViewingConfirmation({
       {/* Action Buttons */}
       <Section style={buttonSection}>
         <Button href={calendarLink} style={calendarButton}>
-          📅 Add to Calendar
+          Add to Calendar
         </Button>
         <Button href={directionsLink} style={directionsButton}>
-          🗺️ Get Directions
+          Get Directions
         </Button>
       </Section>
 
@@ -99,12 +103,24 @@ export default function ViewingConfirmation({
       {/* Viewing Tips */}
       <Section style={tipsBox}>
         <Heading as="h3" style={tipsHeading}>
-          💡 Viewing Tips
+          Viewing Tips
         </Heading>
-        <Text style={tipText}>• Arrive 5 minutes early</Text>
-        <Text style={tipText}>• Bring a list of questions</Text>
-        <Text style={tipText}>• Take photos/notes if permitted</Text>
-        <Text style={tipText}>• Check all rooms and amenities</Text>
+        <Text style={tipText}>
+          <EmailIcon name="check" color="#10b981" size={16} />
+          Arrive 5 minutes early
+        </Text>
+        <Text style={tipText}>
+          <EmailIcon name="check" color="#10b981" size={16} />
+          Bring a list of questions
+        </Text>
+        <Text style={tipText}>
+          <EmailIcon name="check" color="#10b981" size={16} />
+          Take photos/notes if permitted
+        </Text>
+        <Text style={tipText}>
+          <EmailIcon name="check" color="#10b981" size={16} />
+          Check all rooms and amenities
+        </Text>
       </Section>
 
       <Section style={dashboardSection}>
@@ -122,13 +138,6 @@ const titleSection = {
   marginBottom: '32px',
 };
 
-const icon = {
-  fontSize: '48px',
-  color: '#10b981',
-  margin: '0 0 16px 0',
-  display: 'block',
-};
-
 const heading = {
   color: '#1f2937',
   fontSize: '32px',
@@ -144,11 +153,11 @@ const subtitle = {
 };
 
 const propertyBox = {
-  border: '3px solid #4169E1',
+  backgroundColor: '#ffffff',
+  border: '2px solid #e5e7eb',
   borderRadius: '0',
   padding: '24px',
   marginBottom: '24px',
-  backgroundColor: '#ffffff',
 };
 
 const propertyImageStyle = {
@@ -158,7 +167,7 @@ const propertyImageStyle = {
   marginBottom: '16px',
 };
 
-const propertyTitle = {
+const propertyTitleStyle = {
   color: '#1f2937',
   fontSize: '24px',
   fontFamily: '"Playfair Display", Georgia, serif',
@@ -166,23 +175,26 @@ const propertyTitle = {
   margin: '0 0 8px 0',
 };
 
-const propertyAddress = {
+const propertyAddressStyle = {
   color: '#6b7280',
   fontSize: '14px',
   margin: 0,
+  display: 'flex',
+  alignItems: 'center',
 };
 
 const infoBox = {
-  backgroundColor: '#fef3c7',
+  backgroundColor: '#ffffff',
+  border: '2px solid #e5e7eb',
   borderRadius: '0',
-  padding: '20px',
+  padding: '24px',
   marginBottom: '24px',
 };
 
 const infoHeading = {
   color: '#1f2937',
   fontSize: '18px',
-  fontWeight: '500',
+  fontWeight: '600',
   margin: '0 0 16px 0',
 };
 
@@ -222,7 +234,7 @@ const calendarButton = {
 };
 
 const directionsButton = {
-  backgroundColor: '#4169E1',
+  backgroundColor: '#1a1a2e',
   color: '#ffffff',
   padding: '14px 32px',
   borderRadius: '0',
@@ -238,25 +250,27 @@ const hr = {
 };
 
 const tipsBox = {
-  backgroundColor: '#fffbeb',
-  borderLeft: '4px solid #f97316',
+  backgroundColor: '#f8f9fa',
+  borderLeft: '4px solid #10b981',
   borderRadius: '0',
-  padding: '20px',
+  padding: '24px',
   marginBottom: '24px',
 };
 
 const tipsHeading = {
   color: '#1f2937',
   fontSize: '18px',
-  fontWeight: '500',
+  fontWeight: '600',
   margin: '0 0 16px 0',
 };
 
 const tipText = {
   color: '#6b7280',
   fontSize: '14px',
-  margin: '5px 0',
-  lineHeight: '20px',
+  margin: '8px 0',
+  lineHeight: '22px',
+  display: 'flex',
+  alignItems: 'center',
 };
 
 const dashboardSection = {

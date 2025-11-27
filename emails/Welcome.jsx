@@ -7,6 +7,7 @@ import {
 } from '@react-email/components';
 import * as React from 'react';
 import EmailLayout from './components/EmailLayout';
+import { EmailIcon } from './components/EmailIcon';
 
 export default function Welcome({
   name = 'John Doe',
@@ -21,7 +22,9 @@ export default function Welcome({
     <EmailLayout preview="Welcome to Ace Investment Properties">
       {/* Icon + Title */}
       <Section style={titleSection}>
-        <Text style={icon}>🎉</Text>
+        <div style={{ textAlign: 'center', marginBottom: '16px' }}>
+          <EmailIcon name="sparkles" color="#10b981" size={48} />
+        </div>
         <Heading style={heading}>Welcome to Ace Investment Properties!</Heading>
         <Text style={subtitle}>
           We're excited to have you join our platform, {name}.
@@ -33,33 +36,69 @@ export default function Welcome({
         <span style={badge}>{userType}</span>
       </Section>
 
-      {/* User Type Specific Content - Light Yellow Box */}
+      {/* User Type Specific Content - White Box with Border */}
       <Section style={featuresBox}>
         <Heading as="h3" style={featuresHeading}>
           {isInvestor ? 'As an Investor, you can:' : 'As a Landlord, you can:'}
         </Heading>
         {isInvestor ? (
           <>
-            <Text style={featureText}>✓ Browse thousands of investment properties</Text>
-            <Text style={featureText}>✓ Set your investment preferences for smart matching</Text>
-            <Text style={featureText}>✓ Request property viewings with one click</Text>
-            <Text style={featureText}>✓ Save and compare properties</Text>
-            <Text style={featureText}>✓ Track your investment portfolio</Text>
-            <Text style={featureText}>✓ Get personalized property recommendations</Text>
+            <Text style={featureText}>
+              <EmailIcon name="check" color="#10b981" size={16} />
+              Browse thousands of investment properties
+            </Text>
+            <Text style={featureText}>
+              <EmailIcon name="check" color="#10b981" size={16} />
+              Set your investment preferences for smart matching
+            </Text>
+            <Text style={featureText}>
+              <EmailIcon name="check" color="#10b981" size={16} />
+              Request property viewings with one click
+            </Text>
+            <Text style={featureText}>
+              <EmailIcon name="check" color="#10b981" size={16} />
+              Save and compare properties
+            </Text>
+            <Text style={featureText}>
+              <EmailIcon name="check" color="#10b981" size={16} />
+              Track your investment portfolio
+            </Text>
+            <Text style={featureText}>
+              <EmailIcon name="check" color="#10b981" size={16} />
+              Get personalized property recommendations
+            </Text>
           </>
         ) : (
           <>
-            <Text style={featureText}>✓ List your properties and reach qualified investors</Text>
-            <Text style={featureText}>✓ Manage viewing requests in one dashboard</Text>
-            <Text style={featureText}>✓ Track your property portfolio performance</Text>
-            <Text style={featureText}>✓ Communicate directly with potential tenants</Text>
-            <Text style={featureText}>✓ Keep all documents organized and up-to-date</Text>
-            <Text style={featureText}>✓ Receive alerts for expiring documents</Text>
+            <Text style={featureText}>
+              <EmailIcon name="check" color="#10b981" size={16} />
+              List your properties and reach qualified investors
+            </Text>
+            <Text style={featureText}>
+              <EmailIcon name="check" color="#10b981" size={16} />
+              Manage viewing requests in one dashboard
+            </Text>
+            <Text style={featureText}>
+              <EmailIcon name="check" color="#10b981" size={16} />
+              Track your property portfolio performance
+            </Text>
+            <Text style={featureText}>
+              <EmailIcon name="check" color="#10b981" size={16} />
+              Communicate directly with potential tenants
+            </Text>
+            <Text style={featureText}>
+              <EmailIcon name="check" color="#10b981" size={16} />
+              Keep all documents organized and up-to-date
+            </Text>
+            <Text style={featureText}>
+              <EmailIcon name="check" color="#10b981" size={16} />
+              Receive alerts for expiring documents
+            </Text>
           </>
         )}
       </Section>
 
-      {/* Next Steps - Green Box */}
+      {/* Next Steps - Light Gray Box with Green Border */}
       <Section style={nextStepsBox}>
         <Heading as="h3" style={nextStepsHeading}>
           Get Started:
@@ -112,11 +151,6 @@ const titleSection = {
   marginBottom: '24px',
 };
 
-const icon = {
-  fontSize: '48px',
-  margin: '0 0 16px 0',
-};
-
 const heading = {
   color: '#1f2937',
   fontSize: '32px',
@@ -137,7 +171,7 @@ const badgeSection = {
 };
 
 const badge = {
-  backgroundColor: '#4169E1',
+  backgroundColor: '#10b981',
   color: '#ffffff',
   padding: '6px 16px',
   borderRadius: '0',
@@ -147,16 +181,17 @@ const badge = {
 };
 
 const featuresBox = {
-  backgroundColor: '#fef3c7',
+  backgroundColor: '#ffffff',
+  border: '2px solid #e5e7eb',
   borderRadius: '0',
-  padding: '20px',
+  padding: '24px',
   marginBottom: '24px',
 };
 
 const featuresHeading = {
   color: '#1f2937',
   fontSize: '18px',
-  fontWeight: '500',
+  fontWeight: '600',
   margin: '0 0 16px 0',
 };
 
@@ -165,25 +200,27 @@ const featureText = {
   fontSize: '14px',
   margin: '8px 0',
   lineHeight: '22px',
-  paddingLeft: '10px',
+  display: 'flex',
+  alignItems: 'center',
 };
 
 const nextStepsBox = {
-  backgroundColor: '#ecfdf5',
+  backgroundColor: '#f8f9fa',
+  borderLeft: '4px solid #10b981',
   borderRadius: '0',
-  padding: '20px',
+  padding: '24px',
   marginBottom: '24px',
 };
 
 const nextStepsHeading = {
-  color: '#047857',
+  color: '#1f2937',
   fontSize: '18px',
-  fontWeight: '500',
+  fontWeight: '600',
   margin: '0 0 16px 0',
 };
 
 const stepText = {
-  color: '#065f46',
+  color: '#1f2937',
   fontSize: '14px',
   margin: '8px 0',
   lineHeight: '22px',
@@ -196,7 +233,7 @@ const buttonSection = {
 };
 
 const primaryButton = {
-  backgroundColor: '#4169E1',
+  backgroundColor: '#10b981',
   color: '#ffffff',
   padding: '14px 32px',
   borderRadius: '0',
@@ -231,7 +268,7 @@ const helpText = {
 };
 
 const link = {
-  color: '#4169E1',
+  color: '#10b981',
   textDecoration: 'underline',
 };
 

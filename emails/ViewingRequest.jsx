@@ -8,6 +8,7 @@ import {
 } from '@react-email/components';
 import * as React from 'react';
 import EmailLayout from './components/EmailLayout';
+import { EmailIcon } from './components/EmailIcon';
 
 export default function ViewingRequest({
   propertyTitle = 'Modern 2 Bedroom Apartment',
@@ -27,14 +28,16 @@ export default function ViewingRequest({
     <EmailLayout preview="New viewing request for your property">
       {/* Icon + Title */}
       <Section style={titleSection}>
-        <Text style={icon}>🏠</Text>
+        <div style={{ textAlign: 'center', marginBottom: '16px' }}>
+          <EmailIcon name="home" color="#10b981" size={48} />
+        </div>
         <Heading style={heading}>New Viewing Request</Heading>
         <Text style={subtitle}>
           You have received a new viewing request for your property.
         </Text>
       </Section>
 
-      {/* Property Box - Blue Border */}
+      {/* Property Box - White with Border */}
       <Section style={propertyBox}>
         {propertyImage && (
           <Img
@@ -43,15 +46,16 @@ export default function ViewingRequest({
             style={propertyImageStyle}
           />
         )}
-        <Heading as="h2" style={propertyTitle}>
+        <Heading as="h2" style={propertyTitleStyle}>
           {propertyTitle}
         </Heading>
-        <Text style={propertyAddress}>
-          📍 {propertyAddress}
+        <Text style={propertyAddressStyle}>
+          <EmailIcon name="mapPin" color="#6b7280" size={16} />
+          {propertyAddress}
         </Text>
       </Section>
 
-      {/* Requester Info - Light Yellow Box */}
+      {/* Requester Info - White Box with Border */}
       <Section style={infoBox}>
         <Heading as="h3" style={infoHeading}>
           Requester Information
@@ -83,6 +87,7 @@ export default function ViewingRequest({
       {/* Viewing Details */}
       <Section style={detailsSection}>
         <Text style={detailsText}>
+          <EmailIcon name="calendar" color="#10b981" size={18} />
           <strong>Requested Date:</strong>{' '}
           {new Date(viewingDate).toLocaleDateString('en-GB', {
             weekday: 'long',
@@ -92,6 +97,7 @@ export default function ViewingRequest({
           })}
         </Text>
         <Text style={detailsText}>
+          <EmailIcon name="clock" color="#10b981" size={18} />
           <strong>Requested Time:</strong> {viewingTime}
         </Text>
         {message && (
@@ -107,17 +113,17 @@ export default function ViewingRequest({
       {/* Action Buttons */}
       <Section style={buttonSection}>
         <Button href={approveLink} style={approveButton}>
-          ✓ Approve Viewing
+          Approve Viewing
         </Button>
         <Button href={declineLink} style={declineButton}>
-          ✗ Decline Request
+          Decline Request
         </Button>
       </Section>
 
       <Hr style={hr} />
 
       <Text style={tipText}>
-        💡 <strong>Tip:</strong> Quick responses lead to better tenant relationships and faster bookings!
+        <strong>Tip:</strong> Quick responses lead to better tenant relationships and faster bookings!
       </Text>
     </EmailLayout>
   );
@@ -127,11 +133,6 @@ export default function ViewingRequest({
 const titleSection = {
   textAlign: 'center',
   marginBottom: '32px',
-};
-
-const icon = {
-  fontSize: '48px',
-  margin: '0 0 16px 0',
 };
 
 const heading = {
@@ -149,11 +150,11 @@ const subtitle = {
 };
 
 const propertyBox = {
-  border: '3px solid #4169E1',
+  backgroundColor: '#ffffff',
+  border: '2px solid #e5e7eb',
   borderRadius: '0',
   padding: '24px',
   marginBottom: '24px',
-  backgroundColor: '#ffffff',
 };
 
 const propertyImageStyle = {
@@ -163,7 +164,7 @@ const propertyImageStyle = {
   marginBottom: '16px',
 };
 
-const propertyTitle = {
+const propertyTitleStyle = {
   color: '#1f2937',
   fontSize: '24px',
   fontFamily: '"Playfair Display", Georgia, serif',
@@ -171,23 +172,26 @@ const propertyTitle = {
   margin: '0 0 8px 0',
 };
 
-const propertyAddress = {
+const propertyAddressStyle = {
   color: '#6b7280',
   fontSize: '14px',
   margin: 0,
+  display: 'flex',
+  alignItems: 'center',
 };
 
 const infoBox = {
-  backgroundColor: '#fef3c7',
+  backgroundColor: '#ffffff',
+  border: '2px solid #e5e7eb',
   borderRadius: '0',
-  padding: '20px',
+  padding: '24px',
   marginBottom: '24px',
 };
 
 const infoHeading = {
   color: '#1f2937',
   fontSize: '18px',
-  fontWeight: 'bold',
+  fontWeight: '600',
   margin: '0 0 16px 0',
 };
 
@@ -211,7 +215,7 @@ const infoValue = {
 };
 
 const badge = {
-  backgroundColor: '#4169E1',
+  backgroundColor: '#10b981',
   color: '#ffffff',
   padding: '4px 12px',
   borderRadius: '0',
@@ -227,16 +231,19 @@ const detailsText = {
   color: '#1f2937',
   fontSize: '14px',
   margin: '8px 0',
+  display: 'flex',
+  alignItems: 'center',
 };
 
 const messageText = {
   color: '#6b7280',
   fontSize: '14px',
   fontStyle: 'italic',
-  padding: '12px',
+  padding: '16px',
   backgroundColor: '#f8f9fa',
-  borderLeft: '3px solid #4169E1',
-  margin: '8px 0',
+  borderLeft: '4px solid #10b981',
+  margin: '12px 0',
+  borderRadius: '0',
 };
 
 const buttonSection = {
@@ -276,7 +283,8 @@ const tipText = {
   fontSize: '14px',
   lineHeight: '22px',
   margin: '20px 0',
-  padding: '15px',
-  backgroundColor: '#fffbeb',
+  padding: '16px',
+  backgroundColor: '#f8f9fa',
+  borderLeft: '4px solid #f97316',
   borderRadius: '0',
 };

@@ -19,6 +19,7 @@ import { ImageReorder } from './image-reorder'
 import { FormProgressBar } from './form-progress-bar'
 import { useRouter } from "next/navigation"
 import Image from "next/image"
+import { trackInitiateCheckout, trackSubmitApplication } from "@/lib/facebook-pixel"
 
 const cityAreasMap: Record<string, string[]> = {
   "London": [
@@ -268,6 +269,11 @@ export function AddPropertyForm() {
     })
     
     return () => subscription.unsubscribe()
+  }, [])
+
+  // Track property listing initiation
+  useEffect(() => {
+    trackInitiateCheckout('Property Listing')
   }, [])
 
   // Helper function to compress images over 4MB
@@ -1040,11 +1046,14 @@ export function AddPropertyForm() {
         requiredFields.push({ field: 'availableDate', label: 'Available Date' })
       }
       
-      const missingFields = requiredFields.filter(req => !formData[req.field as keyof typeof formData])
-      
+      const missingFields = requiredFields.filter(req => {
+        const value = formData[req.field as keyof typeof formData]
+        return !value || (typeof value === 'string' && value.trim() === '')
+      })
+
       if (missingFields.length > 0) {
-        setFormErrors(prev => ({ 
-          ...prev, 
+        setFormErrors(prev => ({
+          ...prev,
           general: `Please fill in the following required fields: ${missingFields.map(f => f.label).join(', ')}`
         }))
         return
@@ -1155,6 +1164,8 @@ export function AddPropertyForm() {
         console.log('Publish response:', publishResult)
 
         if (publishResult.success) {
+          // Track successful property submission
+          trackSubmitApplication(`${formData.address}, ${formData.city}`)
           // Redirect to dashboard and show confirmation modal
           window.location.href = '/landlord/dashboard?showConfirmation=true'
         } else {
@@ -1188,6 +1199,8 @@ export function AddPropertyForm() {
         const result = await response.json()
 
         if (result.success) {
+          // Track successful property submission
+          trackSubmitApplication(`${formData.address}, ${formData.city}`)
           // Use hard navigation to ensure session is fully loaded on dashboard
           window.location.href = '/landlord/dashboard'
         } else if (result.status === 'signup_required') {

@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase'
 import { rateLimit } from '@/lib/middleware'
-import { sendEmail } from '@/lib/email'
-import Welcome from '@/emails/Welcome'
+import { signUpWithEmail } from '@/lib/authHelpers'
 
 export async function POST(request: NextRequest) {
   try {
@@ -35,27 +34,23 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Create user in Supabase Auth
-    const { data: authData, error: authError } = await supabase.auth.signUp({
+    // Create user in Supabase Auth and send welcome + confirmation emails via Resend
+    const { data: authData, error: authError } = await signUpWithEmail({
       email,
       password,
-      options: {
-        data: {
-          first_name,
-          last_name,
-          user_type
-        }
-      }
+      firstName: first_name,
+      lastName: last_name,
+      userType: user_type === 'investor' ? 'Investor' : 'Landlord'
     })
 
     if (authError) {
       console.error('Supabase auth signup error:', authError)
       return NextResponse.json(
-        { 
-          success: false, 
-          error: { 
+        {
+          success: false,
+          error: {
             message: authError.message || 'Failed to create account'
-          } 
+          }
         },
         { status: 400 }
       )
@@ -150,27 +145,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Send welcome email
-    try {
-      await sendEmail({
-        to: email,
-        subject: 'Welcome to Ace Properties!',
-        react: Welcome({
-          name: first_name,
-          userType: user_type === 'investor' ? 'Investor' : 'Landlord',
-          dashboardLink: user_type === 'investor'
-            ? `${process.env.NEXT_PUBLIC_SITE_URL}/investor/dashboard`
-            : `${process.env.NEXT_PUBLIC_SITE_URL}/landlord/dashboard`,
-          profileLink: user_type === 'investor'
-            ? `${process.env.NEXT_PUBLIC_SITE_URL}/investor/profile`
-            : `${process.env.NEXT_PUBLIC_SITE_URL}/landlord/profile`,
-          helpLink: `${process.env.NEXT_PUBLIC_SITE_URL}/help`
-        })
-      })
-    } catch (emailError) {
-      console.error('Failed to send welcome email:', emailError)
-      // Don't fail signup if email fails
-    }
+    // Welcome and confirmation emails are sent by signUpWithEmail helper
 
     return NextResponse.json({
       success: true,

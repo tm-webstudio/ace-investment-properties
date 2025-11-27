@@ -7,6 +7,7 @@ import {
 } from '@react-email/components';
 import * as React from 'react';
 import EmailLayout from './components/EmailLayout';
+import { EmailIcon } from './components/EmailIcon';
 
 export default function EmailConfirmation({
   email = 'user@example.com',
@@ -16,7 +17,9 @@ export default function EmailConfirmation({
     <EmailLayout preview="Confirm your email address">
       {/* Icon + Title */}
       <Section style={titleSection}>
-        <Text style={icon}>📧</Text>
+        <div style={{ textAlign: 'center', marginBottom: '16px' }}>
+          <EmailIcon name="mail" color="#10b981" size={48} />
+        </div>
         <Heading style={heading}>Confirm Your Email</Heading>
         <Text style={subtitle}>
           Thank you for signing up for Ace Investment Properties!
@@ -107,7 +110,7 @@ const subtitle = {
 };
 
 const infoBox = {
-  backgroundColor: '#fef3c7',
+  backgroundColor: '#ffffff',
   borderRadius: '0',
   padding: '20px',
   marginBottom: '24px',
@@ -159,7 +162,7 @@ const instructionText = {
 };
 
 const confirmButton = {
-  backgroundColor: '#4169E1',
+  backgroundColor: '#10b981',
   color: '#ffffff',
   padding: '14px 32px',
   borderRadius: '0',
@@ -174,7 +177,7 @@ const hr = {
 };
 
 const securityBox = {
-  backgroundColor: '#fffbeb',
+  backgroundColor: '#f8f9fa',
   borderLeft: '4px solid #f97316',
   borderRadius: '0',
   padding: '20px',
@@ -217,7 +220,7 @@ const alternativeText = {
 };
 
 const linkText = {
-  color: '#4169E1',
+  color: '#10b981',
   fontSize: '12px',
   wordBreak: 'break-all',
   fontFamily: 'monospace',

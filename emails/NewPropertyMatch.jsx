@@ -8,6 +8,7 @@ import {
 } from '@react-email/components';
 import * as React from 'react';
 import EmailLayout from './components/EmailLayout';
+import { EmailIcon } from './components/EmailIcon';
 
 export default function NewPropertyMatch({
   propertyTitle = 'Modern 2 Bedroom Apartment',
@@ -20,7 +21,7 @@ export default function NewPropertyMatch({
 }) {
   const getMatchColor = (score) => {
     if (score >= 90) return '#10b981';
-    if (score >= 75) return '#4169E1';
+    if (score >= 75) return '#10b981';
     if (score >= 60) return '#f97316';
     return '#6b7280';
   };
@@ -36,7 +37,9 @@ export default function NewPropertyMatch({
     <EmailLayout preview="New property matches your criteria">
       {/* Icon + Title */}
       <Section style={titleSection}>
-        <Text style={icon}>🎯</Text>
+        <div style={{ textAlign: 'center', marginBottom: '16px' }}>
+          <EmailIcon name="target" color="#10b981" size={48} />
+        </div>
         <Heading style={heading}>New Property Match!</Heading>
         <Text style={subtitle}>
           We found a property that matches your investment preferences.
@@ -66,7 +69,7 @@ export default function NewPropertyMatch({
           {propertyTitle}
         </Heading>
         <Text style={propertyAddress}>
-          📍 {propertyAddress}
+          {propertyAddress}
         </Text>
         <Text style={propertyPrice}>
           💰 {propertyPrice}
@@ -81,11 +84,11 @@ export default function NewPropertyMatch({
         <Text style={matchText}>
           This property matches your preferences based on:
         </Text>
-        <Text style={matchItem}>✓ Location preferences</Text>
-        <Text style={matchItem}>✓ Price range</Text>
-        <Text style={matchItem}>✓ Property type</Text>
-        <Text style={matchItem}>✓ Investment criteria</Text>
-        <Text style={matchItem}>✓ Yield expectations</Text>
+        <Text style={matchItem}>Location preferences</Text>
+        <Text style={matchItem}>Price range</Text>
+        <Text style={matchItem}>Property type</Text>
+        <Text style={matchItem}>Investment criteria</Text>
+        <Text style={matchItem}>Yield expectations</Text>
       </Section>
 
       {/* Action Button */}
@@ -122,7 +125,7 @@ export default function NewPropertyMatch({
       {/* Tip Box */}
       <Section style={tipBox}>
         <Text style={tipText}>
-          💡 <strong>Tip:</strong> Properties that match your criteria get snapped up quickly. Act fast to secure the best investment opportunities!
+          <strong>Tip:</strong> Properties that match your criteria get snapped up quickly. Act fast to secure the best investment opportunities!
         </Text>
       </Section>
 
@@ -179,7 +182,7 @@ const matchBadge = {
 };
 
 const propertyBox = {
-  border: '3px solid #4169E1',
+  border: '2px solid #e5e7eb',
   borderRadius: '0',
   padding: '24px',
   marginBottom: '24px',
@@ -215,7 +218,7 @@ const propertyPrice = {
 };
 
 const matchBox = {
-  backgroundColor: '#fef3c7',
+  backgroundColor: '#ffffff',
   borderRadius: '0',
   padding: '20px',
   marginBottom: '24px',
@@ -248,7 +251,7 @@ const buttonSection = {
 };
 
 const viewButton = {
-  backgroundColor: '#4169E1',
+  backgroundColor: '#10b981',
   color: '#ffffff',
   padding: '14px 32px',
   borderRadius: '0',
@@ -263,7 +266,7 @@ const hr = {
 };
 
 const actionsBox = {
-  backgroundColor: '#ecfdf5',
+  backgroundColor: '#f8f9fa', borderLeft: '4px solid #10b981',
   borderRadius: '0',
   padding: '20px',
   marginBottom: '24px',
@@ -285,7 +288,7 @@ const actionText = {
 };
 
 const tipBox = {
-  backgroundColor: '#fffbeb',
+  backgroundColor: '#f8f9fa',
   borderRadius: '0',
   padding: '15px 20px',
   marginBottom: '24px',

@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { resendEmailVerification } from '@/lib/authHelpers'
 
-const supabaseAdmin = process.env.SUPABASE_SERVICE_ROLE_KEY 
+const supabaseAdmin = process.env.SUPABASE_SERVICE_ROLE_KEY
   ? createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.SUPABASE_SERVICE_ROLE_KEY!,
@@ -54,35 +55,20 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Generate verification token (simple base64 encoding for demo)
-    const verificationToken = Buffer.from(userId).toString('base64')
-    const verificationUrl = `${process.env.NEXT_PUBLIC_SITE_URL}/api/auth/verify-email/${verificationToken}`
+    // Send verification email using our auth helper with Resend + React Email template
+    const { data, error } = await resendEmailVerification(userProfile.email)
 
-    // In a real application, you would send an email here
-    // For now, we'll just log the verification URL
-    console.log(`Email verification URL for ${userProfile.email}: ${verificationUrl}`)
-
-    // TODO: Send actual email using your preferred email service
-    // Example with a hypothetical email service:
-    /*
-    await emailService.send({
-      to: userProfile.email,
-      subject: 'Verify Your Email Address',
-      html: `
-        <h1>Verify Your Email Address</h1>
-        <p>Hello ${userProfile.full_name},</p>
-        <p>Please click the link below to verify your email address:</p>
-        <a href="${verificationUrl}">Verify Email</a>
-        <p>If you didn't create an account, you can safely ignore this email.</p>
-      `
-    })
-    */
+    if (error) {
+      console.error('Failed to send verification email:', error)
+      return NextResponse.json(
+        { error: 'Failed to send verification email' },
+        { status: 500 }
+      )
+    }
 
     return NextResponse.json({
       success: true,
-      message: 'Verification email sent',
-      // For development purposes, include the verification URL
-      ...(process.env.NODE_ENV === 'development' && { verificationUrl })
+      message: 'Verification email sent successfully'
     })
 
   } catch (error) {

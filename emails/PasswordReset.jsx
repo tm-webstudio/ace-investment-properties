@@ -7,6 +7,7 @@ import {
 } from '@react-email/components';
 import * as React from 'react';
 import EmailLayout from './components/EmailLayout';
+import { EmailIcon } from './components/EmailIcon';
 
 export default function PasswordReset({
   name = 'User',
@@ -17,7 +18,9 @@ export default function PasswordReset({
     <EmailLayout preview="Reset your password">
       {/* Icon + Title */}
       <Section style={titleSection}>
-        <Text style={icon}>🔐</Text>
+        <div style={{ textAlign: 'center', marginBottom: '16px' }}>
+          <EmailIcon name="lock" color="#10b981" size={48} />
+        </div>
         <Heading style={heading}>Password Reset Request</Heading>
         <Text style={subtitle}>
           Hi {name}, we received a request to reset the password for your Ace Properties account.
@@ -126,7 +129,7 @@ const subtitle = {
 };
 
 const securityBox = {
-  backgroundColor: '#fffbeb',
+  backgroundColor: '#f8f9fa',
   borderLeft: '4px solid #f97316',
   borderRadius: '0',
   padding: '20px',
@@ -160,7 +163,7 @@ const instructionText = {
 };
 
 const resetButton = {
-  backgroundColor: '#4169E1',
+  backgroundColor: '#10b981',
   color: '#ffffff',
   padding: '14px 32px',
   borderRadius: '0',
@@ -196,7 +199,7 @@ const alternativeText = {
 };
 
 const linkText = {
-  color: '#4169E1',
+  color: '#10b981',
   fontSize: '12px',
   wordBreak: 'break-all',
   fontFamily: 'monospace',
@@ -207,7 +210,7 @@ const linkText = {
 };
 
 const infoBox = {
-  backgroundColor: '#fef3c7',
+  backgroundColor: '#ffffff',
   borderRadius: '0',
   padding: '20px',
   marginBottom: '24px',
@@ -229,7 +232,7 @@ const infoItem = {
 };
 
 const tipsBox = {
-  backgroundColor: '#ecfdf5',
+  backgroundColor: '#f8f9fa', borderLeft: '4px solid #10b981',
   borderRadius: '0',
   padding: '20px',
   marginBottom: '24px',

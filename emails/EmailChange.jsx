@@ -7,6 +7,7 @@ import {
 } from '@react-email/components';
 import * as React from 'react';
 import EmailLayout from './components/EmailLayout';
+import { EmailIcon } from './components/EmailIcon';
 
 export default function EmailChange({
   oldEmail = 'old@example.com',
@@ -127,7 +128,7 @@ const subtitle = {
 };
 
 const infoBox = {
-  backgroundColor: '#fef3c7',
+  backgroundColor: '#ffffff',
   borderRadius: '0',
   padding: '20px',
   marginBottom: '24px',
@@ -172,7 +173,7 @@ const instructionText = {
 };
 
 const confirmButton = {
-  backgroundColor: '#4169E1',
+  backgroundColor: '#10b981',
   color: '#ffffff',
   padding: '14px 32px',
   borderRadius: '0',
@@ -209,7 +210,7 @@ const warningText = {
 };
 
 const securityBox = {
-  backgroundColor: '#ecfdf5',
+  backgroundColor: '#f8f9fa', borderLeft: '4px solid #10b981',
   borderRadius: '0',
   padding: '20px',
   marginBottom: '24px',
@@ -252,7 +253,7 @@ const alternativeText = {
 };
 
 const linkText = {
-  color: '#4169E1',
+  color: '#10b981',
   fontSize: '12px',
   wordBreak: 'break-all',
   fontFamily: 'monospace',

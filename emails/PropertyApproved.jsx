@@ -7,6 +7,7 @@ import {
 } from '@react-email/components';
 import * as React from 'react';
 import EmailLayout from './components/EmailLayout';
+import { EmailIcon } from './components/EmailIcon';
 
 export default function PropertyApproved({
   propertyTitle = 'Modern 2 Bedroom Apartment',
@@ -18,7 +19,9 @@ export default function PropertyApproved({
     <EmailLayout preview="Your property is now live!">
       {/* Icon + Title */}
       <Section style={titleSection}>
-        <Text style={icon}>🎉</Text>
+        <div style={{ textAlign: 'center', marginBottom: '16px' }}>
+          <EmailIcon name="sparkles" color="#10b981" size={48} />
+        </div>
         <Heading style={heading}>Property is Now Live!</Heading>
         <Text style={subtitle}>
           Congratulations! Your property has been approved and is now visible to investors.
@@ -31,14 +34,14 @@ export default function PropertyApproved({
           {propertyTitle}
         </Heading>
         <Text style={propertyAddress}>
-          📍 {propertyAddress}
+          {propertyAddress}
         </Text>
       </Section>
 
       {/* Success Box - Green */}
       <Section style={successBox}>
         <Heading as="h3" style={successHeading}>
-          ✓ Your Property is Live
+          Your Property is Live
         </Heading>
         <Text style={successText}>
           Your property listing has been reviewed and approved by our team. It's now visible to all investors on the Ace Investment Properties platform.
@@ -60,26 +63,26 @@ export default function PropertyApproved({
           What Happens Next?
         </Heading>
         <Text style={stepText}>
-          ✓ Qualified investors can now view your property
+          Qualified investors can now view your property
         </Text>
         <Text style={stepText}>
-          ✓ You'll receive email notifications for viewing requests
+          You'll receive email notifications for viewing requests
         </Text>
         <Text style={stepText}>
-          ✓ Respond quickly to viewing requests for best results
+          Respond quickly to viewing requests for best results
         </Text>
         <Text style={stepText}>
-          ✓ Track all activity in your landlord dashboard
+          Track all activity in your landlord dashboard
         </Text>
         <Text style={stepText}>
-          ✓ Keep your property details and photos up to date
+          Keep your property details and photos up to date
         </Text>
       </Section>
 
       {/* Tips Box */}
       <Section style={tipsBox}>
         <Heading as="h3" style={tipsHeading}>
-          💡 Tips for Success
+          Tips for Success
         </Heading>
         <Text style={tipText}>
           • Respond to viewing requests within 24 hours
@@ -137,7 +140,7 @@ const subtitle = {
 };
 
 const propertyBox = {
-  border: '3px solid #4169E1',
+  border: '2px solid #e5e7eb',
   borderRadius: '0',
   padding: '24px',
   marginBottom: '24px',
@@ -159,7 +162,7 @@ const propertyAddress = {
 };
 
 const successBox = {
-  backgroundColor: '#ecfdf5',
+  backgroundColor: '#f8f9fa', borderLeft: '4px solid #10b981',
   borderLeft: '4px solid #10b981',
   borderRadius: '0',
   padding: '20px',
@@ -201,7 +204,7 @@ const hr = {
 };
 
 const nextStepsBox = {
-  backgroundColor: '#fef3c7',
+  backgroundColor: '#ffffff',
   borderRadius: '0',
   padding: '20px',
   marginBottom: '24px',
@@ -222,7 +225,7 @@ const stepText = {
 };
 
 const tipsBox = {
-  backgroundColor: '#fffbeb',
+  backgroundColor: '#f8f9fa',
   borderLeft: '4px solid #f97316',
   borderRadius: '0',
   padding: '20px',

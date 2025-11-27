@@ -8,6 +8,7 @@ import {
 } from '@react-email/components';
 import * as React from 'react';
 import EmailLayout from './components/EmailLayout';
+import { EmailIcon } from './components/EmailIcon';
 
 export default function ViewingReminder({
   propertyTitle = 'Modern 2 Bedroom Apartment',
@@ -53,7 +54,7 @@ export default function ViewingReminder({
           {propertyTitle}
         </Heading>
         <Text style={propertyAddress}>
-          📍 {propertyAddress}
+          {propertyAddress}
         </Text>
       </Section>
 
@@ -87,7 +88,7 @@ export default function ViewingReminder({
       {/* Action Button */}
       <Section style={buttonSection}>
         <Button href={mapsLink} style={directionsButton}>
-          🗺️ Get Directions
+          Get Directions
         </Button>
       </Section>
 
@@ -96,14 +97,14 @@ export default function ViewingReminder({
       {/* Tips Box - Green */}
       <Section style={tipsBox}>
         <Heading as="h3" style={tipsHeading}>
-          💡 Viewing Checklist
+          Viewing Checklist
         </Heading>
-        <Text style={tipText}>✓ Arrive 5 minutes early</Text>
-        <Text style={tipText}>✓ Bring photo ID</Text>
-        <Text style={tipText}>✓ Prepare your questions</Text>
-        <Text style={tipText}>✓ Take photos/notes if permitted</Text>
-        <Text style={tipText}>✓ Check all rooms and amenities</Text>
-        <Text style={tipText}>✓ Note any concerns or repairs needed</Text>
+        <Text style={tipText}>Arrive 5 minutes early</Text>
+        <Text style={tipText}>Bring photo ID</Text>
+        <Text style={tipText}>Prepare your questions</Text>
+        <Text style={tipText}>Take photos/notes if permitted</Text>
+        <Text style={tipText}>Check all rooms and amenities</Text>
+        <Text style={tipText}>Note any concerns or repairs needed</Text>
       </Section>
 
       <Section style={dashboardSection}>
@@ -145,7 +146,7 @@ const subtitle = {
 };
 
 const propertyBox = {
-  border: '3px solid #4169E1',
+  border: '2px solid #e5e7eb',
   borderRadius: '0',
   padding: '24px',
   marginBottom: '24px',
@@ -174,7 +175,7 @@ const propertyAddress = {
 };
 
 const infoBox = {
-  backgroundColor: '#fef3c7',
+  backgroundColor: '#ffffff',
   borderRadius: '0',
   padding: '20px',
   marginBottom: '24px',
@@ -212,7 +213,7 @@ const buttonSection = {
 };
 
 const directionsButton = {
-  backgroundColor: '#4169E1',
+  backgroundColor: '#10b981',
   color: '#ffffff',
   padding: '14px 32px',
   borderRadius: '0',
@@ -227,7 +228,7 @@ const hr = {
 };
 
 const tipsBox = {
-  backgroundColor: '#ecfdf5',
+  backgroundColor: '#f8f9fa', borderLeft: '4px solid #10b981',
   borderRadius: '0',
   padding: '20px',
   marginBottom: '24px',

@@ -69,7 +69,13 @@ export async function GET(request: NextRequest) {
     query = query.range(offset, offset + limit - 1)
     
     const { data: properties, error, count } = await query
-    
+
+    console.log('Properties API - First property from DB:', properties?.[0] ? {
+      id: properties[0].id,
+      property_licence: properties[0].property_licence,
+      property_condition: properties[0].property_condition
+    } : null)
+
     if (error) {
       console.error('Error fetching properties:', error)
       return NextResponse.json(

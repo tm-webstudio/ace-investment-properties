@@ -7,6 +7,7 @@ import {
 } from '@react-email/components';
 import * as React from 'react';
 import EmailLayout from './components/EmailLayout';
+import { EmailIcon } from './components/EmailIcon';
 
 export default function DocumentExpiring({
   landlordName = 'John Smith',
@@ -49,7 +50,7 @@ export default function DocumentExpiring({
           {propertyTitle}
         </Heading>
         <Text style={propertyAddress}>
-          📍 {propertyAddress}
+          {propertyAddress}
         </Text>
       </Section>
 
@@ -132,7 +133,7 @@ export default function DocumentExpiring({
       </Section>
 
       <Text style={reminderText}>
-        💡 <strong>Set up reminders:</strong> We'll automatically notify you 30, 14, and 7 days before any document expires.
+        <strong>Set up reminders:</strong> We'll automatically notify you 30, 14, and 7 days before any document expires.
       </Text>
 
       <Text style={footerText}>
@@ -168,7 +169,7 @@ const subtitle = {
 };
 
 const propertyBox = {
-  border: '3px solid #4169E1',
+  border: '2px solid #e5e7eb',
   borderRadius: '0',
   padding: '24px',
   marginBottom: '24px',
@@ -190,7 +191,7 @@ const propertyAddress = {
 };
 
 const warningBox = {
-  backgroundColor: '#fffbeb',
+  backgroundColor: '#f8f9fa',
   borderLeft: '4px solid #f97316',
   borderRadius: '0',
   padding: '20px',
@@ -258,7 +259,7 @@ const urgentBadge = {
 };
 
 const infoBox = {
-  backgroundColor: '#fef3c7',
+  backgroundColor: '#ffffff',
   borderRadius: '0',
   padding: '20px',
   marginBottom: '24px',
@@ -280,7 +281,7 @@ const infoText = {
 };
 
 const nextStepsBox = {
-  backgroundColor: '#ecfdf5',
+  backgroundColor: '#f8f9fa', borderLeft: '4px solid #10b981',
   borderRadius: '0',
   padding: '20px',
   marginBottom: '24px',
@@ -341,7 +342,7 @@ const reminderText = {
   lineHeight: '22px',
   margin: '20px 0',
   padding: '15px',
-  backgroundColor: '#fffbeb',
+  backgroundColor: '#f8f9fa',
   borderRadius: '0',
 };
 

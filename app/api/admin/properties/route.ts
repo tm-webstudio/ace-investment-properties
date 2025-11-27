@@ -65,7 +65,12 @@ export async function GET(request: NextRequest) {
     console.log('Admin properties API - query result:', {
       count: properties?.length || 0,
       error: error?.message,
-      statuses: properties?.map(p => p.status)
+      statuses: properties?.map(p => p.status),
+      firstProperty: properties?.[0] ? {
+        id: properties[0].id,
+        property_licence: properties[0].property_licence,
+        property_condition: properties[0].property_condition
+      } : null
     })
 
     if (error) {
@@ -132,8 +137,8 @@ export async function GET(request: NextRequest) {
           landlordName,
           landlordEmail,
           landlordPhone,
-          licence: property.licence,
-          condition: property.condition,
+          property_licence: property.property_licence,
+          property_condition: property.property_condition,
           latitude: property.latitude,
           longitude: property.longitude
         }

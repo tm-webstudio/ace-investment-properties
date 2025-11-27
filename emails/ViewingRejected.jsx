@@ -7,6 +7,7 @@ import {
 } from '@react-email/components';
 import * as React from 'react';
 import EmailLayout from './components/EmailLayout';
+import { EmailIcon } from './components/EmailIcon';
 
 export default function ViewingRejected({
   propertyTitle = 'Modern 2 Bedroom Apartment',
@@ -32,7 +33,7 @@ export default function ViewingRejected({
           {propertyTitle}
         </Heading>
         <Text style={propertyAddress}>
-          📍 {propertyAddress}
+          {propertyAddress}
         </Text>
       </Section>
 
@@ -69,10 +70,10 @@ export default function ViewingRejected({
         <Heading as="h3" style={nextStepsHeading}>
           What's Next?
         </Heading>
-        <Text style={stepText}>✓ Browse similar properties in your area</Text>
-        <Text style={stepText}>✓ Save properties you're interested in</Text>
-        <Text style={stepText}>✓ Request viewings for other listings</Text>
-        <Text style={stepText}>✓ Set up property alerts to get notified of new matches</Text>
+        <Text style={stepText}>Browse similar properties in your area</Text>
+        <Text style={stepText}>Save properties you're interested in</Text>
+        <Text style={stepText}>Request viewings for other listings</Text>
+        <Text style={stepText}>Set up property alerts to get notified of new matches</Text>
       </Section>
 
       {/* Action Buttons */}
@@ -123,7 +124,7 @@ const subtitle = {
 };
 
 const propertyBox = {
-  border: '3px solid #4169E1',
+  border: '2px solid #e5e7eb',
   borderRadius: '0',
   padding: '24px',
   marginBottom: '24px',
@@ -187,7 +188,7 @@ const reasonText = {
 };
 
 const encouragingBox = {
-  backgroundColor: '#ecfdf5',
+  backgroundColor: '#f8f9fa', borderLeft: '4px solid #10b981',
   borderRadius: '0',
   padding: '20px',
   marginBottom: '24px',
@@ -209,7 +210,7 @@ const encouragingText = {
 };
 
 const nextStepsBox = {
-  backgroundColor: '#fef3c7',
+  backgroundColor: '#ffffff',
   borderRadius: '0',
   padding: '20px',
   marginBottom: '24px',
@@ -235,7 +236,7 @@ const buttonSection = {
 };
 
 const browseButton = {
-  backgroundColor: '#4169E1',
+  backgroundColor: '#10b981',
   color: '#ffffff',
   padding: '14px 32px',
   borderRadius: '0',

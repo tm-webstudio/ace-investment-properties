@@ -7,6 +7,7 @@ import {
 } from '@react-email/components';
 import * as React from 'react';
 import EmailLayout from './components/EmailLayout';
+import { EmailIcon } from './components/EmailIcon';
 
 export default function PropertyRejected({
   propertyTitle = 'Modern 2 Bedroom Apartment',
@@ -32,7 +33,7 @@ export default function PropertyRejected({
           {propertyTitle}
         </Heading>
         <Text style={propertyAddress}>
-          📍 {propertyAddress}
+          {propertyAddress}
         </Text>
       </Section>
 
@@ -64,25 +65,25 @@ export default function PropertyRejected({
           Property Listing Guidelines
         </Heading>
         <Text style={guidelineText}>
-          ✓ High-quality photos (minimum 5 images)
+          High-quality photos (minimum 5 images)
         </Text>
         <Text style={guidelineText}>
-          ✓ Detailed property description (minimum 100 words)
+          Detailed property description (minimum 100 words)
         </Text>
         <Text style={guidelineText}>
-          ✓ Accurate property specifications
+          Accurate property specifications
         </Text>
         <Text style={guidelineText}>
-          ✓ Current Gas Safety Certificate
+          Current Gas Safety Certificate
         </Text>
         <Text style={guidelineText}>
-          ✓ EPC Certificate (Energy Performance)
+          EPC Certificate (Energy Performance)
         </Text>
         <Text style={guidelineText}>
-          ✓ Valid landlord insurance documents
+          Valid landlord insurance documents
         </Text>
         <Text style={guidelineText}>
-          ✓ Competitive rental pricing
+          Competitive rental pricing
         </Text>
       </Section>
 
@@ -141,7 +142,7 @@ const subtitle = {
 };
 
 const propertyBox = {
-  border: '3px solid #4169E1',
+  border: '2px solid #e5e7eb',
   borderRadius: '0',
   padding: '24px',
   marginBottom: '24px',
@@ -163,7 +164,7 @@ const propertyAddress = {
 };
 
 const warningBox = {
-  backgroundColor: '#fffbeb',
+  backgroundColor: '#f8f9fa',
   borderLeft: '4px solid #f97316',
   borderRadius: '0',
   padding: '20px',
@@ -197,7 +198,7 @@ const instructionText = {
 };
 
 const editButton = {
-  backgroundColor: '#4169E1',
+  backgroundColor: '#10b981',
   color: '#ffffff',
   padding: '14px 32px',
   borderRadius: '0',
@@ -212,7 +213,7 @@ const hr = {
 };
 
 const guidelinesBox = {
-  backgroundColor: '#fef3c7',
+  backgroundColor: '#ffffff',
   borderRadius: '0',
   padding: '20px',
   marginBottom: '24px',
@@ -233,7 +234,7 @@ const guidelineText = {
 };
 
 const helpBox = {
-  backgroundColor: '#ecfdf5',
+  backgroundColor: '#f8f9fa', borderLeft: '4px solid #10b981',
   borderRadius: '0',
   padding: '20px',
   marginBottom: '24px',
