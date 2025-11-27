@@ -1,7 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { createClient } from '@supabase/supabase-js'
 import { supabase } from '@/lib/supabase'
 import { rateLimit } from '@/lib/middleware'
 import { signUpWithEmail } from '@/lib/authHelpers'
+
+// Create admin client for database operations
+const supabaseAdmin = process.env.SUPABASE_SERVICE_ROLE_KEY
+  ? createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false
+        }
+      }
+    )
+  : null
 
 export async function POST(request: NextRequest) {
   try {
@@ -93,30 +108,35 @@ export async function POST(request: NextRequest) {
     // Save investor preferences if provided
     if (user_type === 'investor' && preferences) {
       try {
-        // Validate preferences for investors
-        const { operator_type, preference_data } = preferences
-        
-        if (!operator_type || !preference_data) {
-          console.error('Invalid preferences data for investor')
+        // Check if admin client is available
+        if (!supabaseAdmin) {
+          console.error('Admin client not available for preferences creation')
         } else {
-          const preferencesData = {
-            investor_id: authData.user.id,
-            operator_type: preferences.operator_type,
-            operator_type_other: preferences.operator_type === 'other' ? preferences.operator_type_other : null,
-            properties_managing: preferences.properties_managing || 0,
-            preference_data: preferences.preference_data,
-            notification_enabled: true,
-            is_active: true,
-            updated_at: new Date().toISOString()
-          }
+          // Validate preferences for investors
+          const { operator_type, preference_data } = preferences
 
-          const { error: preferencesError } = await supabase
-            .from('investor_preferences')
-            .insert(preferencesData)
+          if (!operator_type || !preference_data) {
+            console.error('Invalid preferences data for investor')
+          } else {
+            const preferencesData = {
+              investor_id: authData.user.id,
+              operator_type: preferences.operator_type,
+              operator_type_other: preferences.operator_type === 'other' ? preferences.operator_type_other : null,
+              properties_managing: preferences.properties_managing || 0,
+              preference_data: preferences.preference_data,
+              notification_enabled: true,
+              is_active: true,
+              updated_at: new Date().toISOString()
+            }
 
-          if (preferencesError) {
-            console.error('Preferences creation error:', preferencesError)
-            // Don't fail the signup if preferences fail to save, user can set them later
+            const { error: preferencesError } = await supabaseAdmin
+              .from('investor_preferences')
+              .insert(preferencesData)
+
+            if (preferencesError) {
+              console.error('Preferences creation error:', preferencesError)
+              // Don't fail the signup if preferences fail to save, user can set them later
+            }
           }
         }
       } catch (prefError) {
@@ -127,11 +147,11 @@ export async function POST(request: NextRequest) {
 
     // Count matching properties for investors with preferences
     let matchedProperties = 0
-    if (user_type === 'investor' && preferences) {
+    if (user_type === 'investor' && preferences && supabaseAdmin) {
       try {
         // This is a simplified matching algorithm
         // In a real app, you'd implement more sophisticated matching
-        const { data: properties } = await supabase
+        const { data: properties } = await supabaseAdmin
           .from('properties')
           .select('*')
           .eq('status', 'active')
