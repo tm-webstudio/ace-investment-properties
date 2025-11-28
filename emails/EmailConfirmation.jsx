@@ -71,16 +71,6 @@ export default function EmailConfirmation({
       </Section>
 
       {/* Alternative Link */}
-      <Section style={alternativeBox}>
-        <Heading as="h3" style={alternativeHeading}>
-          Button not working?
-        </Heading>
-        <Text style={alternativeText}>
-          Copy and paste this link into your browser:
-        </Text>
-        <Text style={linkText}>{finalUrl}</Text>
-      </Section>
-
       <Text style={footerText}>
         Need help? Contact our support team at support@aceinvestmentproperties.co.uk
       </Text>
