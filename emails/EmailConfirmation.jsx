@@ -53,7 +53,7 @@ export default function EmailConfirmation({
         <Text style={instructionText}>
           Click the button below to confirm your email address:
         </Text>
-        <Button href={confirmationUrl} style={confirmButton}>
+        <Button href={finalUrl} style={confirmButton}>
           Confirm Email Address
         </Button>
       </Section>
