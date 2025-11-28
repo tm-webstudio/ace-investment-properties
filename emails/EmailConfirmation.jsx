@@ -11,8 +11,12 @@ import { EmailIcon } from './components/EmailIcon';
 
 export default function EmailConfirmation({
   email = 'user@example.com',
-  confirmationUrl = `${process.env.NEXT_PUBLIC_SITE_URL}/auth/confirm?token=abc123`,
+  confirmationUrl,
+  confirmationLink, // legacy prop name
 }) {
+  // Accept either confirmationUrl or confirmationLink for backwards compatibility
+  const finalUrl = confirmationUrl || confirmationLink || `${process.env.NEXT_PUBLIC_SITE_URL}/auth/confirm`
+
   return (
     <EmailLayout preview="Confirm your email address">
       {/* Icon + Title */}
@@ -74,7 +78,7 @@ export default function EmailConfirmation({
         <Text style={alternativeText}>
           Copy and paste this link into your browser:
         </Text>
-        <Text style={linkText}>{confirmationUrl}</Text>
+        <Text style={linkText}>{finalUrl}</Text>
       </Section>
 
       <Text style={footerText}>
