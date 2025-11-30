@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { PropertyTitle } from "@/components/property-title"
-import { Bed, Bath, MoreVertical, Edit, Eye, Trash2, CheckCircle, XCircle, Camera, Check, X } from "lucide-react"
+import { Bed, Bath, MoreVertical, Edit, Eye, Trash2, CheckCircle, XCircle, Camera, Check, X, Shield } from "lucide-react"
 import { SavePropertyButton } from "./save-property-button"
 import { format } from "date-fns"
 import { supabase } from "@/lib/supabase"
@@ -22,9 +22,12 @@ interface PropertyCardProps {
   onPropertyDeleted?: () => void // Callback for when property is deleted
   onApprove?: (propertyId: string) => void // Callback for admin approval
   onReject?: (propertyId: string) => void // Callback for admin rejection
+  onGovernmentApprove?: (propertyId: string) => void // Optional callback for govt-specific approval
+  onGovernmentReject?: (propertyId: string) => void // Optional callback for govt-specific rejection
+  showGovernmentActions?: boolean // Force showing government buttons even if no flag on property
 }
 
-export function PropertyCard({ property, variant = 'default', onPropertyDeleted, onApprove, onReject }: PropertyCardProps) {
+export function PropertyCard({ property, variant = 'default', onPropertyDeleted, onApprove, onReject, onGovernmentApprove, onGovernmentReject, showGovernmentActions = false }: PropertyCardProps) {
   const [isDeleting, setIsDeleting] = useState(false)
   const [deleteModalOpen, setDeleteModalOpen] = useState(false)
   const router = useRouter()
@@ -123,16 +126,19 @@ export function PropertyCard({ property, variant = 'default', onPropertyDeleted,
     }
   }
   // Check if property is awaiting approval (only show for non-admin variants)
-  const isAwaitingApproval = property.status === 'draft' && variant !== 'admin'
+  const isAwaitingApproval = property.status === 'draft'
   // Check if property is rejected
   const isRejected = property.status === 'rejected'
+  const shouldShowGovernmentActions = showGovernmentActions
 
   // Shared card structure for both variants
   const CardLayout = ({ children, topRightAction }: { children: React.ReactNode, topRightAction: React.ReactNode }) => (
-    <Card className={`overflow-hidden hover:shadow-lg transition-all duration-300 group border-border/50 hover:border-accent/20 cursor-pointer p-0 gap-3.5 rounded-none ${isAwaitingApproval || isRejected ? 'opacity-60' : ''}`}>
+    <Card
+      className="overflow-hidden hover:shadow-lg transition-all duration-300 group border-border/50 hover:border-accent/20 cursor-pointer p-0 gap-3.5 rounded-none"
+    >
       <div className="relative overflow-hidden cursor-pointer" onClick={handleCardClick}>
         {(isAwaitingApproval || isRejected) && (
-          <div className="absolute inset-0 bg-gray-900/10 z-[5]" />
+          <div className="absolute inset-0 bg-black/25 z-[4] pointer-events-none backdrop-blur-[1px]" />
         )}
         {(property.images || property.photos)?.[0] ? (
           <Image
@@ -153,23 +159,23 @@ export function PropertyCard({ property, variant = 'default', onPropertyDeleted,
 
         {/* Awaiting Approval Watermark */}
         {isAwaitingApproval && (
-          <div className="absolute inset-0 flex items-center justify-center z-[6]">
-            <div className="bg-yellow-500/95 text-white px-4 py-2 rounded shadow-lg border-2 border-yellow-400">
-              <p className="font-bold text-sm">Awaiting Approval</p>
+          <div className="absolute inset-0 flex items-center justify-center z-[7] pointer-events-none translate-y-2 sm:translate-y-3">
+            <div className="bg-yellow-500/95 text-white px-5 py-2 rounded-none shadow-xl border border-yellow-600 shadow-yellow-900/30">
+              <p className="font-extrabold text-sm tracking-tight">Awaiting Approval</p>
             </div>
           </div>
         )}
 
         {/* Rejected Watermark */}
         {isRejected && (
-          <div className="absolute inset-0 flex items-center justify-center z-[6]">
-            <div className="bg-red-500/95 text-white px-4 py-2 rounded shadow-lg border-2 border-red-400">
-              <p className="font-bold text-sm">Rejected</p>
+          <div className="absolute inset-0 flex items-center justify-center z-[7] pointer-events-none translate-y-2 sm:translate-y-3">
+            <div className="bg-red-700/95 text-white px-5 py-2 rounded-none shadow-xl border border-red-800 shadow-red-900/40">
+              <p className="font-extrabold text-sm tracking-tight">Rejected</p>
             </div>
           </div>
         )}
 
-        <div className="absolute top-4 left-4 flex gap-2 z-10">
+        <div className="absolute top-4 left-4 flex gap-2 z-[9]">
           <Badge
             variant={
               property.availability === 'vacant' ? 'default' :
@@ -177,7 +183,7 @@ export function PropertyCard({ property, variant = 'default', onPropertyDeleted,
               property.availability === 'upcoming' ? 'default' :
               'secondary'
             }
-            className={`text-xs font-semibold shadow-lg ${
+            className={`text-xs font-semibold shadow-lg rounded-none ${
               property.availability === 'vacant' ? 'bg-accent text-accent-foreground hover:bg-accent/90' :
               property.availability === 'upcoming' ? 'bg-orange-500 text-white hover:bg-orange-600' : ''
             }`}
@@ -188,7 +194,8 @@ export function PropertyCard({ property, variant = 'default', onPropertyDeleted,
              'Available'}
           </Badge>
         </div>
-        <div className="absolute top-4 right-4 z-10">
+
+        <div className="absolute top-4 right-4 z-[10]">
           {topRightAction}
         </div>
         <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
@@ -232,7 +239,7 @@ export function PropertyCard({ property, variant = 'default', onPropertyDeleted,
               }
               
               return (
-                <Badge className="text-xs font-semibold bg-primary text-primary-foreground hover:bg-primary/90">
+                <Badge className="text-xs font-semibold bg-primary text-primary-foreground hover:bg-primary/90 rounded-none">
                   {licenceDisplay}
                 </Badge>
               );
@@ -246,7 +253,7 @@ export function PropertyCard({ property, variant = 'default', onPropertyDeleted,
               }
               
               return (
-                <Badge className="text-xs font-semibold bg-gray-200 text-gray-700 hover:bg-gray-300">
+                <Badge className="text-xs font-semibold bg-gray-200 text-gray-700 hover:bg-gray-300 rounded-none">
                   {conditionDisplay}
                 </Badge>
               );
@@ -337,15 +344,28 @@ export function PropertyCard({ property, variant = 'default', onPropertyDeleted,
 
   if (variant === 'admin') {
     const adminActions = (
-      <div className="flex gap-1">
-        <Button
+          <div className="flex gap-1">
+            {shouldShowGovernmentActions && (
+              <Button
+                size="icon"
+                variant="ghost"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  onGovernmentApprove?.(property.id)
+                }}
+                className="bg-[#0b3b63] hover:bg-[#0e4a7a] shadow-lg border border-[#0b3b63]/70 transition-all duration-200 hover:shadow-xl h-8 w-8 rounded-none"
+              >
+                <Shield className="h-4 w-4 text-white" />
+              </Button>
+            )}
+            <Button
           size="icon"
           variant="ghost"
           onClick={(e) => {
             e.stopPropagation()
             onApprove?.(property.id)
           }}
-          className="bg-green-600/90 hover:bg-green-700 shadow-lg border border-green-500/50 transition-all duration-200 hover:shadow-xl h-8 w-8"
+          className="bg-green-600/90 hover:bg-green-700 shadow-lg border border-green-500/50 transition-all duration-200 hover:shadow-xl h-8 w-8 rounded-none"
         >
           <Check className="h-4 w-4 text-white" />
         </Button>
@@ -356,7 +376,7 @@ export function PropertyCard({ property, variant = 'default', onPropertyDeleted,
             e.stopPropagation()
             onReject?.(property.id)
           }}
-          className="bg-red-600/90 hover:bg-red-700 shadow-lg border border-red-500/50 transition-all duration-200 hover:shadow-xl h-8 w-8"
+          className="bg-red-600/90 hover:bg-red-700 shadow-lg border border-red-500/50 transition-all duration-200 hover:shadow-xl h-8 w-8 rounded-none"
         >
           <X className="h-4 w-4 text-white" />
         </Button>

@@ -7,11 +7,12 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { PropertyCard } from "@/components/property-card"
 import { PropertyTitle } from "@/components/property-title"
 import { ViewingRequests } from "@/components/viewing-requests"
-import { Settings, Eye, CheckCircle, XCircle, Clock, Calendar, Home, Users, BarChart3, Plus, Shield, Building, FileText, Download, ExternalLink, ChevronLeft, ChevronRight, Check } from "lucide-react"
+import { Settings, Eye, CheckCircle, XCircle, Clock, Calendar, Home, Users, BarChart3, Plus, Shield, Building, FileText, Download, ExternalLink, ChevronLeft, ChevronRight, Check, Mail, Phone } from "lucide-react"
 import Link from "next/link"
 import type { Admin } from "@/lib/sample-data"
 import { samplePendingProperties, sampleViewings, sampleProperties, sampleLandlords, sampleInvestors } from "@/lib/sample-data"
 import { supabase } from "@/lib/supabase"
+import { PendingMetaStrip } from "./pending-meta-strip"
 
 interface AdminDashboardOverviewProps {
   admin: Admin
@@ -41,6 +42,8 @@ export function AdminDashboardOverview({ admin, onTabChange }: AdminDashboardOve
   const scrollRef = useRef<HTMLDivElement>(null)
   const [canScrollLeft, setCanScrollLeft] = useState(false)
   const [canScrollRight, setCanScrollRight] = useState(false)
+  const [landlordModalOpen, setLandlordModalOpen] = useState(false)
+  const [selectedLandlord, setSelectedLandlord] = useState<any>(null)
 
   useEffect(() => {
     const fetchAdminData = async () => {
@@ -241,6 +244,21 @@ export function AdminDashboardOverview({ admin, onTabChange }: AdminDashboardOve
       default:
         return "bg-gray-100 text-gray-800"
     }
+  }
+
+  const openLandlordModal = (property: any) => {
+    const landlordName = property?._pendingInfo?.landlordName || property?.contact_name || property?.landlord?.full_name || 'Unknown landlord'
+
+    setSelectedLandlord({
+      name: landlordName,
+      email: property?.contact_email || '',
+      phone: property?.contact_phone || property?.landlord?.phone || '',
+      company: property?.landlord?.company_name || '',
+      submittedDate: property?._pendingInfo?.submittedDate,
+      property
+    })
+
+    setLandlordModalOpen(true)
   }
 
   const handleApproveClick = (propertyId: string) => {
@@ -519,29 +537,41 @@ export function AdminDashboardOverview({ admin, onTabChange }: AdminDashboardOve
             <div className="relative">
               <div className="flex overflow-x-hidden gap-4 pb-4">
                 {[...Array(4)].map((_, i) => (
-                  <div key={i} className="flex-none w-4/5 sm:w-1/2 lg:w-[23.5%] space-y-2">
-                    <div className="border rounded-lg overflow-hidden">
-                      {/* Image skeleton */}
-                      <div className="h-48 bg-gray-200 animate-pulse"></div>
-                      {/* Content skeleton */}
-                      <div className="p-4 space-y-3">
-                        <div className="h-5 bg-gray-200 rounded animate-pulse w-3/4"></div>
-                        <div className="h-4 bg-gray-200 rounded animate-pulse w-1/2"></div>
-                        <div className="flex gap-2">
-                          <div className="h-4 bg-gray-200 rounded animate-pulse w-16"></div>
-                          <div className="h-4 bg-gray-200 rounded animate-pulse w-16"></div>
+                  <div key={i} className="flex-none w-4/5 sm:w-1/2 lg:w-[23.5%] space-y-3">
+                    <div className="border border-border/50 rounded-none overflow-hidden bg-white">
+                      <div className="relative h-48 bg-gray-200/70 animate-pulse">
+                        <div className="absolute top-4 left-4 h-6 w-16 bg-gray-300/80 rounded"></div>
+                        <div className="absolute top-4 right-4 flex gap-2">
+                          <div className="h-8 w-8 bg-gray-300/80 rounded"></div>
+                          <div className="h-8 w-8 bg-gray-300/80 rounded"></div>
                         </div>
-                        <div className="h-6 bg-gray-200 rounded animate-pulse w-24"></div>
+                        <div className="absolute inset-0 flex items-center justify-center text-gray-400">
+                          <div className="h-12 w-12 bg-gray-300/60 rounded-full"></div>
+                        </div>
+                      </div>
+                      <div className="p-4 space-y-3">
+                        <div className="h-5 bg-gray-200 rounded w-3/4 animate-pulse"></div>
+                        <div className="h-4 bg-gray-200 rounded w-1/2 animate-pulse"></div>
                         <div className="flex gap-2">
-                          <div className="h-9 bg-gray-200 rounded animate-pulse flex-1"></div>
-                          <div className="h-9 bg-gray-200 rounded animate-pulse flex-1"></div>
+                          <div className="h-4 bg-gray-200 rounded w-16 animate-pulse"></div>
+                          <div className="h-4 bg-gray-200 rounded w-16 animate-pulse"></div>
+                        </div>
+                        <div className="h-6 bg-gray-200 rounded w-24 animate-pulse"></div>
+                        <div className="flex gap-2">
+                          <div className="h-9 bg-gray-200 rounded flex-1 animate-pulse"></div>
+                          <div className="h-9 bg-gray-200 rounded flex-1 animate-pulse"></div>
                         </div>
                       </div>
                     </div>
-                    {/* Admin info skeleton */}
-                    <div className="flex items-center justify-between">
-                      <div className="h-3 bg-gray-200 rounded animate-pulse w-24"></div>
-                      <div className="h-3 bg-gray-200 rounded animate-pulse w-28"></div>
+                    <div className="flex items-center justify-between text-[12px] border border-border/50 bg-white px-3 py-2 rounded-none">
+                      <div className="flex items-center gap-2">
+                        <div className="h-3.5 w-3.5 bg-gray-300 rounded-full"></div>
+                        <div className="h-3 w-24 bg-gray-200 rounded animate-pulse"></div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="h-3.5 w-3.5 bg-gray-300 rounded-full"></div>
+                        <div className="h-3 w-20 bg-gray-200 rounded animate-pulse"></div>
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -575,13 +605,15 @@ export function AdminDashboardOverview({ admin, onTabChange }: AdminDashboardOve
                       variant="admin"
                       onApprove={handleApproveClick}
                       onReject={handleRejectClick}
+                      showGovernmentActions
                     />
 
                     {/* Admin info below the card */}
-                    <div className="flex items-center justify-between text-xs text-muted-foreground">
-                      <span className="font-medium">By: {property._pendingInfo.landlordName}</span>
-                      <span>Submitted: {new Date(property._pendingInfo.submittedDate).toLocaleDateString('en-GB')}</span>
-                    </div>
+                    <PendingMetaStrip
+                      landlordName={property._pendingInfo.landlordName}
+                      submittedDate={property._pendingInfo.submittedDate}
+                      onClick={() => openLandlordModal(property)}
+                    />
                   </div>
                 ))}
               </div>
@@ -717,6 +749,61 @@ export function AdminDashboardOverview({ admin, onTabChange }: AdminDashboardOve
           </CardContent>
         </Card>
       </div>
+
+      {/* Landlord Info Modal */}
+      <Dialog open={landlordModalOpen} onOpenChange={setLandlordModalOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Landlord Details</DialogTitle>
+            <DialogDescription>
+              {selectedLandlord?.submittedDate
+                ? `Submitted ${new Date(selectedLandlord.submittedDate).toLocaleDateString('en-GB')}`
+                : 'Submission details'}
+            </DialogDescription>
+          </DialogHeader>
+
+          {selectedLandlord && (
+            <div className="space-y-4">
+              <div className="flex items-start gap-3 p-4 bg-accent/5 border border-accent/20 rounded-lg">
+                <div className="h-12 w-12 rounded-full bg-accent/10 flex items-center justify-center text-accent">
+                  <Users className="h-6 w-6" />
+                </div>
+                <div className="flex-1 min-w-0 space-y-1">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <h3 className="font-semibold text-base">{selectedLandlord.name}</h3>
+                    <Badge variant="secondary" className="text-xs">Landlord</Badge>
+                    {selectedLandlord.company && (
+                      <Badge variant="outline" className="text-xs bg-white">{selectedLandlord.company}</Badge>
+                    )}
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    Submitted {selectedLandlord.submittedDate
+                      ? new Date(selectedLandlord.submittedDate).toLocaleString('en-GB', { dateStyle: 'medium', timeStyle: 'short' })
+                      : 'Unknown submission'}
+                  </p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                <div className="p-3 border rounded-lg bg-white/80 flex items-start gap-2">
+                  <Mail className="h-4 w-4 text-accent mt-0.5" />
+                  <div>
+                    <p className="text-xs uppercase tracking-wide text-muted-foreground">Email</p>
+                    <p className="font-medium break-words">{selectedLandlord.email || 'Not provided'}</p>
+                  </div>
+                </div>
+                <div className="p-3 border rounded-lg bg-white/80 flex items-start gap-2">
+                  <Phone className="h-4 w-4 text-accent mt-0.5" />
+                  <div>
+                    <p className="text-xs uppercase tracking-wide text-muted-foreground">Phone</p>
+                    <p className="font-medium">{selectedLandlord.phone || 'Not provided'}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
 
       {/* Confirmation/Result Modal */}
       <Dialog open={modalOpen} onOpenChange={setModalOpen}>

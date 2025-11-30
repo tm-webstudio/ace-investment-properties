@@ -7,6 +7,10 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Card, CardContent } from "@/components/ui/card"
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Badge } from "@/components/ui/badge"
+import { Users, Mail, Phone } from "lucide-react"
+import { PendingMetaStrip } from "./pending-meta-strip"
 import { supabase } from "@/lib/supabase"
 
 interface Property {
@@ -44,6 +48,8 @@ export function AdminDashboardProperties() {
   const [error, setError] = useState<string | null>(null)
   const [filter, setFilter] = useState<'all' | 'active' | 'draft' | 'rejected'>('all')
   const [searchQuery, setSearchQuery] = useState('')
+  const [landlordModalOpen, setLandlordModalOpen] = useState(false)
+  const [selectedLandlord, setSelectedLandlord] = useState<any>(null)
 
   useEffect(() => {
     fetchProperties()
@@ -121,6 +127,17 @@ export function AdminDashboardProperties() {
 
   const emptyState = getEmptyStateMessage()
 
+  const openLandlordModal = (property: Property) => {
+    setSelectedLandlord({
+      name: property.landlordName || 'Unknown landlord',
+      email: property.landlordEmail || '',
+      phone: property.landlordPhone || '',
+      submittedDate: property.created_at,
+      property
+    })
+    setLandlordModalOpen(true)
+  }
+
   // Filter properties based on search query
   const filteredProperties = properties.filter(property => {
     const searchLower = searchQuery.toLowerCase()
@@ -166,22 +183,43 @@ export function AdminDashboardProperties() {
       </Card>
 
       {loading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-x-4 gap-y-8 md:gap-y-10">
           {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
-            <div key={i} className="border rounded-none overflow-hidden">
-              <div className="h-48 bg-gray-300 animate-pulse"></div>
-              <div className="p-4 space-y-3">
-                <div className="space-y-2">
-                  <div className="h-5 bg-gray-200 rounded w-3/4 animate-pulse"></div>
-                  <div className="h-4 bg-gray-200 rounded w-1/2 animate-pulse"></div>
+            <div key={i} className="space-y-3">
+              <div className="border border-border/50 rounded-none overflow-hidden bg-white">
+                <div className="relative h-48 bg-gray-200/70 animate-pulse">
+                  <div className="absolute top-4 left-4 h-6 w-16 bg-gray-300/80 rounded"></div>
+                  <div className="absolute top-4 right-4 flex gap-2">
+                    <div className="h-8 w-8 bg-gray-300/80 rounded"></div>
+                    <div className="h-8 w-8 bg-gray-300/80 rounded"></div>
+                  </div>
+                  <div className="absolute inset-0 flex items-center justify-center text-gray-400">
+                    <div className="h-12 w-12 bg-gray-300/60 rounded-full"></div>
+                  </div>
                 </div>
-                <div className="flex gap-4">
-                  <div className="h-4 bg-gray-200 rounded w-16 animate-pulse"></div>
-                  <div className="h-4 bg-gray-200 rounded w-16 animate-pulse"></div>
+                <div className="p-4 space-y-3">
+                  <div className="space-y-2">
+                    <div className="h-5 bg-gray-200 rounded w-3/4 animate-pulse"></div>
+                    <div className="h-4 bg-gray-200 rounded w-1/2 animate-pulse"></div>
+                  </div>
+                  <div className="flex gap-4">
+                    <div className="h-4 bg-gray-200 rounded w-16 animate-pulse"></div>
+                    <div className="h-4 bg-gray-200 rounded w-16 animate-pulse"></div>
+                  </div>
+                  <div className="flex gap-2">
+                    <div className="h-6 bg-gray-200 rounded w-20 animate-pulse"></div>
+                    <div className="h-6 bg-gray-200 rounded w-16 animate-pulse"></div>
+                  </div>
                 </div>
-                <div className="flex gap-2">
-                  <div className="h-6 bg-gray-200 rounded w-20 animate-pulse"></div>
-                  <div className="h-6 bg-gray-200 rounded w-16 animate-pulse"></div>
+              </div>
+              <div className="flex items-center justify-between text-[12px] border border-border/50 bg-white px-3 py-2 rounded-none">
+                <div className="flex items-center gap-2">
+                  <div className="h-3.5 w-3.5 bg-gray-300 rounded-full"></div>
+                  <div className="h-3 w-24 bg-gray-200 rounded"></div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="h-3.5 w-3.5 bg-gray-300 rounded-full"></div>
+                  <div className="h-3 w-20 bg-gray-200 rounded"></div>
                 </div>
               </div>
             </div>
@@ -206,46 +244,79 @@ export function AdminDashboardProperties() {
           <p className="text-sm max-w-[200px] mx-auto">{properties.length === 0 ? emptyState.description : "Try adjusting your search or filters"}</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {filteredProperties.map((property) => (
-            filter === 'draft' ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-x-4 gap-y-10 md:gap-y-12">
+          {filteredProperties.map((property) => {
+            return (
               <div key={property.id} className="space-y-2">
                 <PropertyCard
-                  property={property}
+                  property={property as any}
                   variant="admin"
                   onApprove={fetchProperties}
                   onReject={fetchProperties}
+                  showGovernmentActions
                 />
 
-                {/* Admin info below the card */}
-                <div className="flex items-center justify-between text-xs text-muted-foreground">
-                  <span className="font-medium">By: {property.landlordName}</span>
-                  <span>Submitted: {new Date(property.created_at).toLocaleDateString('en-GB')}</span>
-                </div>
-              </div>
-            ) : filter === 'rejected' ? (
-              <div key={property.id} className="space-y-2">
-                <PropertyCard
-                  property={property}
-                  variant="default"
+                <PendingMetaStrip
+                  landlordName={property.landlordName}
+                  submittedDate={property.created_at}
+                  onClick={() => openLandlordModal(property)}
                 />
-
-                {/* Admin info below the card */}
-                <div className="flex items-center justify-between text-xs text-muted-foreground">
-                  <span className="font-medium">By: {property.landlordName}</span>
-                  <span>Rejected: {new Date(property.updated_at).toLocaleDateString('en-GB')}</span>
-                </div>
               </div>
-            ) : (
-              <PropertyCard
-                key={property.id}
-                property={property}
-                variant="default"
-              />
             )
-          ))}
+          })}
         </div>
       )}
+
+      <Dialog open={landlordModalOpen} onOpenChange={setLandlordModalOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Landlord Details</DialogTitle>
+            <DialogDescription>
+              {selectedLandlord?.submittedDate
+                ? `Submitted ${new Date(selectedLandlord.submittedDate).toLocaleDateString('en-GB')}`
+                : 'Submission details'}
+            </DialogDescription>
+          </DialogHeader>
+
+          {selectedLandlord && (
+            <div className="space-y-4">
+              <div className="flex items-start gap-3 p-4 bg-accent/5 border border-accent/20 rounded-lg">
+                <div className="h-12 w-12 rounded-full bg-accent/10 flex items-center justify-center text-accent">
+                  <Users className="h-6 w-6" />
+                </div>
+                <div className="flex-1 min-w-0 space-y-1">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <h3 className="font-semibold text-base">{selectedLandlord.name}</h3>
+                    <Badge variant="secondary" className="text-xs">Landlord</Badge>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    Submitted {selectedLandlord.submittedDate
+                      ? new Date(selectedLandlord.submittedDate).toLocaleString('en-GB', { dateStyle: 'medium', timeStyle: 'short' })
+                      : 'Unknown submission'}
+                  </p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                <div className="p-3 border rounded-lg bg-white/80 flex items-start gap-2">
+                  <Mail className="h-4 w-4 text-accent mt-0.5" />
+                  <div>
+                    <p className="text-xs uppercase tracking-wide text-muted-foreground">Email</p>
+                    <p className="font-medium break-words">{selectedLandlord.email || 'Not provided'}</p>
+                  </div>
+                </div>
+                <div className="p-3 border rounded-lg bg-white/80 flex items-start gap-2">
+                  <Phone className="h-4 w-4 text-accent mt-0.5" />
+                  <div>
+                    <p className="text-xs uppercase tracking-wide text-muted-foreground">Phone</p>
+                    <p className="font-medium">{selectedLandlord.phone || 'Not provided'}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </>
   )
 }
