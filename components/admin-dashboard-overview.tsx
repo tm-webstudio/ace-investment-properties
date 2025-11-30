@@ -752,7 +752,7 @@ export function AdminDashboardOverview({ admin, onTabChange }: AdminDashboardOve
 
       {/* Landlord Info Modal */}
       <Dialog open={landlordModalOpen} onOpenChange={setLandlordModalOpen}>
-        <DialogContent className="max-w-lg">
+        <DialogContent className="w-[90vw] max-w-md sm:w-auto sm:max-w-lg">
           <DialogHeader>
             <DialogTitle>Landlord Details</DialogTitle>
             <DialogDescription>
@@ -764,7 +764,7 @@ export function AdminDashboardOverview({ admin, onTabChange }: AdminDashboardOve
 
           {selectedLandlord && (
             <div className="space-y-4">
-              <div className="flex items-start gap-3 p-4 bg-accent/5 border border-accent/20 rounded-lg">
+              <div className="flex items-start gap-3 p-4 bg-white border border-border/60 rounded-lg shadow-sm">
                 <div className="h-12 w-12 rounded-full bg-accent/10 flex items-center justify-center text-accent">
                   <Users className="h-6 w-6" />
                 </div>
