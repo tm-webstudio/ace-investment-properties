@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { geocodeAddress } from '@/lib/geocoding'
+import { sendPropertyToGHL } from '@/lib/ghl'
 
 // Create admin client for database operations (only if env vars are available)
 const supabaseAdmin = process.env.SUPABASE_SERVICE_ROLE_KEY 
@@ -196,6 +197,29 @@ export async function POST(request: NextRequest) {
         },
         { status: 500 }
       )
+    }
+
+    // Send to GoHighLevel (non-blocking)
+    try {
+      const [firstName, ...rest] = (userProfile?.full_name || userProfile?.first_name || '').split(' ').filter(Boolean)
+      const lastName = userProfile?.last_name || (rest.length ? rest.join(' ') : '')
+
+      await sendPropertyToGHL(
+        {
+          firstName: userProfile?.first_name || firstName || 'Landlord',
+          lastName: userProfile?.last_name || lastName || '',
+          email: user.email,
+          phone: userProfile?.phone || ''
+        },
+        {
+          title: newProperty?.address || propertyData?.address || 'Property',
+          address: [newProperty?.address, newProperty?.city, newProperty?.postcode].filter(Boolean).join(', '),
+          price: newProperty?.monthly_rent ? newProperty.monthly_rent / 100 : propertyData?.monthlyRent,
+          type: newProperty?.property_type || propertyData?.propertyType
+        }
+      )
+    } catch (ghlError) {
+      console.error('GHL sync failed but property saved:', ghlError)
     }
 
     // Update pending property status to claimed

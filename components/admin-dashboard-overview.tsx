@@ -492,7 +492,7 @@ export function AdminDashboardOverview({ admin, onTabChange }: AdminDashboardOve
       {/* Pending Properties for Approval */}
       <Card className="mb-5 sm:mb-8">
         <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>Pending Property Approvals</CardTitle>
+          <CardTitle className="text-[15px] sm:text-lg">Pending Property Approvals</CardTitle>
           <Button
             variant="outline"
             size="sm"
@@ -626,7 +626,7 @@ export function AdminDashboardOverview({ admin, onTabChange }: AdminDashboardOve
         {/* Landlord Documents */}
         <Card className="max-h-[600px] overflow-hidden flex flex-col">
           <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle>Landlord Documents</CardTitle>
+            <CardTitle className="text-[15px] sm:text-lg">Landlord Documents</CardTitle>
             <Button
               variant="outline"
               size="sm"
