@@ -462,65 +462,35 @@ export function AdminDashboardOverview({ admin, onTabChange }: AdminDashboardOve
   return (
     <div className="space-y-8">
       {/* Overview Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-5 gap-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Properties</CardTitle>
-            <Home className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{formatStatValue(stats.totalProperties, loading)}</div>
-            <p className="text-xs text-muted-foreground">Active listings</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Pending Approval</CardTitle>
-            <Clock className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{formatStatValue(stats.totalPendingProperties, loading)}</div>
-            <p className="text-xs text-muted-foreground">Awaiting review</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Landlords</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{formatStatValue(stats.totalLandlords, loading)}</div>
-            <p className="text-xs text-muted-foreground">Registered users</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Investors</CardTitle>
-            <BarChart3 className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{formatStatValue(stats.totalInvestors, loading)}</div>
-            <p className="text-xs text-muted-foreground">Active investors</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Viewings</CardTitle>
-            <Calendar className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{formatStatValue(stats.totalViewings, loading)}</div>
-            <p className="text-xs text-muted-foreground">All time</p>
-          </CardContent>
-        </Card>
+      <div
+        className="flex gap-3 overflow-x-auto pb-0 sm:grid sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-5 sm:gap-4 sm:overflow-visible px-0 sm:px-0 mb-5"
+        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+      >
+        {[
+          { title: 'Total Properties', value: stats.totalProperties, icon: Home, sub: 'Active listings' },
+          { title: 'Pending Approval', value: stats.totalPendingProperties, icon: Clock, sub: 'Awaiting review' },
+          { title: 'Total Landlords', value: stats.totalLandlords, icon: Users, sub: 'Registered users' },
+          { title: 'Total Investors', value: stats.totalInvestors, icon: BarChart3, sub: 'Active investors' },
+          { title: 'Total Viewings', value: stats.totalViewings, icon: Calendar, sub: 'All time' },
+        ].map((item) => (
+          <Card
+            key={item.title}
+            className="sm:p-0 flex-shrink-0 min-w-[160px] sm:min-w-0"
+          >
+            <CardHeader className="px-3 sm:px-6 flex flex-row items-center justify-between space-y-0 pt-1 pb-1 sm:pt-4 sm:pb-3">
+              <CardTitle className="text-[13px] sm:text-sm font-medium">{item.title}</CardTitle>
+              <item.icon className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent className="px-3 sm:px-6 pt-0 pb-2 sm:pb-5">
+              <div className="text-xl sm:text-2xl font-bold">{formatStatValue(item.value, loading)}</div>
+              <p className="text-[11px] sm:text-xs text-muted-foreground">{item.sub}</p>
+            </CardContent>
+          </Card>
+        ))}
       </div>
 
       {/* Pending Properties for Approval */}
-      <Card>
+      <Card className="mb-5 sm:mb-8">
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>Pending Property Approvals</CardTitle>
           <Button
@@ -753,7 +723,7 @@ export function AdminDashboardOverview({ admin, onTabChange }: AdminDashboardOve
       {/* Landlord Info Modal */}
       <Dialog open={landlordModalOpen} onOpenChange={setLandlordModalOpen}>
         <DialogContent className="w-[90vw] max-w-md sm:w-auto sm:max-w-lg">
-          <DialogHeader>
+          <DialogHeader className="items-start text-left">
             <DialogTitle>Landlord Details</DialogTitle>
             <DialogDescription>
               {selectedLandlord?.submittedDate
@@ -843,8 +813,8 @@ export function AdminDashboardOverview({ admin, onTabChange }: AdminDashboardOve
 
       {/* Documents Modal */}
       <Dialog open={documentsModalOpen} onOpenChange={setDocumentsModalOpen}>
-        <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
-          <DialogHeader>
+        <DialogContent className="w-[96vw] max-w-4xl max-h-[80vh] overflow-y-auto sm:w-auto">
+          <DialogHeader className="items-start text-left">
             <DialogTitle>Property Documents</DialogTitle>
             <DialogDescription>
               {selectedPropertyForDocs && (

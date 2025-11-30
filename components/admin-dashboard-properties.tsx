@@ -269,7 +269,7 @@ export function AdminDashboardProperties() {
 
       <Dialog open={landlordModalOpen} onOpenChange={setLandlordModalOpen}>
         <DialogContent className="w-[90vw] max-w-md sm:w-auto sm:max-w-lg">
-          <DialogHeader>
+          <DialogHeader className="items-start text-left">
             <DialogTitle>Landlord Details</DialogTitle>
             <DialogDescription>
               {selectedLandlord?.submittedDate
