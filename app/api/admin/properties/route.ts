@@ -114,12 +114,15 @@ export async function GET(request: NextRequest) {
           }
         }
 
+        const monthlyRent = property.monthly_rent ? property.monthly_rent / 100 : 0
+
         return {
           id: property.id,
           property_type: property.property_type,
           bedrooms: property.bedrooms,
           bathrooms: property.bathrooms,
-          monthly_rent: property.monthly_rent,
+          monthly_rent: monthlyRent,
+          price: monthlyRent,
           available_date: property.available_date,
           description: property.description,
           amenities: property.amenities || [],
@@ -128,6 +131,7 @@ export async function GET(request: NextRequest) {
           county: property.county,
           postcode: property.postcode,
           photos: property.photos || [],
+          images: property.photos || [],
           status: property.status,
           published_at: property.published_at,
           created_at: property.created_at,
