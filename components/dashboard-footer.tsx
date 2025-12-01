@@ -6,7 +6,7 @@ export function DashboardFooter() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
           <div className="text-sm text-foreground/60">
-            © 2025 Ace Investment Properties. All rights reserved.
+            © 2026 Ace Investment Properties. All rights reserved.
           </div>
           <div className="flex items-center gap-6 text-sm">
             <Link
