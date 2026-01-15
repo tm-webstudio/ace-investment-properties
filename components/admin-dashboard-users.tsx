@@ -1,12 +1,13 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Users, Mail, Phone, Building, Calendar, Filter, Search } from "lucide-react"
+import { Users, Mail, Phone, Building, Calendar, Filter, Search, MapPin, Home, PoundSterling, BedDouble, Loader2 } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { supabase } from "@/lib/supabase"
 
 interface User {
@@ -19,12 +20,32 @@ interface User {
   property_count: number
 }
 
+interface InvestorPreferences {
+  investor_id: string
+  operator_type: string
+  operator_type_other?: string
+  properties_managing: number
+  preference_data: {
+    budget?: { min: number; max: number }
+    bedrooms?: { min: number; max: number }
+    property_types?: string[]
+    locations?: Array<{ city: string }>
+  }
+  notification_enabled: boolean
+  is_active: boolean
+  updated_at: string
+}
+
 export function AdminDashboardUsers() {
   const [users, setUsers] = useState<User[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [filter, setFilter] = useState<'all' | 'landlord' | 'investor'>('all')
   const [searchQuery, setSearchQuery] = useState('')
+  const [selectedInvestor, setSelectedInvestor] = useState<User | null>(null)
+  const [investorPreferences, setInvestorPreferences] = useState<InvestorPreferences | null>(null)
+  const [preferencesLoading, setPreferencesLoading] = useState(false)
+  const [dialogOpen, setDialogOpen] = useState(false)
 
   useEffect(() => {
     fetchUsers()
@@ -70,6 +91,55 @@ export function AdminDashboardUsers() {
     } finally {
       setLoading(false)
     }
+  }
+
+  const fetchInvestorPreferences = async (investor: User) => {
+    setSelectedInvestor(investor)
+    setDialogOpen(true)
+    setPreferencesLoading(true)
+    setInvestorPreferences(null)
+
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+
+      if (!session?.access_token) {
+        return
+      }
+
+      const response = await fetch(`/api/admin/investors/${investor.id}/preferences`, {
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`
+        }
+      })
+
+      const data = await response.json()
+
+      if (data.success && data.preferences) {
+        setInvestorPreferences(data.preferences)
+      }
+    } catch (err) {
+      console.error('Error fetching investor preferences:', err)
+    } finally {
+      setPreferencesLoading(false)
+    }
+  }
+
+  const formatOperatorType = (type: string, other?: string) => {
+    const types: Record<string, string> = {
+      'sa_operator': 'SA Operator',
+      'supported_living': 'Supported Living',
+      'social_housing': 'Social Housing',
+      'other': other || 'Other'
+    }
+    return types[type] || type
+  }
+
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('en-GB', {
+      style: 'currency',
+      currency: 'GBP',
+      maximumFractionDigits: 0
+    }).format(amount)
   }
 
   const getEmptyStateMessage = () => {
@@ -176,7 +246,11 @@ export function AdminDashboardUsers() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {filteredUsers.map((user) => (
-            <Card key={user.id} className="rounded-none hover:shadow-md transition-shadow">
+            <Card
+              key={user.id}
+              className={`rounded-none hover:shadow-md transition-shadow ${user.user_type === 'investor' ? 'cursor-pointer' : ''}`}
+              onClick={() => user.user_type === 'investor' && fetchInvestorPreferences(user)}
+            >
               <CardContent className="p-6">
                 <div className="flex items-start gap-4">
                   {/* Avatar */}
@@ -229,6 +303,121 @@ export function AdminDashboardUsers() {
           ))}
         </div>
       )}
+
+      {/* Investor Preferences Dialog */}
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Users className="h-5 w-5 text-accent" />
+              {selectedInvestor?.full_name || 'Investor'} Preferences
+            </DialogTitle>
+            <DialogDescription>
+              Investment preferences and criteria
+            </DialogDescription>
+          </DialogHeader>
+
+          {preferencesLoading ? (
+            <div className="flex items-center justify-center py-8">
+              <Loader2 className="h-6 w-6 animate-spin text-accent" />
+            </div>
+          ) : investorPreferences ? (
+            <div className="space-y-2">
+              {/* Operator Type */}
+              <div className="bg-gray-50 p-3 rounded-lg">
+                <h4 className="text-sm font-medium text-gray-700 mb-1">Operator Type</h4>
+                <Badge variant="secondary" className="text-sm">
+                  {formatOperatorType(investorPreferences.operator_type, investorPreferences.operator_type_other)}
+                </Badge>
+                {investorPreferences.properties_managing > 0 && (
+                  <p className="text-sm text-gray-600 mt-1">
+                    Managing {investorPreferences.properties_managing} properties
+                  </p>
+                )}
+              </div>
+
+              {/* Budget */}
+              {investorPreferences.preference_data?.budget && (
+                <div className="bg-gray-50 p-3 rounded-lg">
+                  <h4 className="text-sm font-medium text-gray-700 mb-1 flex items-center gap-2">
+                    <PoundSterling className="h-4 w-4" />
+                    Budget Range
+                  </h4>
+                  <p className="text-sm text-gray-900">
+                    {formatCurrency(investorPreferences.preference_data.budget.min)} - {formatCurrency(investorPreferences.preference_data.budget.max)}
+                  </p>
+                </div>
+              )}
+
+              {/* Bedrooms */}
+              {investorPreferences.preference_data?.bedrooms && (
+                <div className="bg-gray-50 p-3 rounded-lg">
+                  <h4 className="text-sm font-medium text-gray-700 mb-1 flex items-center gap-2">
+                    <BedDouble className="h-4 w-4" />
+                    Bedrooms
+                  </h4>
+                  <p className="text-sm text-gray-900">
+                    {investorPreferences.preference_data.bedrooms.min} - {investorPreferences.preference_data.bedrooms.max} bedrooms
+                  </p>
+                </div>
+              )}
+
+              {/* Property Types */}
+              {investorPreferences.preference_data?.property_types && investorPreferences.preference_data.property_types.length > 0 && (
+                <div className="bg-gray-50 p-3 rounded-lg">
+                  <h4 className="text-sm font-medium text-gray-700 mb-1 flex items-center gap-2">
+                    <Home className="h-4 w-4" />
+                    Property Types
+                  </h4>
+                  <div className="flex flex-wrap gap-2">
+                    {investorPreferences.preference_data.property_types.map((type, index) => (
+                      <Badge key={index} variant="outline" className="text-xs">
+                        {type}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Locations */}
+              {investorPreferences.preference_data?.locations && investorPreferences.preference_data.locations.length > 0 && (
+                <div className="bg-gray-50 p-3 rounded-lg">
+                  <h4 className="text-sm font-medium text-gray-700 mb-1 flex items-center gap-2">
+                    <MapPin className="h-4 w-4" />
+                    Preferred Locations
+                  </h4>
+                  <div className="flex flex-wrap gap-2">
+                    {investorPreferences.preference_data.locations.map((loc, index) => (
+                      <Badge key={index} variant="outline" className="text-xs">
+                        {loc.city}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Notifications Status */}
+              <div className="flex items-center justify-between text-sm text-gray-600 pt-1 border-t">
+                <span>Email Notifications</span>
+                <Badge variant={investorPreferences.notification_enabled ? "default" : "secondary"}>
+                  {investorPreferences.notification_enabled ? 'Enabled' : 'Disabled'}
+                </Badge>
+              </div>
+
+              {/* Last Updated */}
+              <p className="text-xs text-gray-500">
+                Last updated: {new Date(investorPreferences.updated_at).toLocaleDateString('en-GB')}
+              </p>
+            </div>
+          ) : (
+            <div className="text-center py-8 text-gray-500">
+              <Users className="h-10 w-10 mx-auto mb-3 opacity-50" />
+              <p className="text-sm">No preferences set</p>
+              <p className="text-xs mt-1">This investor hasn't configured their preferences yet</p>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </>
   )
 }
