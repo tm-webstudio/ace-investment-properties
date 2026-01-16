@@ -13,7 +13,7 @@ export function AdminDashboardNavigation({ activeTab, onTabChange, customButton 
   const navItems = [
     { id: "dashboard", label: "Dashboard", icon: BarChart3 },
     { id: "properties", label: "Properties", icon: Building },
-    { id: "users", label: "Users", icon: Users },
+    { id: "users", label: "Landlords", icon: Users },
     { id: "investors", label: "Investors", icon: UserCircle },
     { id: "viewings", label: "Viewings", icon: Eye },
     { id: "documents", label: "Documents", icon: FileText },

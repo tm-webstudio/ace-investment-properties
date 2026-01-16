@@ -159,9 +159,9 @@ export default function AdminDashboard() {
           {activeTab === "users" && (
             <div className="space-y-4">
               <div>
-                <h2 className="font-serif text-lg md:text-xl font-medium text-gray-900">Users</h2>
+                <h2 className="font-serif text-lg md:text-xl font-medium text-gray-900">Landlords</h2>
                 <p className="text-sm md:text-base text-gray-600 mt-1">
-                  Manage landlords, investors, and their account details
+                  Manage landlord accounts and their property listings
                 </p>
               </div>
               <AdminDashboardUsers />
