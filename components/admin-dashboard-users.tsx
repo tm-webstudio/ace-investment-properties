@@ -134,7 +134,7 @@ export function AdminDashboardUsers() {
               key={user.id}
               className="rounded-none hover:shadow-md transition-shadow"
             >
-              <CardContent className="p-6">
+              <CardContent className="p-4">
                 <div className="flex items-start gap-4">
                   {/* Avatar */}
                   <div className="h-12 w-12 rounded-full bg-accent/10 flex items-center justify-center flex-shrink-0">

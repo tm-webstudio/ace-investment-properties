@@ -135,7 +135,7 @@ export default function AdminDashboard() {
               <h1 className="font-serif text-2xl md:text-4xl font-medium text-red-900 mb-1">
                 System Administration
               </h1>
-              <p className="text-red-800/70 text-md">Manage properties, viewings, and platform operations</p>
+              <p className="text-red-800/70 text-sm">Manage properties, viewings, and platform operations</p>
             </CardHeader>
           </Card>
 
@@ -172,7 +172,7 @@ export default function AdminDashboard() {
               <div>
                 <h2 className="font-serif text-lg md:text-xl font-medium text-gray-900">Investors</h2>
                 <p className="text-sm md:text-base text-gray-600 mt-1">
-                  View and manage investor accounts and their preferences
+                  Manage investor accounts and their preferences
                 </p>
               </div>
               <AdminDashboardInvestors />

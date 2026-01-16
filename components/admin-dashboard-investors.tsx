@@ -272,7 +272,7 @@ export function AdminDashboardInvestors() {
               className="rounded-none hover:shadow-md transition-shadow cursor-pointer"
               onClick={() => fetchInvestorPreferences(user)}
             >
-              <CardContent className="p-6">
+              <CardContent className="p-4">
                 <div className="flex items-start gap-4">
                   {/* Avatar */}
                   <div className="h-12 w-12 rounded-full bg-accent/10 flex items-center justify-center flex-shrink-0">
@@ -339,21 +339,19 @@ export function AdminDashboardInvestors() {
               <div className="grid grid-cols-2 gap-4">
                 {/* Operator Type */}
                 <div>
-                  <p className="text-[11px] uppercase tracking-wide text-gray-400 mb-1">Operator Type</p>
+                  <p className="text-[11px] uppercase tracking-wide text-gray-500 font-medium mb-1">Operator Type</p>
                   <p className="text-sm font-medium text-gray-900">
                     {formatOperatorType(investorPreferences.operator_type, investorPreferences.operator_type_other)}
                   </p>
-                  {investorPreferences.properties_managing > 0 && (
-                    <p className="text-xs text-gray-500">
-                      Managing {investorPreferences.properties_managing} properties
-                    </p>
-                  )}
+                  <p className="text-xs text-gray-500">
+                    Managing {investorPreferences.properties_managing || 0} {investorPreferences.properties_managing === 1 ? 'property' : 'properties'}
+                  </p>
                 </div>
 
                 {/* Budget */}
                 {investorPreferences.preference_data?.budget && (
                   <div>
-                    <p className="text-[11px] uppercase tracking-wide text-gray-400 mb-1">Budget Range</p>
+                    <p className="text-[11px] uppercase tracking-wide text-gray-500 font-medium mb-1">Budget Range</p>
                     <p className="text-sm font-medium text-gray-900">
                       {formatCurrency(investorPreferences.preference_data.budget.min)} - {formatCurrency(investorPreferences.preference_data.budget.max)}
                     </p>
@@ -363,7 +361,7 @@ export function AdminDashboardInvestors() {
                 {/* Bedrooms */}
                 {investorPreferences.preference_data?.bedrooms && (
                   <div>
-                    <p className="text-[11px] uppercase tracking-wide text-gray-400 mb-1">Bedrooms</p>
+                    <p className="text-[11px] uppercase tracking-wide text-gray-500 font-medium mb-1">Bedrooms</p>
                     <p className="text-sm font-medium text-gray-900">
                       {investorPreferences.preference_data.bedrooms.min} - {investorPreferences.preference_data.bedrooms.max} beds
                     </p>
@@ -373,10 +371,10 @@ export function AdminDashboardInvestors() {
                 {/* Property Types */}
                 {investorPreferences.preference_data?.property_types && investorPreferences.preference_data.property_types.length > 0 && (
                   <div>
-                    <p className="text-[11px] uppercase tracking-wide text-gray-400 mb-1.5">Property Types</p>
+                    <p className="text-[11px] uppercase tracking-wide text-gray-500 font-medium mb-1.5">Property Types</p>
                     <div className="flex flex-wrap gap-1">
                       {investorPreferences.preference_data.property_types.map((type, index) => (
-                        <Badge key={index} variant="outline" className="text-xs font-normal">
+                        <Badge key={index} variant="outline" className="text-xs font-normal capitalize">
                           {type}
                         </Badge>
                       ))}
@@ -387,7 +385,7 @@ export function AdminDashboardInvestors() {
                 {/* Locations */}
                 {investorPreferences.preference_data?.locations && investorPreferences.preference_data.locations.length > 0 && (
                   <div className="col-span-2">
-                    <p className="text-[11px] uppercase tracking-wide text-gray-400 mb-1.5">Preferred Locations</p>
+                    <p className="text-[11px] uppercase tracking-wide text-gray-500 font-medium mb-1.5">Preferred Locations</p>
                     <div className="flex flex-wrap gap-1">
                       {investorPreferences.preference_data.locations.map((loc, index) => (
                         <Badge key={index} variant="outline" className="text-xs font-normal">
@@ -401,7 +399,7 @@ export function AdminDashboardInvestors() {
 
               {/* Matched Properties */}
               <div className="pt-3 border-t overflow-hidden">
-                <p className="text-[11px] uppercase tracking-wide text-gray-400 mb-2">
+                <p className="text-[11px] uppercase tracking-wide text-gray-500 font-medium mb-2">
                   Matched Properties {matchedProperties.length > 0 && `(${matchedProperties.length})`}
                 </p>
 
@@ -490,12 +488,12 @@ export function AdminDashboardInvestors() {
                     )}
                   </div>
                 ) : (
-                  <p className="text-xs text-gray-400 py-2">No matching properties found</p>
+                  <p className="text-xs text-gray-500 py-2">No matching properties found</p>
                 )}
               </div>
 
               {/* Footer info */}
-              <div className="flex items-center justify-between text-[11px] text-gray-400 pt-2 border-t">
+              <div className="flex items-center justify-between text-[11px] text-gray-500 pt-2 border-t">
                 <span>Updated {new Date(investorPreferences.updated_at).toLocaleDateString('en-GB')}</span>
                 <span>Notifications {investorPreferences.notification_enabled ? 'on' : 'off'}</span>
               </div>
