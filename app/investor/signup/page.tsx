@@ -47,6 +47,7 @@ interface Step4Data {
   firstName: string
   lastName: string
   email: string
+  phoneNumber: string
   password: string
   confirmPassword: string
   acceptTerms: boolean
@@ -85,6 +86,7 @@ export default function InvestorSignup() {
     firstName: "",
     lastName: "",
     email: "",
+    phoneNumber: "",
     password: "",
     confirmPassword: "",
     acceptTerms: false
@@ -225,7 +227,7 @@ export default function InvestorSignup() {
   }
 
   const validateStep4 = (): boolean => {
-    if (!step4Data.firstName || !step4Data.lastName || !step4Data.email || !step4Data.password || !step4Data.confirmPassword) {
+    if (!step4Data.firstName || !step4Data.lastName || !step4Data.email || !step4Data.phoneNumber || !step4Data.password || !step4Data.confirmPassword) {
       setError("All fields are required")
       return false
     }
@@ -312,6 +314,7 @@ export default function InvestorSignup() {
           password: step4Data.password,
           first_name: step4Data.firstName,
           last_name: step4Data.lastName,
+          phone_number: step4Data.phoneNumber,
           user_type: 'investor',
           preferences: preferencesData
         }),

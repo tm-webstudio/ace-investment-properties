@@ -8,6 +8,7 @@ import { DashboardFooter } from "@/components/dashboard-footer"
 import { AdminDashboardOverview } from "@/components/admin-dashboard-overview"
 import { AdminDashboardProperties } from "@/components/admin-dashboard-properties"
 import { AdminDashboardUsers } from "@/components/admin-dashboard-users"
+import { AdminDashboardInvestors } from "@/components/admin-dashboard-investors"
 import { AdminDashboardViewings } from "@/components/admin-dashboard-viewings"
 import { AdminDashboardReports } from "@/components/admin-dashboard-reports"
 import { AdminDashboardSettings } from "@/components/admin-dashboard-settings"
@@ -164,6 +165,17 @@ export default function AdminDashboard() {
                 </p>
               </div>
               <AdminDashboardUsers />
+            </div>
+          )}
+          {activeTab === "investors" && (
+            <div className="space-y-4">
+              <div>
+                <h2 className="font-serif text-lg md:text-xl font-medium text-gray-900">Investors</h2>
+                <p className="text-sm md:text-base text-gray-600 mt-1">
+                  View and manage investor accounts and their preferences
+                </p>
+              </div>
+              <AdminDashboardInvestors />
             </div>
           )}
           {activeTab === "viewings" && (

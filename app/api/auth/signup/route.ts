@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
     if (rateLimitResult) return rateLimitResult
 
     const body = await request.json()
-    const { email, password, first_name, last_name, user_type = 'investor', preferences } = body
+    const { email, password, first_name, last_name, phone_number, user_type = 'investor', preferences } = body
 
     // Validate input
     if (!email || !password || !first_name || !last_name) {
@@ -87,6 +87,7 @@ export async function POST(request: NextRequest) {
         id: authData.user.id,
         email: email,
         full_name: full_name,
+        phone: phone_number,
         user_type: user_type
       })
 

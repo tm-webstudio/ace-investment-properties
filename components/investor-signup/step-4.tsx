@@ -11,6 +11,7 @@ interface Step4Data {
   firstName: string
   lastName: string
   email: string
+  phoneNumber: string
   password: string
   confirmPassword: string
   acceptTerms: boolean
@@ -60,20 +61,37 @@ export function InvestorSignupStep4({ data, onChange }: InvestorSignupStep4Props
         </div>
       </div>
 
-      {/* Email */}
-      <div>
-        <Label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-          Email address
-        </Label>
-        <Input
-          id="email"
-          type="email"
-          autoComplete="email"
-          required
-          value={data.email}
-          onChange={(e) => onChange({ email: e.target.value })}
-          placeholder="Enter your email address"
-        />
+      {/* Email and Phone Number */}
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <Label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+            Email address
+          </Label>
+          <Input
+            id="email"
+            type="email"
+            autoComplete="email"
+            required
+            value={data.email}
+            onChange={(e) => onChange({ email: e.target.value })}
+            placeholder="Enter your email address"
+          />
+        </div>
+
+        <div>
+          <Label htmlFor="phoneNumber" className="block text-sm font-medium text-gray-700 mb-2">
+            Phone number
+          </Label>
+          <Input
+            id="phoneNumber"
+            type="tel"
+            autoComplete="tel"
+            required
+            value={data.phoneNumber}
+            onChange={(e) => onChange({ phoneNumber: e.target.value })}
+            placeholder="Enter your phone number"
+          />
+        </div>
       </div>
 
       {/* Password */}
