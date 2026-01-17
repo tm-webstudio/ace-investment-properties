@@ -8,6 +8,7 @@ export async function GET(request: NextRequest) {
     const page = parseInt(searchParams.get('page') || '1')
     const limit = parseInt(searchParams.get('limit') || '12')
     const city = searchParams.get('city')
+    const postcodePrefix = searchParams.get('postcodePrefix')
     const minRent = searchParams.get('minRent')
     const maxRent = searchParams.get('maxRent')
     const bedrooms = searchParams.get('bedrooms')
@@ -34,7 +35,21 @@ export async function GET(request: NextRequest) {
     if (city) {
       query = query.ilike('city', `%${city}%`)
     }
-    
+
+    // Filter by postcode prefix (for London areas like N, E, SE, W, NW, EC, WC)
+    if (postcodePrefix) {
+      // Handle multiple prefixes separated by comma (e.g., "SE,SW" for South London)
+      const prefixes = postcodePrefix.split(',').map(p => p.trim().toUpperCase())
+      if (prefixes.length === 1) {
+        query = query.ilike('postcode', `${prefixes[0]}%`)
+      } else {
+        // Use OR filter for multiple prefixes
+        // Supabase OR syntax: column.operator.value
+        const orFilter = prefixes.map(p => `postcode.ilike.${p}%`).join(',')
+        query = query.or(orFilter)
+      }
+    }
+
     if (minRent) {
       query = query.gte('monthly_rent', parseInt(minRent) * 100) // Convert to pence
     }
