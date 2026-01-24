@@ -119,9 +119,9 @@ export function FeaturedProperties() {
             {loading ? (
               // Loading skeleton
               [...Array(4)].map((_, i) => (
-                <div 
-                  key={i} 
-                  className="flex-none w-4/5 sm:w-1/2 lg:w-[23.5%]"
+                <div
+                  key={i}
+                  className="flex-none w-4/5 sm:w-1/2 lg:w-[23.5%] min-w-[280px]"
                   style={{ scrollSnapAlign: 'start' }}
                 >
                   <div className="border rounded-none overflow-hidden">
@@ -145,9 +145,9 @@ export function FeaturedProperties() {
               ))
             ) : featuredProperties.length > 0 ? (
               featuredProperties.map((property) => (
-                <div 
-                  key={property.id} 
-                  className="flex-none w-4/5 sm:w-1/2 lg:w-[23.5%]" 
+                <div
+                  key={property.id}
+                  className="flex-none w-4/5 sm:w-1/2 lg:w-[23.5%] min-w-[280px]"
                   style={{ scrollSnapAlign: 'start' }}
                 >
                   <PropertyCard property={property} />

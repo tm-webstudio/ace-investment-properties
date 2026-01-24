@@ -248,7 +248,7 @@ export function RecommendedProperties({ className, preferences }: RecommendedPro
         <CardContent>
           <div className="flex gap-4 overflow-hidden">
             {[...Array(4)].map((_, i) => (
-              <div key={i} className="flex-none w-[23.5%] min-w-[200px]">
+              <div key={i} className="flex-none w-4/5 sm:w-1/2 lg:w-[23.5%] min-w-[280px]">
                 <div className="border rounded-lg overflow-hidden">
                   <div className="w-full h-48 bg-gray-200 animate-pulse" />
                   <div className="p-4 space-y-3">
@@ -530,7 +530,7 @@ export function RecommendedProperties({ className, preferences }: RecommendedPro
               return (
                 <div
                   key={property.id}
-                  className="flex-none w-4/5 sm:w-1/2 lg:w-[23.5%]"
+                  className="flex-none w-4/5 sm:w-1/2 lg:w-[23.5%] min-w-[280px]"
                   style={{ scrollSnapAlign: 'start' }}
                 >
                   <PropertyCard
