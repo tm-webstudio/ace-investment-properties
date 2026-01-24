@@ -16,7 +16,7 @@ export default function InvestorLandingPage() {
       icon: Search,
       title: "Curated Property Selection",
       description:
-        "Access premium R2R properties that match your investment criteria, pre-screened for quality and potential returns.",
+        "Access premium properties that match your investment criteria, pre-screened for quality and potential returns.",
     },
     {
       icon: TrendingUp,
@@ -82,11 +82,11 @@ export default function InvestorLandingPage() {
                   Trusted by 5,000+ Investors
                 </Badge>
                 <h1 className="font-serif text-4xl md:text-5xl lg:text-6xl font-bold leading-tight">
-                  Build Your R2R Property
+                  Build Your Property
                   <span className="block text-accent">Investment Portfolio</span>
                 </h1>
                 <p className="text-xl text-primary-foreground/90 leading-relaxed max-w-2xl">
-                  Join successful investors who use our platform to discover high-yield R2R properties, 
+                  Join successful investors who use our platform to discover high-yield properties, 
                   connect with quality landlords, and build profitable investment portfolios.
                 </p>
               </div>
@@ -156,7 +156,7 @@ export default function InvestorLandingPage() {
               Why Choose Ace Investment Properties?
             </h2>
             <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-              We connect you with high-quality R2R properties and provide the insights you need to build a successful investment portfolio.
+              We connect you with high-quality properties and provide the insights you need to build a successful investment portfolio.
             </p>
           </div>
 
@@ -264,7 +264,7 @@ export default function InvestorLandingPage() {
             Ready to Start Building Your Investment Portfolio?
           </h2>
           <p className="text-xl text-primary-foreground/90 max-w-2xl mx-auto">
-            Join thousands of successful investors who have built profitable R2R property portfolios with our platform.
+            Join thousands of successful investors who have built profitable property portfolios with our platform.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link href="/investor/signup">
