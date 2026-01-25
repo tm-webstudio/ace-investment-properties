@@ -21,7 +21,7 @@ export function OnboardingStep1({ data, onChange }: OnboardingStep1Props) {
       {/* Operator Type */}
       <div>
         <Label className="text-base font-medium text-gray-900 mb-4 block">
-          What type of R2R Operator are you?
+          What type of Operator are you?
         </Label>
         <RadioGroup
           value={data.operatorType}
