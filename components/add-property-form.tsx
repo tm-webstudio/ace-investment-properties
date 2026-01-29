@@ -1294,7 +1294,7 @@ export function AddPropertyForm() {
             {currentStep === 4 && (
               <>
                 <CheckCircle className="h-5 w-5 text-accent" />
-                Review & Publish
+                Review & Submit
               </>
             )}
           </CardTitle>
@@ -1470,12 +1470,15 @@ export function AddPropertyForm() {
               </div>
 
               <div>
-                <Label>Features</Label>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mt-2">
+                <Label className="mb-0">Features</Label>
+                <p className="text-sm text-muted-foreground mt-1 mb-3">
+                  Select the amenities and features included with this property
+                </p>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-3 mt-3">
                   {amenityOptions.map((amenity) => (
                     <div
                       key={amenity}
-                      className="flex items-center space-x-3 px-3 py-2 border rounded-md cursor-pointer transition-colors"
+                      className="flex items-center space-x-2 cursor-pointer"
                       onClick={() => handleAmenityChange(amenity, !formData.amenities.includes(amenity))}
                     >
                       <Checkbox
@@ -1484,7 +1487,7 @@ export function AddPropertyForm() {
                         onCheckedChange={(checked) => handleAmenityChange(amenity, checked as boolean)}
                         className="data-[state=checked]:bg-primary data-[state=checked]:border-primary"
                       />
-                      <Label htmlFor={amenity} className="text-sm font-normal cursor-pointer flex-1 mb-0">
+                      <Label htmlFor={amenity} className="text-sm font-normal cursor-pointer mb-0">
                         {amenity}
                       </Label>
                     </div>
@@ -1676,7 +1679,7 @@ export function AddPropertyForm() {
             </div>
           )}
 
-          {/* Step 4: Review & Publish */}
+          {/* Step 4: Review & Submit */}
           {currentStep === 4 && (
             <div className="space-y-6">
               {formErrors.general && (
@@ -1698,7 +1701,7 @@ export function AddPropertyForm() {
               )}
               
               <div className="rounded-lg px-4 py-4 border">
-                <h3 className="text-lg font-semibold leading-none tracking-tight mb-4">Property Summary</h3>
+                <h3 className="text-base font-semibold leading-none tracking-tight mb-3">Property Summary</h3>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
                   <div>
@@ -1849,7 +1852,7 @@ export function AddPropertyForm() {
                   <div className="flex items-center justify-center gap-3 p-6">
                     <Loader2 className="h-6 w-6 animate-spin text-accent" />
                     <div className="text-center">
-                      <p className="font-medium text-lg">Publishing Your Property...</p>
+                      <p className="font-medium text-lg">Submitting Your Property...</p>
                       <p className="text-sm text-muted-foreground mt-1">Please wait while we process your listing</p>
                     </div>
                   </div>
@@ -1877,7 +1880,7 @@ export function AddPropertyForm() {
               {(isLoggedIn === false && !isSubmitting) && (
                 <Card>
                   <CardHeader className="pb-1">
-                    <CardTitle>Create Your Account to Publish</CardTitle>
+                    <CardTitle>Create Your Account to Submit</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <Tabs value={authTab} onValueChange={setAuthTab}>
@@ -1977,18 +1980,18 @@ export function AddPropertyForm() {
                           </div>
 
                           <div className="space-y-3">
-                            <Label className="text-base font-medium">Available Viewing Times (optional)</Label>
-                            <p className="text-xs text-muted-foreground">
+                            <Label className="text-base font-medium mb-0">Available Viewing Times (optional)</Label>
+                            <p className="text-xs text-muted-foreground mt-1">
                               Select your preferred days and times for property viewings
                             </p>
 
-                            <div>
+                            <div className="mb-4">
                               <Label className="text-sm">Preferred Days</Label>
-                              <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mt-2">
+                              <div className="grid grid-cols-3 md:grid-cols-7 gap-x-4 gap-y-3 mt-3">
                                 {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'].map((day) => (
                                   <div
                                     key={day}
-                                    className="flex items-center space-x-2 px-3 py-2 border rounded-md transition-colors hover:bg-slate-50"
+                                    className="flex items-center space-x-2"
                                   >
                                     <Checkbox
                                       id={`day-${day}`}
@@ -2001,7 +2004,7 @@ export function AddPropertyForm() {
                                       }}
                                       className="data-[state=checked]:bg-primary data-[state=checked]:border-primary"
                                     />
-                                    <Label htmlFor={`day-${day}`} className="text-xs cursor-pointer flex-1 mb-0">
+                                    <Label htmlFor={`day-${day}`} className="text-sm cursor-pointer mb-0">
                                       {day.substring(0, 3)}
                                     </Label>
                                   </div>
@@ -2011,11 +2014,11 @@ export function AddPropertyForm() {
 
                             <div>
                               <Label className="text-sm">Preferred Times</Label>
-                              <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mt-2">
+                              <div className="grid grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-3 mt-3">
                                 {['Morning (9am-12pm)', 'Afternoon (12pm-5pm)', 'Evening (5pm-8pm)'].map((time) => (
                                   <div
                                     key={time}
-                                    className="flex items-center space-x-2 px-3 py-2 border rounded-md transition-colors hover:bg-slate-50"
+                                    className="flex items-center space-x-2"
                                   >
                                     <Checkbox
                                       id={`time-${time}`}
@@ -2028,7 +2031,7 @@ export function AddPropertyForm() {
                                       }}
                                       className="data-[state=checked]:bg-primary data-[state=checked]:border-primary"
                                     />
-                                    <Label htmlFor={`time-${time}`} className="text-xs cursor-pointer flex-1 mb-0 leading-tight">
+                                    <Label htmlFor={`time-${time}`} className="text-sm cursor-pointer mb-0">
                                       {time}
                                     </Label>
                                   </div>
@@ -2056,10 +2059,10 @@ export function AddPropertyForm() {
                             {authLoading ? (
                               <>
                                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                                Creating Account & Publishing...
+                                Creating Account & Submitting...
                               </>
                             ) : (
-                              'Create Account & Publish Property'
+                              'Create Account & Submit Property'
                             )}
                           </Button>
                         </form>
@@ -2106,10 +2109,10 @@ export function AddPropertyForm() {
                             {authLoading ? (
                               <>
                                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                                Logging In & Publishing...
+                                Logging In & Submitting...
                               </>
                             ) : (
-                              'Login & Publish Property'
+                              'Login & Submit Property'
                             )}
                           </Button>
                         </form>
@@ -2148,7 +2151,7 @@ export function AddPropertyForm() {
                 disabled={!isStepValid() || isLoading}
                 className="bg-accent hover:bg-accent/90 text-accent-foreground"
               >
-                {isLoading ? 'Publishing...' : 'Publish Property'}
+                {isLoading ? 'Submitting...' : 'Submit Property'}
               </Button>
             ) : (
               <div className="flex items-center justify-center px-4 py-2 bg-muted/30 rounded-md border border-dashed text-sm font-medium text-muted-foreground leading-none">

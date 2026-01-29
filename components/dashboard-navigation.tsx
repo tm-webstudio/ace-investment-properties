@@ -46,7 +46,7 @@ export function DashboardNavigation({ activeTab, onTabChange, customButton }: Da
         </nav>
 
         {customButton || (
-          <Link href="/landlord/add-property" className="hidden md:inline-flex">
+          <Link href="/landlord/submit-property" className="hidden md:inline-flex">
             <Button className="
               group bg-accent hover:bg-accent/90 text-accent-foreground
               transition-all duration-200 ease-out
@@ -55,7 +55,7 @@ export function DashboardNavigation({ activeTab, onTabChange, customButton }: Da
               active:scale-[0.98] active:transition-none
             ">
               <Plus className="mr-2 h-4 w-4 transition-all duration-200 ease-out group-hover:scale-105" />
-              <span className="relative z-10 font-medium">Add New Property</span>
+              <span className="relative z-10 font-medium">Submit New Property</span>
             </Button>
           </Link>
         )}

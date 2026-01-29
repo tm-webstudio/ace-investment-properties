@@ -187,10 +187,10 @@ export default function MyPropertiesPage() {
               <h3 className="text-xl font-semibold mb-4">No Properties Yet</h3>
               <p className="text-muted-foreground mb-6">Start by adding your first rental property</p>
               <a
-                href="/landlord/add-property"
+                href="/landlord/submit-property"
                 className="bg-accent hover:bg-accent/90 text-white px-6 py-3 rounded-md inline-block"
               >
-                Add Your First Property
+                Submit Your First Property
               </a>
             </div>
           ) : (

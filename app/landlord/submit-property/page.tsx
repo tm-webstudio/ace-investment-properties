@@ -10,9 +10,9 @@ export default function AddPropertyPage() {
       <main className="flex-1 bg-background">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
           <PageHeader
-            category="Add Property"
+            category="Submit Property"
             title="List Your Property"
-            subtitle="Add a new property to your portfolio"
+            subtitle="Submit a new property to your portfolio"
             variant="primary"
           />
 

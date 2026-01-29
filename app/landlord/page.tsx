@@ -127,7 +127,7 @@ export default function LandlordLandingPage() {
               </div>
 
               <div className="flex flex-col sm:flex-row gap-4">
-                <Link href="/landlord/add-property">
+                <Link href="/landlord/submit-property">
                   <Button
                     size="lg"
                     className="bg-accent hover:bg-accent/90 text-accent-foreground px-8 py-4 text-lg font-semibold"
@@ -235,7 +235,7 @@ export default function LandlordLandingPage() {
                 ))}
               </div>
 
-              <Link href="/landlord/add-property">
+              <Link href="/landlord/submit-property">
                 <Button size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground">
                   Get Started Today
                   <ArrowRight className="ml-2 h-5 w-5" />
@@ -303,7 +303,7 @@ export default function LandlordLandingPage() {
             Join thousands of successful landlords who have transformed their rental business with our platform.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/landlord/add-property">
+            <Link href="/landlord/submit-property">
               <Button
                 size="lg"
                 className="bg-accent hover:bg-accent/90 text-accent-foreground px-8 py-4 text-lg font-semibold"

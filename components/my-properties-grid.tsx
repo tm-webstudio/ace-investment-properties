@@ -41,8 +41,8 @@ export function MyPropertiesGrid({ properties, onPropertyDeleted }: MyProperties
               <h3 className="text-xl font-semibold mb-2">No Properties Yet</h3>
               <p>Start building your rental portfolio by adding your first property.</p>
             </div>
-            <Link href="/landlord/add-property">
-              <Button className="bg-accent hover:bg-accent/90 text-accent-foreground">Add Your First Property</Button>
+            <Link href="/landlord/submit-property">
+              <Button className="bg-accent hover:bg-accent/90 text-accent-foreground">Submit Your First Property</Button>
             </Link>
           </div>
         </Card>
