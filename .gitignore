@@ -6,3 +6,6 @@ node_modules
 *.tsbuildinfo
 .vercel
 .turbo
+
+# MCP config (contains secrets)
+.mcp.json
