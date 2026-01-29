@@ -1,7 +1,7 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { Building, Filter, Search } from "lucide-react"
+import { useState, useEffect, useRef } from "react"
+import { Building, Filter, Search, Loader2, ChevronLeft, ChevronRight } from "lucide-react"
 import { PropertyCard } from "./property-card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -50,6 +50,11 @@ export function AdminDashboardProperties() {
   const [searchQuery, setSearchQuery] = useState('')
   const [landlordModalOpen, setLandlordModalOpen] = useState(false)
   const [selectedLandlord, setSelectedLandlord] = useState<any>(null)
+  const [matchedInvestors, setMatchedInvestors] = useState<any[]>([])
+  const [matchedInvestorsLoading, setMatchedInvestorsLoading] = useState(false)
+  const investorScrollRef = useRef<HTMLDivElement>(null)
+  const [canScrollLeftInvestors, setCanScrollLeftInvestors] = useState(false)
+  const [canScrollRightInvestors, setCanScrollRightInvestors] = useState(false)
 
   useEffect(() => {
     fetchProperties()
@@ -127,7 +132,7 @@ export function AdminDashboardProperties() {
 
   const emptyState = getEmptyStateMessage()
 
-  const openLandlordModal = (property: Property) => {
+  const openLandlordModal = async (property: Property) => {
     setSelectedLandlord({
       name: property.landlordName || 'Unknown landlord',
       email: property.landlordEmail || '',
@@ -136,6 +141,59 @@ export function AdminDashboardProperties() {
       property
     })
     setLandlordModalOpen(true)
+
+    // Fetch matching investors
+    await fetchMatchingInvestors(property.id)
+  }
+
+  const fetchMatchingInvestors = async (propertyId: string) => {
+    try {
+      setMatchedInvestorsLoading(true)
+      setMatchedInvestors([])
+
+      const { data: { session } } = await supabase.auth.getSession()
+
+      if (!session?.access_token) {
+        return
+      }
+
+      const response = await fetch(`/api/admin/properties/${propertyId}/matched-investors`, {
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`
+        }
+      })
+
+      const data = await response.json()
+
+      if (data.success && data.investors) {
+        setMatchedInvestors(data.investors)
+        setTimeout(updateScrollButtonsInvestors, 100)
+      }
+    } catch (err) {
+      console.error('Error fetching matching investors:', err)
+    } finally {
+      setMatchedInvestorsLoading(false)
+    }
+  }
+
+  const updateScrollButtonsInvestors = () => {
+    if (investorScrollRef.current) {
+      const { scrollLeft, scrollWidth, clientWidth } = investorScrollRef.current
+      setCanScrollLeftInvestors(scrollLeft > 0)
+      setCanScrollRightInvestors(scrollLeft < scrollWidth - clientWidth - 1)
+    }
+  }
+
+  const scrollLeftInvestors = () => {
+    if (investorScrollRef.current) {
+      investorScrollRef.current.scrollBy({ left: -220, behavior: 'smooth' })
+    }
+  }
+
+  const scrollRightInvestors = () => {
+    if (investorScrollRef.current) {
+      investorScrollRef.current.scrollBy({ left: 220, behavior: 'smooth' })
+    }
   }
 
   // Filter properties based on search query
@@ -312,6 +370,114 @@ export function AdminDashboardProperties() {
                     <p className="font-medium">{selectedLandlord.phone || 'Not provided'}</p>
                   </div>
                 </div>
+              </div>
+
+              {/* Matching Investors */}
+              <div className="pt-3 border-t overflow-hidden">
+                <p className="text-[11px] uppercase tracking-wide text-gray-500 font-medium mb-2">
+                  Matching Investors {matchedInvestors.length > 0 && `(${matchedInvestors.length})`}
+                </p>
+
+                {matchedInvestorsLoading ? (
+                  <div className="flex items-center justify-center py-4">
+                    <Loader2 className="h-4 w-4 animate-spin text-accent" />
+                  </div>
+                ) : matchedInvestors.length > 0 ? (
+                  <div className="relative overflow-hidden">
+                    <div
+                      ref={investorScrollRef}
+                      className="flex overflow-x-auto gap-3 pb-1 scroll-smooth"
+                      onScroll={updateScrollButtonsInvestors}
+                      style={{
+                        scrollbarWidth: 'none',
+                        msOverflowStyle: 'none',
+                        scrollSnapType: 'x mandatory'
+                      }}
+                    >
+                      {matchedInvestors.map((investor) => (
+                        <div
+                          key={investor.id}
+                          className="flex-none w-[200px] border rounded-lg overflow-hidden bg-white shadow-sm"
+                          style={{ scrollSnapAlign: 'start' }}
+                        >
+                          <div className="p-3">
+                            <div className="flex items-center gap-2 mb-2">
+                              <div className="h-8 w-8 rounded-full bg-accent/10 flex items-center justify-center text-accent flex-shrink-0">
+                                <Users className="h-4 w-4" />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="text-xs font-semibold text-gray-900 truncate">
+                                  {investor.full_name || 'Investor'}
+                                </p>
+                                <Badge variant="secondary" className="text-[10px] px-1 py-0">
+                                  {investor.investor_type || 'Investor'}
+                                </Badge>
+                              </div>
+                            </div>
+
+                            <div className="space-y-1.5 text-[10px] text-gray-600">
+                              {investor.preference_data?.minBudget && (
+                                <p>
+                                  <span className="font-medium">Budget:</span>{' '}
+                                  £{investor.preference_data.minBudget?.toLocaleString() || '0'} - £{investor.preference_data.maxBudget?.toLocaleString() || '0'}
+                                </p>
+                              )}
+                              {investor.preference_data?.propertyType && (
+                                <p>
+                                  <span className="font-medium">Type:</span> {investor.preference_data.propertyType}
+                                </p>
+                              )}
+                              {investor.preference_data?.bedrooms && (
+                                <p>
+                                  <span className="font-medium">Bedrooms:</span> {investor.preference_data.bedrooms}
+                                </p>
+                              )}
+                              {investor.match_score !== undefined && (
+                                <div className="pt-1 mt-1 border-t">
+                                  <p className="text-accent font-semibold">
+                                    Match: {investor.match_score}%
+                                  </p>
+                                </div>
+                              )}
+                            </div>
+
+                            <div className="mt-2 pt-2 border-t text-[10px] text-gray-500">
+                              <p className="truncate">{investor.email}</p>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    <style jsx>{`
+                      div::-webkit-scrollbar {
+                        display: none;
+                      }
+                    `}</style>
+
+                    {canScrollLeftInvestors && (
+                      <button
+                        onClick={scrollLeftInvestors}
+                        className="absolute left-0 top-12 -translate-y-1/2 -translate-x-1 bg-white shadow-md rounded-full p-1 hover:bg-gray-50 transition-colors z-10 border"
+                        aria-label="Scroll left"
+                      >
+                        <ChevronLeft className="h-3 w-3" />
+                      </button>
+                    )}
+
+                    {canScrollRightInvestors && (
+                      <button
+                        onClick={scrollRightInvestors}
+                        className="absolute right-0 top-12 -translate-y-1/2 translate-x-1 bg-white shadow-md rounded-full p-1 hover:bg-gray-50 transition-colors z-10 border"
+                        aria-label="Scroll right"
+                      >
+                        <ChevronRight className="h-3 w-3" />
+                      </button>
+                    )}
+                  </div>
+                ) : (
+                  <p className="text-xs text-gray-500 py-2">No matching investors found</p>
+                )}
               </div>
             </div>
           )}
