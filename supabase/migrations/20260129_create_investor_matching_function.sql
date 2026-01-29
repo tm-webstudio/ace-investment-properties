@@ -15,6 +15,7 @@ DECLARE
     property_rent NUMERIC;
     property_bedrooms INTEGER;
     property_type_val TEXT;
+    property_type_plural TEXT;
     property_city_val TEXT;
 BEGIN
     -- Get property details
@@ -36,6 +37,14 @@ BEGIN
     property_rent := prop.monthly_rent;
     property_bedrooms := prop.bedrooms::INTEGER;
     property_type_val := LOWER(TRIM(prop.property_type));
+    -- Handle singular to plural conversion for property types
+    property_type_plural := CASE
+        WHEN property_type_val = 'house' THEN 'houses'
+        WHEN property_type_val = 'flat' THEN 'flats'
+        WHEN property_type_val = 'block' THEN 'blocks'
+        WHEN property_type_val = 'apartment' THEN 'apartments'
+        ELSE property_type_val || 's'
+    END;
     property_city_val := LOWER(TRIM(prop.city));
 
     -- Return matched investors with scoring
@@ -51,26 +60,26 @@ BEGIN
         (
             -- Budget match (30 points)
             CASE
-                WHEN property_rent >= COALESCE((ip.preference_data->>'budget_min')::NUMERIC, (ip.preference_data->'budget'->>'min')::NUMERIC, 0)
-                    AND property_rent <= COALESCE((ip.preference_data->>'budget_max')::NUMERIC, (ip.preference_data->'budget'->>'max')::NUMERIC, 999999)
+                WHEN property_rent >= COALESCE((ip.preference_data->'budget'->>'min')::NUMERIC, 0)
+                    AND property_rent <= COALESCE((ip.preference_data->'budget'->>'max')::NUMERIC, 999999)
                 THEN 30
                 ELSE 0
             END +
 
             -- Bedrooms match (25 points)
             CASE
-                WHEN property_bedrooms >= COALESCE((ip.preference_data->>'bedrooms_min')::INTEGER, (ip.preference_data->'bedrooms'->>'min')::INTEGER, 0)
-                    AND property_bedrooms <= COALESCE((ip.preference_data->>'bedrooms_max')::INTEGER, (ip.preference_data->'bedrooms'->>'max')::INTEGER, 999)
+                WHEN property_bedrooms >= COALESCE((ip.preference_data->'bedrooms'->>'min')::INTEGER, 0)
+                    AND property_bedrooms <= COALESCE((ip.preference_data->'bedrooms'->>'max')::INTEGER, 999)
                 THEN 25
                 ELSE 0
             END +
 
-            -- Property type match (20 points)
+            -- Property type match (20 points) - check both singular and plural
             CASE
                 WHEN EXISTS (
                     SELECT 1
                     FROM jsonb_array_elements_text(COALESCE(ip.preference_data->'property_types', '[]'::jsonb)) AS pt
-                    WHERE LOWER(pt) = property_type_val
+                    WHERE LOWER(pt) IN (property_type_val, property_type_plural)
                 )
                 THEN 20
                 ELSE 0
@@ -93,19 +102,19 @@ BEGIN
         ip.preference_data IS NOT NULL
         AND ip.is_active = true
         AND (
-            -- Budget match
-            (property_rent >= COALESCE((ip.preference_data->>'budget_min')::NUMERIC, (ip.preference_data->'budget'->>'min')::NUMERIC, 0) * 0.5
-                AND property_rent <= COALESCE((ip.preference_data->>'budget_max')::NUMERIC, (ip.preference_data->'budget'->>'max')::NUMERIC, 999999) * 1.5)
+            -- Budget match (allow ±50% range for initial filtering)
+            (property_rent >= COALESCE((ip.preference_data->'budget'->>'min')::NUMERIC, 0) * 0.5
+                AND property_rent <= COALESCE((ip.preference_data->'budget'->>'max')::NUMERIC, 999999) * 1.5)
             OR
             -- Bedrooms match
-            (property_bedrooms >= COALESCE((ip.preference_data->>'bedrooms_min')::INTEGER, (ip.preference_data->'bedrooms'->>'min')::INTEGER, 0)
-                AND property_bedrooms <= COALESCE((ip.preference_data->>'bedrooms_max')::INTEGER, (ip.preference_data->'bedrooms'->>'max')::INTEGER, 999))
+            (property_bedrooms >= COALESCE((ip.preference_data->'bedrooms'->>'min')::INTEGER, 0)
+                AND property_bedrooms <= COALESCE((ip.preference_data->'bedrooms'->>'max')::INTEGER, 999))
             OR
-            -- Property type match
+            -- Property type match - check both singular and plural
             EXISTS (
                 SELECT 1
                 FROM jsonb_array_elements_text(COALESCE(ip.preference_data->'property_types', '[]'::jsonb)) AS pt
-                WHERE LOWER(pt) = property_type_val
+                WHERE LOWER(pt) IN (property_type_val, property_type_plural)
             )
             OR
             -- Location match
@@ -115,21 +124,21 @@ BEGIN
                 WHERE LOWER(TRIM(loc->>'city')) = property_city_val
             )
         )
-        -- Filter by minimum match score
+        -- Filter by minimum match score (at least 20 points)
         AND (
             (
                 -- Budget match (30 points)
                 CASE
-                    WHEN property_rent >= COALESCE((ip.preference_data->>'budget_min')::NUMERIC, (ip.preference_data->'budget'->>'min')::NUMERIC, 0)
-                        AND property_rent <= COALESCE((ip.preference_data->>'budget_max')::NUMERIC, (ip.preference_data->'budget'->>'max')::NUMERIC, 999999)
+                    WHEN property_rent >= COALESCE((ip.preference_data->'budget'->>'min')::NUMERIC, 0)
+                        AND property_rent <= COALESCE((ip.preference_data->'budget'->>'max')::NUMERIC, 999999)
                     THEN 30
                     ELSE 0
                 END +
 
                 -- Bedrooms match (25 points)
                 CASE
-                    WHEN property_bedrooms >= COALESCE((ip.preference_data->>'bedrooms_min')::INTEGER, (ip.preference_data->'bedrooms'->>'min')::INTEGER, 0)
-                        AND property_bedrooms <= COALESCE((ip.preference_data->>'bedrooms_max')::INTEGER, (ip.preference_data->'bedrooms'->>'max')::INTEGER, 999)
+                    WHEN property_bedrooms >= COALESCE((ip.preference_data->'bedrooms'->>'min')::INTEGER, 0)
+                        AND property_bedrooms <= COALESCE((ip.preference_data->'bedrooms'->>'max')::INTEGER, 999)
                     THEN 25
                     ELSE 0
                 END +
@@ -139,7 +148,7 @@ BEGIN
                     WHEN EXISTS (
                         SELECT 1
                         FROM jsonb_array_elements_text(COALESCE(ip.preference_data->'property_types', '[]'::jsonb)) AS pt
-                        WHERE LOWER(pt) = property_type_val
+                        WHERE LOWER(pt) IN (property_type_val, property_type_plural)
                     )
                     THEN 20
                     ELSE 0
