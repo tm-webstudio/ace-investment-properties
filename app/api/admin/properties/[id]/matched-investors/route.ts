@@ -26,12 +26,12 @@ export async function GET(
     }
 
     const { data: profile } = await supabase
-      .from('profiles')
-      .select('role')
+      .from('user_profiles')
+      .select('user_type')
       .eq('id', user.id)
       .single()
 
-    if (profile?.role !== 'admin') {
+    if (profile?.user_type !== 'admin') {
       return NextResponse.json({ error: 'Forbidden - Admin access required' }, { status: 403 })
     }
 
