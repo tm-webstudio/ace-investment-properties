@@ -326,7 +326,7 @@ export function AdminDashboardProperties() {
       )}
 
       <Dialog open={landlordModalOpen} onOpenChange={setLandlordModalOpen}>
-        <DialogContent className="w-[90vw] max-w-md sm:w-auto sm:max-w-lg">
+        <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
           <DialogHeader className="items-start text-left">
             <DialogTitle>Landlord Details</DialogTitle>
             <DialogDescription>
@@ -337,7 +337,7 @@ export function AdminDashboardProperties() {
           </DialogHeader>
 
           {selectedLandlord && (
-            <div className="space-y-4">
+            <div className="space-y-4 overflow-hidden">
               <div className="flex items-start gap-3 p-4 bg-white border border-border/60 rounded-lg shadow-sm">
                 <div className="h-12 w-12 rounded-full bg-accent/10 flex items-center justify-center text-accent">
                   <Users className="h-6 w-6" />
@@ -373,8 +373,8 @@ export function AdminDashboardProperties() {
               </div>
 
               {/* Matching Investors */}
-              <div className="pt-3 border-t overflow-hidden">
-                <p className="text-[11px] uppercase tracking-wide text-gray-500 font-medium mb-2">
+              <div className="pt-3 mt-3 border-t">
+                <p className="text-[11px] uppercase tracking-wide text-gray-500 font-medium mb-3">
                   Matching Investors {matchedInvestors.length > 0 && `(${matchedInvestors.length})`}
                 </p>
 
@@ -386,79 +386,60 @@ export function AdminDashboardProperties() {
                   <div className="relative overflow-hidden">
                     <div
                       ref={investorScrollRef}
-                      className="flex overflow-x-auto gap-3 pb-1 scroll-smooth"
+                      className="flex gap-2 pb-2 overflow-x-auto scroll-smooth"
                       onScroll={updateScrollButtonsInvestors}
                       style={{
                         scrollbarWidth: 'none',
                         msOverflowStyle: 'none',
-                        scrollSnapType: 'x mandatory'
+                        scrollSnapType: 'x mandatory',
+                        WebkitOverflowScrolling: 'touch'
                       }}
                     >
                       {matchedInvestors.map((investor) => (
                         <div
                           key={investor.id}
-                          className="flex-none w-[200px] border rounded-lg overflow-hidden bg-white shadow-sm"
+                          className="flex-shrink-0 w-[130px] border rounded-lg bg-gray-50 shadow-sm"
                           style={{ scrollSnapAlign: 'start' }}
                         >
-                          <div className="p-3">
-                            <div className="flex items-center gap-2 mb-2">
-                              <div className="h-8 w-8 rounded-full bg-accent/10 flex items-center justify-center text-accent flex-shrink-0">
-                                <Users className="h-4 w-4" />
+                          <div className="p-2">
+                            <div className="flex items-center gap-1.5 mb-1.5">
+                              <div className="h-5 w-5 rounded-full bg-accent/10 flex items-center justify-center text-accent flex-shrink-0">
+                                <Users className="h-2.5 w-2.5" />
                               </div>
-                              <div className="flex-1 min-w-0">
-                                <p className="text-xs font-semibold text-gray-900 truncate">
-                                  {investor.full_name || 'Investor'}
-                                </p>
-                                <Badge variant="secondary" className="text-[10px] px-1 py-0">
-                                  {investor.investor_type || 'Investor'}
-                                </Badge>
-                              </div>
+                              <p className="text-[10px] font-semibold text-gray-900 truncate flex-1">
+                                {investor.full_name || 'Investor'}
+                              </p>
                             </div>
 
-                            <div className="space-y-1.5 text-[10px] text-gray-600">
-                              {investor.preference_data?.minBudget && (
-                                <p>
-                                  <span className="font-medium">Budget:</span>{' '}
-                                  £{investor.preference_data.minBudget?.toLocaleString() || '0'} - £{investor.preference_data.maxBudget?.toLocaleString() || '0'}
-                                </p>
-                              )}
-                              {investor.preference_data?.propertyType && (
-                                <p>
-                                  <span className="font-medium">Type:</span> {investor.preference_data.propertyType}
+                            <Badge variant="secondary" className="text-[8px] px-1 py-0 mb-1.5">
+                              {investor.investor_type?.replace('_', ' ') || 'Investor'}
+                            </Badge>
+
+                            <div className="space-y-0.5 text-[8px] text-gray-600">
+                              {investor.preference_data?.budget && (
+                                <p className="truncate">
+                                  £{investor.preference_data.budget.min?.toLocaleString()}-£{investor.preference_data.budget.max?.toLocaleString()}
                                 </p>
                               )}
                               {investor.preference_data?.bedrooms && (
-                                <p>
-                                  <span className="font-medium">Bedrooms:</span> {investor.preference_data.bedrooms}
-                                </p>
-                              )}
-                              {investor.match_score !== undefined && (
-                                <div className="pt-1 mt-1 border-t">
-                                  <p className="text-accent font-semibold">
-                                    Match: {investor.match_score}%
-                                  </p>
-                                </div>
+                                <p>Beds: {investor.preference_data.bedrooms.min}-{investor.preference_data.bedrooms.max}</p>
                               )}
                             </div>
 
-                            <div className="mt-2 pt-2 border-t text-[10px] text-gray-500">
-                              <p className="truncate">{investor.email}</p>
-                            </div>
+                            {investor.match_score !== undefined && (
+                              <p className="text-accent font-bold text-[9px] mt-1.5 pt-1.5 border-t">
+                                Match: {investor.match_score}%
+                              </p>
+                            )}
                           </div>
                         </div>
                       ))}
                     </div>
 
-                    <style jsx>{`
-                      div::-webkit-scrollbar {
-                        display: none;
-                      }
-                    `}</style>
-
                     {canScrollLeftInvestors && (
                       <button
                         onClick={scrollLeftInvestors}
-                        className="absolute left-0 top-12 -translate-y-1/2 -translate-x-1 bg-white shadow-md rounded-full p-1 hover:bg-gray-50 transition-colors z-10 border"
+                        className="absolute left-0 top-1/2 -translate-y-1/2 bg-white/90 shadow rounded-full p-1 hover:bg-white transition-colors z-10 border"
                         aria-label="Scroll left"
                       >
                         <ChevronLeft className="h-3 w-3" />
@@ -468,7 +449,7 @@ export function AdminDashboardProperties() {
                     {canScrollRightInvestors && (
                       <button
                         onClick={scrollRightInvestors}
-                        className="absolute right-0 top-12 -translate-y-1/2 translate-x-1 bg-white shadow-md rounded-full p-1 hover:bg-gray-50 transition-colors z-10 border"
+                        className="absolute right-0 top-1/2 -translate-y-1/2 bg-white/90 shadow rounded-full p-1 hover:bg-white transition-colors z-10 border"
                         aria-label="Scroll right"
                       >
                         <ChevronRight className="h-3 w-3" />

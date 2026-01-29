@@ -7,10 +7,10 @@ const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const propertyId = params.id
+    const { id: propertyId } = await params
     const authHeader = request.headers.get('authorization')
     const token = authHeader?.replace('Bearer ', '')
 
