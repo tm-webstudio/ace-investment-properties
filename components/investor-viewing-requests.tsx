@@ -743,38 +743,48 @@ export function InvestorViewingRequests({ variant = 'dashboard', limit }: Invest
               {newViewingDate && (
                 <div>
                   <Label>Select Time *</Label>
-                  {loadingSlots ? (
-                    <div className="flex items-center gap-2 p-3 border rounded">
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                      <span className="text-sm">Loading available times...</span>
-                    </div>
-                  ) : (
-                    <Select
-                      value={newViewingTime}
-                      onValueChange={(value) => setNewViewingTime(value)}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select a time" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {availableSlots.length > 0 ? (
-                          availableSlots.map((slot) => (
-                            <SelectItem
-                              key={slot.time}
-                              value={slot.time}
-                              disabled={!slot.available}
-                            >
-                              {formatTimeDisplay(slot.time)} {!slot.available && '(Booked)'}
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <Select
+                        value={newViewingTime?.split(':')[0] || ''}
+                        onValueChange={(hour) => {
+                          const minute = newViewingTime?.split(':')[1] || '00'
+                          setNewViewingTime(`${hour}:${minute}`)
+                        }}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Hour" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {Array.from({ length: 10 }, (_, i) => i + 9).map((hour) => (
+                            <SelectItem key={hour} value={hour.toString().padStart(2, '0')}>
+                              {hour > 12 ? hour - 12 : hour} {hour >= 12 ? 'PM' : 'AM'}
                             </SelectItem>
-                          ))
-                        ) : (
-                          <SelectItem value="no-slots" disabled>
-                            No time slots available
-                          </SelectItem>
-                        )}
-                      </SelectContent>
-                    </Select>
-                  )}
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Select
+                        value={newViewingTime?.split(':')[1] || ''}
+                        onValueChange={(minute) => {
+                          const hour = newViewingTime?.split(':')[0] || '09'
+                          setNewViewingTime(`${hour}:${minute}`)
+                        }}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Minute" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {['00', '15', '30', '45'].map((minute) => (
+                            <SelectItem key={minute} value={minute}>
+                              :{minute}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
                 </div>
               )}
             </div>

@@ -311,6 +311,7 @@ export function AdminDashboardProperties() {
                   variant="admin"
                   onApprove={fetchProperties}
                   onReject={fetchProperties}
+                  onPropertyDeleted={fetchProperties}
                   showGovernmentActions
                 />
 

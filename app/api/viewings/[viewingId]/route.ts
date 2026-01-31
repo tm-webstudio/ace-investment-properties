@@ -9,10 +9,10 @@ if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_A
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { viewingId: string } }
+  { params }: { params: Promise<{ viewingId: string }> }
 ) {
   try {
-    const { viewingId } = params
+    const { viewingId } = await params
 
     // Get user ID from authorization header
     const authHeader = request.headers.get('authorization')
@@ -106,10 +106,10 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { viewingId: string } }
+  { params }: { params: Promise<{ viewingId: string }> }
 ) {
   try {
-    const { viewingId } = params
+    const { viewingId } = await params
 
     // Get user ID from authorization header
     const authHeader = request.headers.get('authorization')
@@ -156,10 +156,17 @@ export async function PUT(
     }
 
     // Check if user has permission to update this viewing
+    const { data: userProfile } = await supabase
+      .from('user_profiles')
+      .select('user_type')
+      .eq('id', user.id)
+      .single()
+
     const isOwner = viewing.user_id === user.id
     const isLandlord = viewing.landlord_id === user.id
+    const isAdmin = userProfile?.user_type === 'admin'
 
-    if (!isOwner && !isLandlord) {
+    if (!isOwner && !isLandlord && !isAdmin) {
       return NextResponse.json(
         { success: false, error: 'Access denied' },
         { status: 403 }
@@ -220,10 +227,10 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { viewingId: string } }
+  { params }: { params: Promise<{ viewingId: string }> }
 ) {
   try {
-    const { viewingId } = params
+    const { viewingId } = await params
 
     // Get user ID from authorization header
     const authHeader = request.headers.get('authorization')

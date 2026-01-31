@@ -16,10 +16,10 @@ interface RejectRequestBody {
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { viewingId: string } }
+  { params }: { params: Promise<{ viewingId: string }> }
 ) {
   try {
-    const { viewingId } = params
+    const { viewingId } = await params
     const body: RejectRequestBody = await request.json()
 
     // Get user ID from authorization header

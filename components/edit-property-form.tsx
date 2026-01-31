@@ -124,88 +124,62 @@ interface PropertyFormData {
 interface EditPropertyFormProps {
   propertyId: string
   initialData?: any
+  isAdmin?: boolean
+  returnUrl?: string
 }
 
-export function EditPropertyForm({ propertyId, initialData }: EditPropertyFormProps) {
+export function EditPropertyForm({ propertyId, initialData, isAdmin = false, returnUrl }: EditPropertyFormProps) {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
-  const [hasFormChanged, setHasFormChanged] = useState(false)
-  const [initialFormData, setInitialFormData] = useState<PropertyFormData | null>(null)
-  const [formData, setFormData] = useState<PropertyFormData>({
-    availability: initialData?.availability || "vacant",
-    propertyType: initialData?.property_type || "",
-    propertyLicence: initialData?.property_licence || "",
-    propertyCondition: initialData?.property_condition || "",
-    address: initialData?.address || "",
-    city: initialData?.city || "",
-    specificArea: initialData?.specific_area || "",
-    postcode: initialData?.postcode || "",
-    monthlyRent: initialData?.monthly_rent?.toString() || "",
-    availableDate: initialData?.available_date || "",
-    bedrooms: initialData?.bedrooms?.toString() || "",
-    bathrooms: initialData?.bathrooms?.toString() || "",
-    description: initialData?.description || "",
-    amenities: initialData?.amenities || [],
-    photos: initialData?.photos || [],
+
+  // Normalize property type from database to form values
+  const normalizePropertyType = (type: string | undefined): string => {
+    if (!type) return ""
+    const t = type.toLowerCase()
+    if (t === "studio" || t === "0br") return "Studio"
+    if (t === "1br" || t === "1 bedroom" || t === "1bed") return "1BR"
+    if (t === "2br" || t === "2 bedroom" || t === "2bed") return "2BR"
+    if (t === "3br" || t === "3 bedroom" || t === "3bed") return "3BR"
+    if (t === "3br+" || t === "4br" || t === "4 bedroom" || t === "4bed" || t === "5br" || t === "5 bedroom") return "3BR+"
+    if (t === "house" || t === "detached" || t === "semi-detached" || t === "terraced") return "House"
+    if (t === "apartment") return "Apartment"
+    if (t === "flat") return "Flat"
+    // Return original if it matches expected values
+    if (["Studio", "1BR", "2BR", "3BR", "3BR+", "House", "Apartment", "Flat"].includes(type)) return type
+    return type // Return as-is if unknown
+  }
+
+  // Helper to create form data from initialData
+  const createFormDataFromInitial = (data: any): PropertyFormData => ({
+    availability: data?.availability || "vacant",
+    propertyType: normalizePropertyType(data?.property_type),
+    propertyLicence: data?.property_licence || "",
+    propertyCondition: data?.property_condition || "",
+    address: data?.address || "",
+    city: data?.city || "",
+    specificArea: data?.specific_area || data?.county || "",
+    postcode: data?.postcode || "",
+    monthlyRent: data?.monthly_rent != null ? String(data.monthly_rent) : "",
+    availableDate: data?.available_date || "",
+    bedrooms: data?.bedrooms != null ? String(data.bedrooms) : "",
+    bathrooms: data?.bathrooms != null ? String(data.bathrooms) : "",
+    description: data?.description || "",
+    amenities: data?.amenities || [],
+    photos: data?.photos || [],
     primaryPhotoIndex: 0,
     contactName: "",
     contactEmail: "",
     contactPhone: "",
   })
 
-  // Store initial form data when component mounts
-  useEffect(() => {
-    if (initialData && !initialFormData) {
-      const initial: PropertyFormData = {
-        availability: initialData?.availability || "vacant",
-        propertyType: initialData?.property_type || "",
-        propertyLicence: initialData?.property_licence || "",
-        propertyCondition: initialData?.property_condition || "",
-        address: initialData?.address || "",
-        city: initialData?.city || "",
-        specificArea: initialData?.specific_area || "",
-        postcode: initialData?.postcode || "",
-        monthlyRent: initialData?.monthly_rent?.toString() || "",
-        availableDate: initialData?.available_date || "",
-        bedrooms: initialData?.bedrooms?.toString() || "",
-        bathrooms: initialData?.bathrooms?.toString() || "",
-        description: initialData?.description || "",
-        amenities: initialData?.amenities || [],
-        photos: initialData?.photos || [],
-        primaryPhotoIndex: 0,
-        contactName: "",
-        contactEmail: "",
-        contactPhone: "",
-      }
-      setInitialFormData(initial)
-    }
-  }, [initialData, initialFormData])
+  const [formData, setFormData] = useState<PropertyFormData>(() => createFormDataFromInitial(initialData))
 
-  // Check if form has changed
-  const checkFormChanges = (newFormData: PropertyFormData) => {
-    if (!initialFormData) return false
-    
-    const changed = (
-      newFormData.availability !== initialFormData.availability ||
-      newFormData.propertyType !== initialFormData.propertyType ||
-      newFormData.propertyLicence !== initialFormData.propertyLicence ||
-      newFormData.propertyCondition !== initialFormData.propertyCondition ||
-      newFormData.address !== initialFormData.address ||
-      newFormData.city !== initialFormData.city ||
-      newFormData.specificArea !== initialFormData.specificArea ||
-      newFormData.postcode !== initialFormData.postcode ||
-      newFormData.monthlyRent !== initialFormData.monthlyRent ||
-      newFormData.availableDate !== initialFormData.availableDate ||
-      newFormData.bedrooms !== initialFormData.bedrooms ||
-      newFormData.bathrooms !== initialFormData.bathrooms ||
-      newFormData.description !== initialFormData.description ||
-      JSON.stringify(newFormData.amenities.sort()) !== JSON.stringify(initialFormData.amenities.sort()) ||
-      JSON.stringify(newFormData.photos) !== JSON.stringify(initialFormData.photos)
-    )
-    
-    setHasFormChanged(changed)
-    return changed
-  }
+  // Update form data when initialData loads (for async loading)
+  useEffect(() => {
+    if (initialData) {
+      setFormData(createFormDataFromInitial(initialData))
+    }
+  }, [initialData])
 
   const amenityOptions = [
     "Furnished",
@@ -237,19 +211,12 @@ export function EditPropertyForm({ propertyId, initialData }: EditPropertyFormPr
         updated.specificArea = ''
       }
 
-      // Check if form has changed
-      checkFormChanges(updated)
-      
       return updated
     })
   }
 
   const handleImagesReorder = (newImages: (File | string)[]) => {
-    setFormData(prev => {
-      const updated = { ...prev, photos: newImages }
-      checkFormChanges(updated)
-      return updated
-    })
+    setFormData(prev => ({ ...prev, photos: newImages }))
   }
 
   const handlePrimaryImageChange = (index: number) => {
@@ -341,14 +308,10 @@ export function EditPropertyForm({ propertyId, initialData }: EditPropertyFormPr
       // In a real app, you would upload to a property-specific endpoint
       const newImageUrls = validFiles.map(file => URL.createObjectURL(file))
       
-      setFormData(prev => {
-        const updated = {
-          ...prev,
-          photos: [...prev.photos, ...newImageUrls]
-        }
-        checkFormChanges(updated)
-        return updated
-      })
+      setFormData(prev => ({
+        ...prev,
+        photos: [...prev.photos, ...newImageUrls]
+      }))
       
       alert(`Successfully added ${validFiles.length} image(s) to edit queue`)
     } catch (error: any) {
@@ -396,15 +359,11 @@ export function EditPropertyForm({ propertyId, initialData }: EditPropertyFormPr
     }
 
     const newPhotos = formData.photos.filter((_, i) => i !== index)
-    setFormData(prev => {
-      const updated = {
-        ...prev,
-        photos: newPhotos,
-        primaryPhotoIndex: prev.primaryPhotoIndex >= newPhotos.length ? 0 : prev.primaryPhotoIndex
-      }
-      checkFormChanges(updated)
-      return updated
-    })
+    setFormData(prev => ({
+      ...prev,
+      photos: newPhotos,
+      primaryPhotoIndex: prev.primaryPhotoIndex >= newPhotos.length ? 0 : prev.primaryPhotoIndex
+    }))
   }
 
   const validateForm = (): boolean => {
@@ -418,39 +377,17 @@ export function EditPropertyForm({ propertyId, initialData }: EditPropertyFormPr
       formData.bedrooms !== "" &&
       formData.bathrooms !== "" &&
       formData.description &&
-      formData.photos.length > 0
+      formData.photos?.length > 0
     )
 
-    // Only require available date if tenanted or upcoming
-    const dateRequired = (formData.availability === 'tenanted' || formData.availability === 'upcoming') 
-      ? !!formData.availableDate 
+    const dateRequired = (formData.availability === 'tenanted' || formData.availability === 'upcoming')
+      ? !!formData.availableDate
       : true
-
-    // Debug logging - remove after testing
-    if (!baseValidation) {
-      console.log('Validation failed for:', {
-        availability: !!formData.availability,
-        propertyType: !!formData.propertyType,
-        address: !!formData.address,
-        city: !!formData.city,
-        postcode: !!formData.postcode,
-        monthlyRent: !!formData.monthlyRent,
-        bedrooms: formData.bedrooms !== "",
-        bathrooms: formData.bathrooms !== "",
-        description: !!formData.description,
-        photos: formData.photos.length > 0
-      })
-    }
 
     return baseValidation && dateRequired
   }
 
   const handleSubmit = async () => {
-    if (!validateForm()) {
-      alert('Please fill in all required fields')
-      return
-    }
-
     setIsLoading(true)
     try {
       // Create the update payload
@@ -472,8 +409,12 @@ export function EditPropertyForm({ propertyId, initialData }: EditPropertyFormPr
         photos: formData.photos,
       }
 
-      // Update property via API
-      const response = await fetch(`/api/landlord/properties/${propertyId}`, {
+      // Update property via API (use admin or landlord endpoint based on isAdmin prop)
+      const apiEndpoint = isAdmin
+        ? `/api/admin/properties/${propertyId}`
+        : `/api/landlord/properties/${propertyId}`
+
+      const response = await fetch(apiEndpoint, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -489,7 +430,8 @@ export function EditPropertyForm({ propertyId, initialData }: EditPropertyFormPr
 
       if (result.success) {
         // Redirect to dashboard with success message
-        router.push('/landlord/dashboard?updated=true')
+        const redirectUrl = returnUrl || (isAdmin ? '/admin/dashboard' : '/landlord/dashboard')
+        router.push(`${redirectUrl}?updated=true`)
       } else {
         console.error('Update failed:', result)
         alert(`Update failed: ${result.error || 'Unknown error'}${result.details ? '\nDetails: ' + result.details : ''}`)
@@ -511,7 +453,7 @@ export function EditPropertyForm({ propertyId, initialData }: EditPropertyFormPr
           <div className="mb-8">
             <div className="flex items-center justify-between mb-2">
               <h1 className="text-3xl font-bold">Edit Property</h1>
-              <Link href="/landlord/dashboard">
+              <Link href={returnUrl || (isAdmin ? '/admin/dashboard' : '/landlord/dashboard')}>
                 <Button size="sm" className="bg-accent hover:bg-accent/90 text-accent-foreground">
                   <ArrowLeft className="h-4 w-4 mr-2" />
                   Back to Dashboard
@@ -578,6 +520,8 @@ export function EditPropertyForm({ propertyId, initialData }: EditPropertyFormPr
                         <SelectItem value="3BR">3 Bedroom</SelectItem>
                         <SelectItem value="3BR+">3+ Bedroom</SelectItem>
                         <SelectItem value="House">House</SelectItem>
+                        <SelectItem value="Apartment">Apartment</SelectItem>
+                        <SelectItem value="Flat">Flat</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -858,12 +802,12 @@ export function EditPropertyForm({ propertyId, initialData }: EditPropertyFormPr
             <Card>
               <CardContent className="py-3">
                 <div className="flex justify-between items-center">
-                  <Link href="/landlord/dashboard">
+                  <Link href={returnUrl || (isAdmin ? '/admin/dashboard' : '/landlord/dashboard')}>
                     <Button variant="outline">Cancel</Button>
                   </Link>
                   <Button
                     onClick={handleSubmit}
-                    disabled={!validateForm() || isLoading || !hasFormChanged}
+                    disabled={isLoading}
                     className="bg-accent hover:bg-accent/90 text-accent-foreground"
                   >
                     {isLoading ? "Updating..." : "Update Property"}

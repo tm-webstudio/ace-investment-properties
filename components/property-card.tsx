@@ -343,43 +343,115 @@ export function PropertyCard({ property, variant = 'default', onPropertyDeleted,
   }
 
   if (variant === 'admin') {
+    const handleAdminDelete = async () => {
+      setIsDeleting(true)
+
+      try {
+        const { data: { session } } = await supabase.auth.getSession()
+
+        if (!session?.access_token) {
+          alert('Please log in to delete properties')
+          setIsDeleting(false)
+          return
+        }
+
+        const response = await fetch(`/api/admin/properties/${property.id}`, {
+          method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${session.access_token}`
+          }
+        })
+
+        const data = await response.json()
+
+        if (!response.ok) {
+          throw new Error(data.error || 'Failed to delete property')
+        }
+
+        if (data.success) {
+          // Call the callback to refresh the property list
+          if (onPropertyDeleted) {
+            await onPropertyDeleted()
+          }
+          setDeleteModalOpen(false)
+        } else {
+          throw new Error(data.error || 'Failed to delete property')
+        }
+      } catch (error: any) {
+        console.error('Error deleting property:', error)
+        alert(`Error deleting property: ${error.message}`)
+      } finally {
+        setIsDeleting(false)
+      }
+    }
+
     const adminActions = (
-          <div className="flex gap-1">
-            {shouldShowGovernmentActions && (
-              <Button
-                size="icon"
-                variant="ghost"
-                onClick={(e) => {
-                  e.stopPropagation()
-                  onGovernmentApprove?.(property.id)
-                }}
-                className="bg-[#0b3b63] hover:bg-[#0e4a7a] shadow-lg border border-[#0b3b63]/70 transition-all duration-200 hover:shadow-xl h-8 w-8 rounded-none"
-              >
-                <Shield className="h-4 w-4 text-white" />
-              </Button>
-            )}
+      <div className="flex gap-1">
+        {shouldShowGovernmentActions && (
+          <>
             <Button
-          size="icon"
-          variant="ghost"
-          onClick={(e) => {
-            e.stopPropagation()
-            onApprove?.(property.id)
-          }}
-          className="bg-green-600/90 hover:bg-green-700 shadow-lg border border-green-500/50 transition-all duration-200 hover:shadow-xl h-8 w-8 rounded-none"
-        >
-          <Check className="h-4 w-4 text-white" />
-        </Button>
-        <Button
-          size="icon"
-          variant="ghost"
-          onClick={(e) => {
-            e.stopPropagation()
-            onReject?.(property.id)
-          }}
-          className="bg-red-600/90 hover:bg-red-700 shadow-lg border border-red-500/50 transition-all duration-200 hover:shadow-xl h-8 w-8 rounded-none"
-        >
-          <X className="h-4 w-4 text-white" />
-        </Button>
+              size="icon"
+              variant="ghost"
+              onClick={(e) => {
+                e.stopPropagation()
+                onApprove?.(property.id)
+              }}
+              className="bg-green-600/90 hover:bg-green-700 shadow-lg border border-green-500/50 transition-all duration-200 hover:shadow-xl h-8 w-8 rounded-none"
+            >
+              <Check className="h-4 w-4 text-white" />
+            </Button>
+            <Button
+              size="icon"
+              variant="ghost"
+              onClick={(e) => {
+                e.stopPropagation()
+                onReject?.(property.id)
+              }}
+              className="bg-red-600/90 hover:bg-red-700 shadow-lg border border-red-500/50 transition-all duration-200 hover:shadow-xl h-8 w-8 rounded-none"
+            >
+              <X className="h-4 w-4 text-white" />
+            </Button>
+          </>
+        )}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              size="icon"
+              variant="ghost"
+              className="bg-white/90 hover:bg-white shadow-lg border border-gray-200/50 transition-all duration-200 hover:shadow-xl data-[state=open]:bg-white data-[state=open]:shadow-xl h-8 w-8 rounded-none"
+              data-dropdown-trigger
+              onClick={(e) => {
+                e.stopPropagation()
+              }}
+            >
+              <MoreVertical className="h-4 w-4 text-gray-600" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent
+            align="end"
+            className="z-50 min-w-[180px] animate-in fade-in-0 zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95"
+            sideOffset={8}
+            data-dropdown-trigger
+          >
+            <DropdownMenuItem asChild>
+              <Link href={`/admin/properties/${property.id}/edit`} className="cursor-pointer transition-colors duration-150">
+                <Edit className="mr-2 h-4 w-4 text-current" />
+                Edit Property
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              className="text-red-600 cursor-pointer transition-colors duration-150 focus:text-red-700 focus:bg-red-50"
+              onClick={(e) => {
+                e.preventDefault()
+                setDeleteModalOpen(true)
+              }}
+              disabled={isDeleting}
+            >
+              <Trash2 className="mr-2 h-4 w-4 text-current" />
+              {isDeleting ? 'Deleting...' : 'Delete Property'}
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     )
 
@@ -405,7 +477,7 @@ export function PropertyCard({ property, variant = 'default', onPropertyDeleted,
                 Cancel
               </Button>
               <Button
-                onClick={confirmDelete}
+                onClick={handleAdminDelete}
                 disabled={isDeleting}
                 variant="destructive"
               >

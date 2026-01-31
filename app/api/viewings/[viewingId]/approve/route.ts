@@ -12,10 +12,10 @@ if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_A
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { viewingId: string } }
+  { params }: { params: Promise<{ viewingId: string }> }
 ) {
   try {
-    const { viewingId } = params
+    const { viewingId } = await params
 
     // Get user ID from authorization header
     const authHeader = request.headers.get('authorization')
