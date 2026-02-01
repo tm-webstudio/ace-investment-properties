@@ -8,6 +8,7 @@ import { Eye, EyeOff } from "lucide-react"
 import { useState } from "react"
 
 interface Step4Data {
+  companyName: string
   firstName: string
   lastName: string
   email: string
@@ -28,6 +29,22 @@ export function InvestorSignupStep4({ data, onChange }: InvestorSignupStep4Props
 
   return (
     <div className="space-y-6">
+      {/* Company Name */}
+      <div>
+        <Label htmlFor="companyName" className="block text-sm font-medium text-gray-700 mb-2">
+          Company name
+        </Label>
+        <Input
+          id="companyName"
+          type="text"
+          autoComplete="organization"
+          required
+          value={data.companyName}
+          onChange={(e) => onChange({ companyName: e.target.value })}
+          placeholder="Enter your company name"
+        />
+      </div>
+
       {/* Name Fields */}
       <div className="grid grid-cols-2 gap-4">
         <div>

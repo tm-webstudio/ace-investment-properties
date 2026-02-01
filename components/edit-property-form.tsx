@@ -173,11 +173,14 @@ export function EditPropertyForm({ propertyId, initialData, isAdmin = false, ret
   })
 
   const [formData, setFormData] = useState<PropertyFormData>(() => createFormDataFromInitial(initialData))
+  const [initialFormData, setInitialFormData] = useState<PropertyFormData>(() => createFormDataFromInitial(initialData))
 
   // Update form data when initialData loads (for async loading)
   useEffect(() => {
     if (initialData) {
-      setFormData(createFormDataFromInitial(initialData))
+      const newFormData = createFormDataFromInitial(initialData)
+      setFormData(newFormData)
+      setInitialFormData(newFormData)
     }
   }, [initialData])
 
@@ -385,6 +388,28 @@ export function EditPropertyForm({ propertyId, initialData, isAdmin = false, ret
       : true
 
     return baseValidation && dateRequired
+  }
+
+  const hasFormChanged = (): boolean => {
+    // Compare all fields to check if anything has changed
+    const changed =
+      formData.availability !== initialFormData.availability ||
+      formData.propertyType !== initialFormData.propertyType ||
+      formData.propertyLicence !== initialFormData.propertyLicence ||
+      formData.propertyCondition !== initialFormData.propertyCondition ||
+      formData.address !== initialFormData.address ||
+      formData.city !== initialFormData.city ||
+      formData.specificArea !== initialFormData.specificArea ||
+      formData.postcode !== initialFormData.postcode ||
+      formData.monthlyRent !== initialFormData.monthlyRent ||
+      formData.availableDate !== initialFormData.availableDate ||
+      formData.bedrooms !== initialFormData.bedrooms ||
+      formData.bathrooms !== initialFormData.bathrooms ||
+      formData.description !== initialFormData.description ||
+      JSON.stringify(formData.amenities) !== JSON.stringify(initialFormData.amenities) ||
+      JSON.stringify(formData.photos) !== JSON.stringify(initialFormData.photos)
+
+    return changed
   }
 
   const handleSubmit = async () => {
@@ -807,8 +832,8 @@ export function EditPropertyForm({ propertyId, initialData, isAdmin = false, ret
                   </Link>
                   <Button
                     onClick={handleSubmit}
-                    disabled={isLoading}
-                    className="bg-accent hover:bg-accent/90 text-accent-foreground"
+                    disabled={isLoading || !hasFormChanged()}
+                    className="bg-accent hover:bg-accent/90 text-accent-foreground disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {isLoading ? "Updating..." : "Update Property"}
                   </Button>

@@ -11,6 +11,7 @@ import { supabase } from "@/lib/supabase"
 interface User {
   id: string
   full_name: string
+  company_name?: string
   email: string
   phone: string
   user_type: string
@@ -283,7 +284,7 @@ export function AdminDashboardInvestors() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-2 mb-3">
                       <h3 className="font-semibold text-base truncate">
-                        {user.full_name || 'Unknown User'}
+                        {user.company_name || user.full_name || 'Unknown User'}
                       </h3>
                       <Badge variant="secondary" className="text-xs flex-shrink-0">
                         Investor
@@ -322,7 +323,7 @@ export function AdminDashboardInvestors() {
           <DialogHeader className="text-left">
             <DialogTitle className="flex items-center gap-2">
               <Users className="h-5 w-5 text-accent" />
-              {selectedInvestor?.full_name || 'Investor'} Preferences
+              {selectedInvestor?.company_name || selectedInvestor?.full_name || 'Investor'} Preferences
             </DialogTitle>
             <DialogDescription className="text-left">
               Investment preferences and criteria
@@ -445,6 +446,13 @@ export function AdminDashboardInvestors() {
                             >
                               {property.availability === 'vacant' ? 'Vacant' : property.availability === 'tenanted' ? 'Tenanted' : 'Available'}
                             </Badge>
+                            {property.matchScore !== undefined && (
+                              <Badge
+                                className="absolute bottom-2 right-2 text-[10px] px-1.5 py-0.5 bg-green-600 text-white rounded-none font-bold"
+                              >
+                                {property.matchScore}% Match
+                              </Badge>
+                            )}
                           </div>
                           <div className="p-2.5">
                             <p className="text-xs font-medium text-gray-900 truncate mb-0.5">

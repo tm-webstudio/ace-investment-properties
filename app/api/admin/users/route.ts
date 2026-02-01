@@ -93,6 +93,7 @@ export async function GET(request: NextRequest) {
         return {
           id: userProfile.id,
           full_name: userProfile.full_name,
+          company_name: userProfile.company_name,
           email,
           phone: userProfile.phone,
           user_type: userProfile.user_type,

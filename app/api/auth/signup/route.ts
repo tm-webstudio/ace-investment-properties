@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
     if (rateLimitResult) return rateLimitResult
 
     const body = await request.json()
-    const { email, password, first_name, last_name, phone_number, user_type = 'investor', preferences } = body
+    const { email, password, company_name, first_name, last_name, phone_number, user_type = 'investor', preferences } = body
 
     // Validate input
     if (!email || !password || !first_name || !last_name) {
@@ -80,13 +80,14 @@ export async function POST(request: NextRequest) {
 
     // Create user profile in database
     const full_name = `${first_name} ${last_name}`.trim()
-    
+
     const { error: profileError } = await supabase
       .from('user_profiles')
       .insert({
         id: authData.user.id,
         email: email,
         full_name: full_name,
+        company_name: company_name || null,
         phone: phone_number,
         user_type: user_type
       })

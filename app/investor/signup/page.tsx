@@ -45,6 +45,7 @@ interface Step3Data {
 }
 
 interface Step4Data {
+  companyName: string
   firstName: string
   lastName: string
   email: string
@@ -85,6 +86,7 @@ export default function InvestorSignup() {
   })
 
   const [step4Data, setStep4Data] = useState<Step4Data>({
+    companyName: "",
     firstName: "",
     lastName: "",
     email: "",
@@ -229,7 +231,7 @@ export default function InvestorSignup() {
   }
 
   const validateStep4 = (): boolean => {
-    if (!step4Data.firstName || !step4Data.lastName || !step4Data.email || !step4Data.phoneNumber || !step4Data.password || !step4Data.confirmPassword) {
+    if (!step4Data.companyName || !step4Data.firstName || !step4Data.lastName || !step4Data.email || !step4Data.phoneNumber || !step4Data.password || !step4Data.confirmPassword) {
       setError("All fields are required")
       return false
     }
@@ -315,6 +317,7 @@ export default function InvestorSignup() {
         body: JSON.stringify({
           email: step4Data.email,
           password: step4Data.password,
+          company_name: step4Data.companyName,
           first_name: step4Data.firstName,
           last_name: step4Data.lastName,
           phone_number: step4Data.phoneNumber,
