@@ -3,6 +3,7 @@
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 interface Step1Data {
   operatorType: "sa_operator" | "supported_living" | "social_housing" | "other"
@@ -78,19 +79,23 @@ export function OnboardingStep1({ data, onChange }: OnboardingStep1Props) {
         <Label htmlFor="properties_managing" className="text-base font-medium text-gray-900 mb-2 block">
           How many properties are you currently managing?
         </Label>
-        <Input
-          id="properties_managing"
-          type="number"
-          min="0"
-          max="10000"
-          value={data.propertiesManaging}
-          onChange={(e) => onChange({ propertiesManaging: parseInt(e.target.value) || 0 })}
-          placeholder="Enter number of properties"
-          className="max-w-xs"
-        />
-        <p className="text-sm text-gray-500 mt-1">
-          Enter 0 if you're just starting
-        </p>
+        <Select
+          value={data.propertiesManaging.toString()}
+          onValueChange={(value) => onChange({ propertiesManaging: parseInt(value) })}
+        >
+          <SelectTrigger className="max-w-xs">
+            <SelectValue placeholder="Select number of properties" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="0">0 - Just starting</SelectItem>
+            <SelectItem value="1">1</SelectItem>
+            <SelectItem value="2">2-5</SelectItem>
+            <SelectItem value="6">6-10</SelectItem>
+            <SelectItem value="11">11-20</SelectItem>
+            <SelectItem value="21">21-50</SelectItem>
+            <SelectItem value="51">50+</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
     </div>
   )
