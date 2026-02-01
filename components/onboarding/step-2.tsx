@@ -8,6 +8,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 
 interface Step2Data {
   propertyTypes: string[]
+  propertyLicenses: string[]
   bedroomsMin: number
   bedroomsMax: number
   budgetMin: number
@@ -24,9 +25,16 @@ const propertyTypeOptions = [
   { id: "houses", label: "Houses" },
   { id: "flats", label: "Flats/Apartments" },
   { id: "blocks", label: "Blocks" },
-  { id: "hmo", label: "HMO" },
   { id: "studios", label: "Studios" },
   { id: "commercial", label: "Commercial to Residential" }
+]
+
+const propertyLicenseOptions = [
+  { id: "hmo_license", label: "HMO Licence" },
+  { id: "c2_license", label: "C2 Licence" },
+  { id: "selective_license", label: "Selective Licence" },
+  { id: "additional_license", label: "Additional Licence" },
+  { id: "no_license", label: "No Licence Required" }
 ]
 
 const bedroomOptions = Array.from({ length: 10 }, (_, i) => ({
@@ -37,14 +45,26 @@ const bedroomOptions = Array.from({ length: 10 }, (_, i) => ({
 export function OnboardingStep2({ data, onChange }: OnboardingStep2Props) {
   const handlePropertyTypeChange = (propertyTypeId: string, checked: boolean) => {
     let newPropertyTypes = [...data.propertyTypes]
-    
+
     if (checked) {
       newPropertyTypes.push(propertyTypeId)
     } else {
       newPropertyTypes = newPropertyTypes.filter(id => id !== propertyTypeId)
     }
-    
+
     onChange({ propertyTypes: newPropertyTypes })
+  }
+
+  const handlePropertyLicenseChange = (licenseId: string, checked: boolean) => {
+    let newPropertyLicenses = [...(data.propertyLicenses || [])]
+
+    if (checked) {
+      newPropertyLicenses.push(licenseId)
+    } else {
+      newPropertyLicenses = newPropertyLicenses.filter(id => id !== licenseId)
+    }
+
+    onChange({ propertyLicenses: newPropertyLicenses })
   }
 
   return (
@@ -61,6 +81,30 @@ export function OnboardingStep2({ data, onChange }: OnboardingStep2Props) {
                 id={option.id}
                 checked={data.propertyTypes.includes(option.id)}
                 onCheckedChange={(checked) => handlePropertyTypeChange(option.id, checked as boolean)}
+              />
+              <Label
+                htmlFor={option.id}
+                className="flex-1 cursor-pointer font-medium text-sm"
+              >
+                {option.label}
+              </Label>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Property Licences */}
+      <div>
+        <Label className="text-base font-medium text-gray-900 mb-4 block">
+          Property Licences
+        </Label>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {propertyLicenseOptions.map((option) => (
+            <div key={option.id} className="flex items-center space-x-3 p-3 border border-gray-200 rounded-lg hover:border-primary/50 transition-colors">
+              <Checkbox
+                id={option.id}
+                checked={(data.propertyLicenses || []).includes(option.id)}
+                onCheckedChange={(checked) => handlePropertyLicenseChange(option.id, checked as boolean)}
               />
               <Label
                 htmlFor={option.id}

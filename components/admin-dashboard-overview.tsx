@@ -59,10 +59,10 @@ export function AdminDashboardOverview({ admin, onTabChange }: AdminDashboardOve
 
         // Fetch properties count
         try {
-          const propertiesResponse = await fetch('/api/properties')
+          const propertiesResponse = await fetch('/api/properties?status=active&limit=1')
           if (propertiesResponse.ok) {
             const propertiesData = await propertiesResponse.json()
-            totalProperties = propertiesData.success ? propertiesData.properties.length : 0
+            totalProperties = propertiesData.success ? (propertiesData.pagination?.total || 0) : 0
           }
         } catch (error) {
           console.error('Error fetching properties:', error)
