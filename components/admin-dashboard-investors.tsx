@@ -201,6 +201,18 @@ export function AdminDashboardInvestors() {
     }).format(amount)
   }
 
+  const formatPropertiesManaging = (count: number) => {
+    if (count === 0) return '0 - Just starting'
+    if (count === 1) return '1 property'
+    if (count === 2) return '2-5 properties'
+    if (count === 6) return '6-10 properties'
+    if (count === 11) return '11-20 properties'
+    if (count === 21) return '21-50 properties'
+    if (count === 51) return '50+ properties'
+    // Fallback for any other value
+    return `${count} ${count === 1 ? 'property' : 'properties'}`
+  }
+
   // Filter users based on search query
   const filteredUsers = users.filter(user => {
     const searchLower = searchQuery.toLowerCase()
@@ -345,7 +357,7 @@ export function AdminDashboardInvestors() {
                     {formatOperatorType(investorPreferences.operator_type, investorPreferences.operator_type_other)}
                   </p>
                   <p className="text-xs text-gray-500">
-                    Managing {investorPreferences.properties_managing || 0} {investorPreferences.properties_managing === 1 ? 'property' : 'properties'}
+                    Managing {formatPropertiesManaging(investorPreferences.properties_managing || 0)}
                   </p>
                 </div>
 
