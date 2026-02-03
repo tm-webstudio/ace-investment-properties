@@ -41,11 +41,13 @@ export async function GET() {
       )
     }
 
-    // Format properties for frontend using shared utility
-    const formattedProperties = properties.map(property => ({
-      ...formatPropertyForCard(property),
-      featured: true // Mark all as featured for now
-    }))
+    // Filter out properties without images and format for frontend
+    const formattedProperties = properties
+      .filter(property => property.photos && property.photos.length > 0)
+      .map(property => ({
+        ...formatPropertyForCard(property),
+        featured: true // Mark all as featured for now
+      }))
 
     return NextResponse.json({
       success: true,

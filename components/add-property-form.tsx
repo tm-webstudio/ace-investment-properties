@@ -342,18 +342,16 @@ export function AddPropertyForm() {
             (blob) => {
               console.log('📦 Blob created:', blob)
               if (blob) {
-                // Safari-compatible File creation
-                const compressedFile = blob as File
-                // Add filename to blob (for Safari compatibility)
-                Object.defineProperty(compressedFile, 'name', {
-                  writable: false,
-                  value: file.name.replace(/\.[^.]+$/, '.jpeg')
-                })
-                Object.defineProperty(compressedFile, 'lastModified', {
-                  writable: false,
-                  value: Date.now()
-                })
-                console.log(`✅ Compressed to ${(compressedFile.size / (1024 * 1024)).toFixed(2)}MB`)
+                // Create proper File object with correct MIME type
+                const compressedFile = new File(
+                  [blob],
+                  file.name.replace(/\.[^.]+$/, '.jpeg'),
+                  {
+                    type: 'image/jpeg',
+                    lastModified: Date.now()
+                  }
+                )
+                console.log(`✅ Compressed to ${(compressedFile.size / (1024 * 1024)).toFixed(2)}MB (type: ${compressedFile.type})`)
                 resolve(compressedFile)
               } else {
                 console.error('❌ Blob is null')
@@ -1388,7 +1386,13 @@ export function AddPropertyForm() {
                         <SelectItem value="1">1 Bedroom</SelectItem>
                         <SelectItem value="2">2 Bedrooms</SelectItem>
                         <SelectItem value="3">3 Bedrooms</SelectItem>
-                        <SelectItem value="4">4+ Bedrooms</SelectItem>
+                        <SelectItem value="4">4 Bedrooms</SelectItem>
+                        <SelectItem value="5">5 Bedrooms</SelectItem>
+                        <SelectItem value="6">6 Bedrooms</SelectItem>
+                        <SelectItem value="7">7 Bedrooms</SelectItem>
+                        <SelectItem value="8">8 Bedrooms</SelectItem>
+                        <SelectItem value="9">9 Bedrooms</SelectItem>
+                        <SelectItem value="10">10+ Bedrooms</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -1403,7 +1407,13 @@ export function AddPropertyForm() {
                         <SelectItem value="1.5">1.5 Bathrooms</SelectItem>
                         <SelectItem value="2">2 Bathrooms</SelectItem>
                         <SelectItem value="2.5">2.5 Bathrooms</SelectItem>
-                        <SelectItem value="3">3+ Bathrooms</SelectItem>
+                        <SelectItem value="3">3 Bathrooms</SelectItem>
+                        <SelectItem value="3.5">3.5 Bathrooms</SelectItem>
+                        <SelectItem value="4">4 Bathrooms</SelectItem>
+                        <SelectItem value="4.5">4.5 Bathrooms</SelectItem>
+                        <SelectItem value="5">5 Bathrooms</SelectItem>
+                        <SelectItem value="5.5">5.5 Bathrooms</SelectItem>
+                        <SelectItem value="6">6+ Bathrooms</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -2137,10 +2147,10 @@ export function AddPropertyForm() {
         {currentStep < totalSteps ? (
           <Button
             onClick={nextStep}
-            disabled={!isStepValid() || isLoading}
+            disabled={!isStepValid() || isLoading || uploadingImages}
             className="bg-primary hover:bg-primary/90 text-primary-foreground"
           >
-            {isLoading ? 'Saving...' : 'Next'}
+            {uploadingImages ? 'Uploading Images...' : isLoading ? 'Saving...' : 'Next'}
             <ChevronRight className="ml-2 h-4 w-4" />
           </Button>
         ) : (
@@ -2148,10 +2158,10 @@ export function AddPropertyForm() {
             {isLoggedIn === true ? (
               <Button
                 onClick={handleSubmit}
-                disabled={!isStepValid() || isLoading}
+                disabled={!isStepValid() || isLoading || uploadingImages}
                 className="bg-accent hover:bg-accent/90 text-accent-foreground"
               >
-                {isLoading ? 'Submitting...' : 'Submit Property'}
+                {uploadingImages ? 'Uploading Images...' : isLoading ? 'Submitting...' : 'Submit Property'}
               </Button>
             ) : (
               <div className="flex items-center justify-center px-4 py-2 bg-muted/30 rounded-md border border-dashed text-sm font-medium text-muted-foreground leading-none">

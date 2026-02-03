@@ -112,9 +112,9 @@ export function ImageReorder({
               ${activeIndex === index ? 'ring-2 ring-primary' : ''}
             `}
           >
-            {/* Drag Handle */}
+            {/* Drag Handle - positioned bottom-left to avoid badge overlap */}
             {!disabled && (
-              <div className={`absolute top-2 left-2 z-10 transition-opacity ${
+              <div className={`absolute bottom-2 left-2 z-10 transition-opacity ${
                 activeIndex === index ? 'opacity-100' : 'opacity-0'
               } lg:opacity-0 lg:group-hover:opacity-100`}>
                 <div className="bg-black/50 rounded p-1">
@@ -123,31 +123,29 @@ export function ImageReorder({
               </div>
             )}
             
-            {/* Primary Badge */}
+            {/* Primary Badge - positioned top-left when image is primary */}
             {index === 0 && (
-              <Badge className="absolute top-2 right-2 z-10 bg-yellow-500 text-yellow-50">
+              <Badge className="absolute top-2 left-2 z-10 bg-yellow-500 text-yellow-50">
                 <Star className="h-3 w-3 mr-1 fill-current" />
                 Primary
               </Badge>
             )}
-            
-            {/* Remove Button */}
-            {index !== 0 && (
-              <Button
-                size="icon"
-                variant="destructive"
-                className={`absolute top-2 right-2 z-10 transition-opacity h-8 w-8 ${
-                  activeIndex === index ? 'opacity-100' : 'opacity-0'
-                } lg:opacity-0 lg:group-hover:opacity-100`}
-                onClick={(e) => {
-                  e.stopPropagation()
-                  onImageRemove(index)
-                }}
-                disabled={disabled}
-              >
-                <X className="h-4 w-4" />
-              </Button>
-            )}
+
+            {/* Remove Button - always show for all images */}
+            <Button
+              size="icon"
+              variant="destructive"
+              className={`absolute top-2 right-2 z-10 transition-opacity h-8 w-8 ${
+                activeIndex === index ? 'opacity-100' : 'opacity-0'
+              } lg:opacity-0 lg:group-hover:opacity-100`}
+              onClick={(e) => {
+                e.stopPropagation()
+                onImageRemove(index)
+              }}
+              disabled={disabled}
+            >
+              <X className="h-4 w-4" />
+            </Button>
             
             {/* Image */}
             <div className="aspect-video bg-muted">
