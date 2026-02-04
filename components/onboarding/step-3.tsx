@@ -11,13 +11,18 @@ import { Badge } from "@/components/ui/badge"
 import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { CalendarIcon, MapPin, Plus, X } from "lucide-react"
-// import { format } from "date-fns"
 import { cn } from "@/lib/utils"
+import {
+  getAllRegions,
+  getCitiesForRegion,
+  getLocalAuthoritiesForCity
+} from "@/lib/uk-locations"
 
 interface Location {
   id: string
+  region: string
   city: string
-  areas: string[]
+  localAuthorities: string[]
 }
 
 interface Step3Data {
@@ -32,117 +37,64 @@ interface OnboardingStep3Props {
   onChange: (data: Partial<Step3Data>) => void
 }
 
-const cityAreasMap: Record<string, string[]> = {
-  "London": [
-    "Barking and Dagenham", "Barnet", "Bexley", "Brent", "Bromley", "Camden", "Croydon",
-    "Ealing", "Enfield", "Greenwich", "Hackney", "Hammersmith and Fulham", "Haringey",
-    "Harrow", "Havering", "Hillingdon", "Hounslow", "Islington", "Kensington and Chelsea",
-    "Kingston upon Thames", "Lambeth", "Lewisham", "Merton", "Newham", "Redbridge",
-    "Richmond upon Thames", "Southwark", "Sutton", "Tower Hamlets", "Waltham Forest",
-    "Wandsworth", "Westminster"
-  ],
-  "Birmingham": [
-    "Aston", "Balsall Heath", "Bordesley Green", "Edgbaston", "Erdington", "Hall Green",
-    "Handsworth", "Harborne", "Kings Heath", "Ladywood", "Moseley", "Northfield",
-    "Perry Barr", "Quinton", "Saltley", "Selly Oak", "Small Heath", "Sparkbrook",
-    "Stirchley", "Sutton Coldfield", "Yardley"
-  ],
-  "Manchester": [
-    "Ancoats", "Ardwick", "Blackley", "Cheetham Hill", "Chorlton", "City Centre",
-    "Didsbury", "Fallowfield", "Gorton", "Hulme", "Levenshulme", "Moss Side",
-    "Old Trafford", "Rusholme", "Salford", "Stockport", "Stretford", "Withington",
-    "Wythenshawe"
-  ],
-  "Liverpool": [
-    "Aigburth", "Allerton", "Anfield", "Belle Vale", "Childwall", "City Centre",
-    "Crosby", "Everton", "Fairfield", "Kensington", "Kirkdale", "Mossley Hill",
-    "Old Swan", "Toxteth", "Walton", "Wavertree", "West Derby", "Woolton"
-  ],
-  "Leeds": [
-    "Armley", "Beeston", "Bramley", "Chapel Allerton", "City Centre", "Crossgates",
-    "Farnley", "Gipton", "Harehills", "Headingley", "Holbeck", "Horsforth",
-    "Hyde Park", "Kirkstall", "Meanwood", "Morley", "Pudsey", "Roundhay",
-    "Seacroft", "Wetherby"
-  ],
-  "Newcastle": [
-    "Benwell", "Byker", "City Centre", "Elswick", "Fenham", "Gosforth",
-    "Heaton", "Jesmond", "Kenton", "Newcastle", "Ouseburn", "Shieldfield",
-    "Walker", "Wallsend", "Westerhope"
-  ],
-  "Brighton": [
-    "Brighton Marina", "City Centre", "Hanover", "Hove", "Kemptown",
-    "Moulsecoomb", "Patcham", "Portslade", "Preston Park", "Saltdean",
-    "Shoreham", "Whitehawk", "Woodingdean"
-  ],
-  "Bristol": [
-    "Bedminster", "Bishopston", "Clifton", "City Centre", "Easton",
-    "Filton", "Fishponds", "Henleaze", "Horfield", "Kingswood",
-    "Knowle", "Redland", "Southville", "St Pauls", "Stoke Bishop",
-    "Westbury-on-Trym"
-  ],
-  "Coventry": [
-    "Canley", "Chapelfields", "City Centre", "Earlsdon", "Foleshill",
-    "Hillfields", "Holbrooks", "Radford", "Stoke", "Tile Hill",
-    "Walsgrave", "Whitley", "Wyken"
-  ],
-  "Leicester": [
-    "Aylestone", "Belgrave", "City Centre", "Clarendon Park", "Evington",
-    "Highfields", "Knighton", "Oadby", "Spinney Hills", "Stoneygate",
-    "West End", "Wigston"
-  ],
-  "Nottingham": [
-    "Beeston", "Bestwood", "Bulwell", "City Centre", "Clifton",
-    "Hucknall", "Hyson Green", "Lenton", "Mapperley", "Radford",
-    "Sherwood", "Sneinton", "West Bridgford", "Wollaton"
-  ],
-  "Oxford": [
-    "City Centre", "Cowley", "Headington", "Iffley", "Jericho",
-    "Littlemore", "Marston", "Summertown", "Wolvercote"
-  ],
-  "Cambridge": [
-    "Arbury", "Castle", "Cherry Hinton", "Chesterton", "City Centre",
-    "Coleridge", "Kings Hedges", "Newnham", "Petersfield", "Romsey",
-    "Trumpington"
-  ]
-}
-
 export function OnboardingStep3({ data, onChange }: OnboardingStep3Props) {
   const [newLocation, setNewLocation] = useState({
+    region: "",
     city: "",
-    areas: [] as string[]
+    localAuthorities: [] as string[]
   })
   const [showLocationForm, setShowLocationForm] = useState(false)
   const [showCalendar, setShowCalendar] = useState(false)
-  const [selectedArea, setSelectedArea] = useState("")
+  const [selectedAuthority, setSelectedAuthority] = useState("")
 
   const handleAddLocation = () => {
-    if (!newLocation.city.trim()) return
+    if (!newLocation.region || !newLocation.city.trim()) return
 
     const location: Location = {
       id: Date.now().toString(),
+      region: newLocation.region,
       city: newLocation.city.trim(),
-      areas: newLocation.areas
+      localAuthorities: newLocation.localAuthorities
     }
 
     onChange({
       locations: [...data.locations, location]
     })
 
-    setNewLocation({ city: "", areas: [] })
+    setNewLocation({ region: "", city: "", localAuthorities: [] })
     setShowLocationForm(false)
   }
 
-  const handleAddArea = (area: string) => {
-    if (area && !newLocation.areas.includes(area)) {
-      setNewLocation(prev => ({ ...prev, areas: [...prev.areas, area] }))
-      setSelectedArea("")
+  const handleAddAuthority = (authority: string) => {
+    if (authority && !newLocation.localAuthorities.includes(authority)) {
+      setNewLocation(prev => ({
+        ...prev,
+        localAuthorities: [...prev.localAuthorities, authority]
+      }))
+      setSelectedAuthority("")
     }
   }
 
-  const handleRemoveArea = (areaToRemove: string) => {
+  const handleRemoveAuthority = (authorityToRemove: string) => {
     setNewLocation(prev => ({
       ...prev,
-      areas: prev.areas.filter(a => a !== areaToRemove)
+      localAuthorities: prev.localAuthorities.filter(a => a !== authorityToRemove)
+    }))
+  }
+
+  const handleRegionChange = (region: string) => {
+    setNewLocation({
+      region,
+      city: "",
+      localAuthorities: []
+    })
+  }
+
+  const handleCityChange = (city: string) => {
+    setNewLocation(prev => ({
+      ...prev,
+      city,
+      localAuthorities: []
     }))
   }
 
@@ -172,7 +124,7 @@ export function OnboardingStep3({ data, onChange }: OnboardingStep3Props) {
       {/* Location Selection */}
       <div>
         <Label className="text-base font-medium text-gray-900 mb-4 block">
-          Where are you looking? <span className="text-red-500">*</span>
+          Where are you looking for property? <span className="text-red-500">*</span>
         </Label>
         
         {/* Added Locations */}
@@ -185,8 +137,17 @@ export function OnboardingStep3({ data, onChange }: OnboardingStep3Props) {
                 className="inline-flex items-center gap-2 px-3 py-2 text-sm"
               >
                 <MapPin className="h-3 w-3" />
-                {location.city}
-                {location.areas.length > 0 && ` (${location.areas.join(", ")})`}
+                <div className="flex flex-col items-start">
+                  <span className="font-semibold">{location.city}</span>
+                  <span className="text-xs opacity-70">{location.region}</span>
+                  {location.localAuthorities && location.localAuthorities.length > 0 && (
+                    <span className="text-xs opacity-60 mt-0.5">
+                      {location.localAuthorities.length === 1
+                        ? location.localAuthorities[0]
+                        : `${location.localAuthorities.length} areas`}
+                    </span>
+                  )}
+                </div>
                 <button
                   onClick={() => handleRemoveLocation(location.id)}
                   className="ml-1 hover:bg-gray-200 rounded-full p-0.5"
@@ -201,45 +162,71 @@ export function OnboardingStep3({ data, onChange }: OnboardingStep3Props) {
         {/* Add Location Form */}
         {showLocationForm ? (
           <div className="p-4 border border-gray-200 rounded-lg space-y-4">
+            {/* Step 1: Select Main Region */}
             <div>
-              <Label htmlFor="city" className="text-sm font-medium text-gray-700 mb-2 block">
-                City/Town
+              <Label htmlFor="region" className="text-sm font-medium text-gray-700 mb-2 block">
+                1. Which part of England are you looking for property?
               </Label>
               <Select
-                value={newLocation.city}
-                onValueChange={(value) => setNewLocation(prev => ({ ...prev, city: value, areas: [] }))}
+                value={newLocation.region}
+                onValueChange={handleRegionChange}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Select a city" />
+                  <SelectValue placeholder="Select main region" />
                 </SelectTrigger>
                 <SelectContent>
-                  {Object.keys(cityAreasMap).sort().map((city) => (
-                    <SelectItem key={city} value={city}>
-                      {city}
+                  {getAllRegions().map((region) => (
+                    <SelectItem key={region} value={region}>
+                      {region}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
 
-            {newLocation.city && cityAreasMap[newLocation.city] && (
+            {/* Step 2: Select Sub-Region */}
+            {newLocation.region && (
               <div>
-                <Label htmlFor="areas" className="text-sm font-medium text-gray-700 mb-2 block">
-                  Specific areas (optional)
+                <Label htmlFor="city" className="text-sm font-medium text-gray-700 mb-2 block">
+                  2. Which part of {newLocation.region}?
+                </Label>
+                <Select
+                  value={newLocation.city}
+                  onValueChange={handleCityChange}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select area" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {getCitiesForRegion(newLocation.region).map((city) => (
+                      <SelectItem key={city} value={city}>
+                        {city}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
+            {/* Step 3: Select Local Authorities */}
+            {newLocation.city && getLocalAuthoritiesForCity(newLocation.city).length > 0 && (
+              <div>
+                <Label htmlFor="authorities" className="text-sm font-medium text-gray-700 mb-2 block">
+                  3. Select Specific Areas (optional)
                 </Label>
 
-                {/* Selected Areas */}
-                {newLocation.areas.length > 0 && (
+                {/* Selected Authorities */}
+                {newLocation.localAuthorities.length > 0 && (
                   <div className="flex flex-wrap gap-2 mb-3">
-                    {newLocation.areas.map((area) => (
+                    {newLocation.localAuthorities.map((authority) => (
                       <Badge
-                        key={area}
+                        key={authority}
                         variant="secondary"
                         className="inline-flex items-center gap-1 px-2 py-1 text-xs"
                       >
-                        {area}
+                        {authority}
                         <button
-                          onClick={() => handleRemoveArea(area)}
+                          onClick={() => handleRemoveAuthority(authority)}
                           className="ml-1 hover:bg-gray-200 rounded-full p-0.5"
                         >
                           <X className="h-3 w-3" />
@@ -249,36 +236,46 @@ export function OnboardingStep3({ data, onChange }: OnboardingStep3Props) {
                   </div>
                 )}
 
-                {/* Area Dropdown */}
+                {/* Authority Dropdown */}
                 <Select
-                  value={selectedArea}
+                  value={selectedAuthority}
                   onValueChange={(value) => {
-                    handleAddArea(value)
+                    handleAddAuthority(value)
                   }}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Select areas" />
+                    <SelectValue placeholder="Select local authorities" />
                   </SelectTrigger>
                   <SelectContent>
-                    {cityAreasMap[newLocation.city]
-                      .filter(area => !newLocation.areas.includes(area))
-                      .map((area) => (
-                        <SelectItem key={area} value={area}>
-                          {area}
+                    {getLocalAuthoritiesForCity(newLocation.city)
+                      .filter(authority => !newLocation.localAuthorities.includes(authority))
+                      .map((authority) => (
+                        <SelectItem key={authority} value={authority}>
+                          {authority}
                         </SelectItem>
                       ))}
                   </SelectContent>
                 </Select>
+                <p className="text-xs text-gray-500 mt-1">
+                  Leave empty to include all areas in {newLocation.city}
+                </p>
               </div>
             )}
-            
+
             <div className="flex gap-2">
-              <Button onClick={handleAddLocation} size="sm">
+              <Button
+                onClick={handleAddLocation}
+                size="sm"
+                disabled={!newLocation.region || !newLocation.city}
+              >
                 Add Location
               </Button>
-              <Button 
-                onClick={() => setShowLocationForm(false)} 
-                variant="outline" 
+              <Button
+                onClick={() => {
+                  setShowLocationForm(false)
+                  setNewLocation({ region: "", city: "", localAuthorities: [] })
+                }}
+                variant="outline"
                 size="sm"
               >
                 Cancel
@@ -314,7 +311,7 @@ export function OnboardingStep3({ data, onChange }: OnboardingStep3Props) {
       {/* Availability */}
       <div>
         <Label className="text-base font-medium text-gray-900 mb-4 block">
-          When do you need properties? <span className="text-red-500">*</span>
+          When are you looking for property? <span className="text-red-500">*</span>
         </Label>
         
         {/* Immediate Availability Option */}
@@ -326,7 +323,7 @@ export function OnboardingStep3({ data, onChange }: OnboardingStep3Props) {
               onCheckedChange={handleImmediateAvailabilityChange}
             />
             <Label htmlFor="immediate" className="cursor-pointer font-medium">
-              I'm looking for immediate availability
+              I'm looking for properties available now
             </Label>
           </div>
         </div>
@@ -335,7 +332,7 @@ export function OnboardingStep3({ data, onChange }: OnboardingStep3Props) {
         {!data.immediateAvailability && (
           <div>
             <Label className="text-sm font-medium text-gray-700 mb-2 block">
-              Available from
+              Looking from
             </Label>
             <Popover open={showCalendar} onOpenChange={setShowCalendar}>
               <PopoverTrigger asChild>
