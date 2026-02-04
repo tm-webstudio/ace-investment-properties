@@ -13,6 +13,7 @@ import { OnboardingStep2 } from "@/components/onboarding/step-2"
 import { OnboardingStep3 } from "@/components/onboarding/step-3"
 import { InvestorSignupStep4 } from "@/components/investor-signup/step-4"
 import { FormProgressBar } from "@/components/form-progress-bar"
+import { PageHeader } from "@/components/page-header"
 
 interface Step1Data {
   operatorType: "sa_operator" | "supported_living" | "social_housing" | "other"
@@ -32,9 +33,9 @@ interface Step2Data {
 
 interface Location {
   id: string
+  region: string
   city: string
-  areas: string[]
-  radius: number
+  localAuthorities: string[]
 }
 
 interface Step3Data {
@@ -361,17 +362,12 @@ export default function InvestorSignup() {
       <main className="flex-1 bg-background">
         <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
           {/* Header */}
-          <Card className="mb-4 bg-gradient-to-r from-primary/5 via-primary/3 to-accent/5 border-primary/10">
-            <CardHeader className="pb-4 pt-4">
-              <p className="text-sm font-bold text-primary/70 uppercase tracking-wide mb-1">
-                Investor Signup
-              </p>
-              <h1 className="font-serif text-3xl md:text-4xl font-bold text-primary mb-1">
-                Join as an Investor
-              </h1>
-              <p className="text-primary/70 text-md">Tell us about your investment preferences and create your account</p>
-            </CardHeader>
-          </Card>
+          <PageHeader
+            category="Investor Signup"
+            title="Join as an Investor"
+            subtitle="Tell us about your investment preferences and create your account"
+            variant="primary"
+          />
 
           {/* Progress */}
           <div className="mb-4">
