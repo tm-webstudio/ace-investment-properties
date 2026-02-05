@@ -17,6 +17,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { ChevronLeft, ChevronRight, Upload, X, Home, FileText, Camera, CheckCircle, MapPin, Bed, Bath, PoundSterling, AlertCircle, Loader2 } from "lucide-react"
 import { ImageReorder } from './image-reorder'
 import { FormProgressBar } from './form-progress-bar'
+import { PropertyAddressInput, type AddressData } from './property-address-input'
 import { useRouter } from "next/navigation"
 import Image from "next/image"
 import { trackInitiateCheckout, trackSubmitApplication } from "@/lib/facebook-pixel"
@@ -102,9 +103,13 @@ interface PropertyFormData {
   propertyLicence?: string
   propertyCondition: string
   address: string
+  street?: string
   city: string
+  localAuthority?: string
   specificArea?: string
   postcode: string
+  latitude?: number | null
+  longitude?: number | null
   monthlyRent: string
   availableDate: string
 
@@ -145,9 +150,13 @@ export function AddPropertyForm() {
     propertyLicence: "",
     propertyCondition: "",
     address: "",
+    street: "",
     city: "",
+    localAuthority: "",
     specificArea: "",
     postcode: "",
+    latitude: null,
+    longitude: null,
     monthlyRent: "",
     availableDate: "",
     bedrooms: "",
@@ -804,9 +813,13 @@ export function AddPropertyForm() {
               description: formData.description,
               amenities: formData.amenities,
               address: formData.address,
+              street: formData.street,
               city: formData.city,
+              local_authority: formData.localAuthority || '',
               specificArea: formData.specificArea,
               postcode: formData.postcode,
+              latitude: formData.latitude,
+              longitude: formData.longitude,
               photos: formData.photos.filter(photo => typeof photo === 'string' && photo.startsWith('http') && !photo.startsWith('blob:')) // Only include valid HTTP URLs
             },
             contactInfo: {
@@ -926,9 +939,13 @@ export function AddPropertyForm() {
               description: formData.description,
               amenities: formData.amenities,
               address: formData.address,
+              street: formData.street,
               city: formData.city,
+              local_authority: formData.localAuthority || '',
               specificArea: formData.specificArea,
               postcode: formData.postcode,
+              latitude: formData.latitude,
+              longitude: formData.longitude,
               photos: formData.photos.filter(photo => typeof photo === 'string') // Only include uploaded photo URLs
             },
             contactInfo: {
@@ -1103,7 +1120,9 @@ export function AddPropertyForm() {
             body: JSON.stringify({
               propertyData: {
                 availability: formData.availability,
-              propertyType: formData.propertyType,
+                propertyType: formData.propertyType,
+                propertyLicence: formData.propertyLicence,
+                propertyCondition: formData.propertyCondition,
                 bedrooms: formData.bedrooms,
                 bathrooms: formData.bathrooms,
                 monthlyRent: formData.monthlyRent,
@@ -1111,9 +1130,13 @@ export function AddPropertyForm() {
                 description: formData.description,
                 amenities: formData.amenities,
                 address: formData.address,
+                street: formData.street,
                 city: formData.city,
-                county: formData.state,
+                county: formData.county,
+                specificArea: formData.specificArea,
                 postcode: formData.postcode,
+                latitude: formData.latitude,
+                longitude: formData.longitude,
                 photos: formData.photos.filter(photo => typeof photo === 'string' && photo.startsWith('http') && !photo.startsWith('blob:')) // Only include valid HTTP URLs
               },
               contactInfo: {
@@ -1522,73 +1545,31 @@ export function AddPropertyForm() {
           {/* Step 2: Property Address */}
           {currentStep === 2 && (
             <div className="space-y-6">
-              <div>
-                <Label htmlFor="address">Property Address *</Label>
-                <Input
-                  id="address"
-                  value={formData.address}
-                  onChange={(e) => handleInputChange("address", e.target.value)}
-                  placeholder="123 High Street, Apartment 4B"
-                />
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="city">City/Town *</Label>
-                  <Select value={formData.city} onValueChange={(value) => handleInputChange("city", value)}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select city/town" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="London">London</SelectItem>
-                      <SelectItem value="Birmingham">Birmingham</SelectItem>
-                      <SelectItem value="Manchester">Manchester</SelectItem>
-                      <SelectItem value="Liverpool">Liverpool</SelectItem>
-                      <SelectItem value="Leeds">Leeds</SelectItem>
-                      <SelectItem value="Newcastle">Newcastle</SelectItem>
-                      <SelectItem value="Brighton">Brighton</SelectItem>
-                      <SelectItem value="Bristol">Bristol</SelectItem>
-                      <SelectItem value="Coventry">Coventry</SelectItem>
-                      <SelectItem value="Leicester">Leicester</SelectItem>
-                      <SelectItem value="Nottingham">Nottingham</SelectItem>
-                      <SelectItem value="Oxford">Oxford</SelectItem>
-                      <SelectItem value="Cambridge">Cambridge</SelectItem>
-                      <SelectItem value="Other">Other</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div>
-                  <Label htmlFor="specificArea">Specific Area (optional)</Label>
-                  <Select
-                    value={formData.specificArea || ""}
-                    onValueChange={(value) => handleInputChange("specificArea", value)}
-                    disabled={!formData.city || !cityAreasMap[formData.city]}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder={!formData.city ? "Select city first" : "Select area"} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {formData.city && cityAreasMap[formData.city] && cityAreasMap[formData.city].map((area) => (
-                        <SelectItem key={area} value={area}>
-                          {area}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              <div>
-                <Label htmlFor="postcode">Postcode *</Label>
-                <Input
-                  id="postcode"
-                  value={formData.postcode}
-                  onChange={(e) => handleInputChange("postcode", e.target.value)}
-                  placeholder="SW1A 1AA"
-                  className="uppercase"
-                />
-              </div>
+              <PropertyAddressInput
+                value={{
+                  fullAddress: formData.address,
+                  street: formData.street || '',
+                  city: formData.city,
+                  localAuthority: formData.localAuthority || '',
+                  postcode: formData.postcode,
+                  country: 'United Kingdom',
+                  latitude: formData.latitude || null,
+                  longitude: formData.longitude || null
+                }}
+                onChange={(addressData: AddressData) => {
+                  setFormData(prev => ({
+                    ...prev,
+                    address: addressData.street,
+                    street: addressData.street,
+                    city: addressData.city,
+                    localAuthority: addressData.localAuthority,
+                    postcode: addressData.postcode,
+                    latitude: addressData.latitude,
+                    longitude: addressData.longitude
+                  }))
+                }}
+                error={formErrors.address}
+              />
             </div>
           )}
 
