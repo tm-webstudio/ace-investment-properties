@@ -275,6 +275,73 @@ export function EditPropertyForm({ propertyId, initialData, isAdmin = false, ret
     return () => subscription.unsubscribe()
   }, [])
 
+  // Compress image before upload
+  const compressImage = async (file: File): Promise<File> => {
+    return new Promise((resolve) => {
+      const reader = new FileReader()
+
+      reader.onerror = () => resolve(file) // Fallback to original on error
+
+      reader.onload = (e) => {
+        const img = document.createElement('img')
+
+        img.onerror = () => resolve(file) // Fallback to original on error
+
+        img.onload = () => {
+          const canvas = document.createElement('canvas')
+          let width = img.width
+          let height = img.height
+
+          // Scale down if image is very large
+          const maxDimension = 1920
+          if (width > maxDimension || height > maxDimension) {
+            if (width > height) {
+              height = (height / width) * maxDimension
+              width = maxDimension
+            } else {
+              width = (width / height) * maxDimension
+              height = maxDimension
+            }
+          }
+
+          canvas.width = width
+          canvas.height = height
+
+          const ctx = canvas.getContext('2d')
+          if (!ctx) {
+            resolve(file)
+            return
+          }
+
+          ctx.drawImage(img, 0, 0, width, height)
+
+          canvas.toBlob(
+            (blob) => {
+              if (blob) {
+                // Create proper File object with correct MIME type
+                const compressedFile = new File(
+                  [blob],
+                  file.name.replace(/\.[^.]+$/, '.jpeg'),
+                  {
+                    type: 'image/jpeg',
+                    lastModified: Date.now()
+                  }
+                )
+                resolve(compressedFile)
+              } else {
+                resolve(file) // Fallback to original
+              }
+            },
+            'image/jpeg',
+            0.8
+          )
+        }
+        img.src = e.target?.result as string
+      }
+      reader.readAsDataURL(file)
+    })
+  }
+
   const handlePhotoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(event.target.files || [])
     if (files.length === 0) return
@@ -282,11 +349,11 @@ export function EditPropertyForm({ propertyId, initialData, isAdmin = false, ret
     // Validate files first
     const maxFiles = 10
     const maxSize = 10 * 1024 * 1024 // 10MB
-    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp']
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/heic', 'image/heif']
 
     const validFiles = files.filter(file => {
-      if (!allowedTypes.includes(file.type)) {
-        alert(`File ${file.name} is not a valid image type. Allowed: JPEG, PNG, WebP`)
+      if (!allowedTypes.includes(file.type.toLowerCase())) {
+        alert(`File ${file.name} is not a valid image type. Allowed: JPEG, PNG, WebP, HEIC`)
         return false
       }
       if (file.size > maxSize) {
@@ -307,19 +374,54 @@ export function EditPropertyForm({ propertyId, initialData, isAdmin = false, ret
     setUploadProgress({})
 
     try {
-      // For edit mode, just add images to local state without API upload
-      // In a real app, you would upload to a property-specific endpoint
-      const newImageUrls = validFiles.map(file => URL.createObjectURL(file))
-      
-      setFormData(prev => ({
-        ...prev,
-        photos: [...prev.photos, ...newImageUrls]
-      }))
-      
-      alert(`Successfully added ${validFiles.length} image(s) to edit queue`)
+      // Compress images
+      const compressedFiles = await Promise.all(
+        validFiles.map(file => compressImage(file))
+      )
+
+      // Upload images to Supabase storage via API
+      const uploadFormData = new FormData()
+      compressedFiles.forEach(file => {
+        uploadFormData.append('images', file)
+      })
+
+      // Add property context (use a temporary session ID for anonymous uploads)
+      const tempSessionId = `edit-${propertyId}-${Date.now()}`
+      uploadFormData.append('sessionId', tempSessionId)
+
+      const uploadOptions: RequestInit = {
+        method: 'POST',
+        body: uploadFormData
+      }
+
+      const { data: { session } } = await supabase.auth.getSession()
+      if (session?.access_token) {
+        uploadOptions.headers = {
+          'Authorization': `Bearer ${session.access_token}`
+        }
+      }
+
+      const response = await fetch('/api/properties/images/upload', uploadOptions)
+
+      if (!response.ok) {
+        throw new Error(`Upload failed with status ${response.status}`)
+      }
+
+      const result = await response.json()
+
+      if (result.success) {
+        const imageUrls = result.images.map((img: any) => img.url)
+
+        setFormData(prev => ({
+          ...prev,
+          photos: [...prev.photos, ...imageUrls]
+        }))
+      } else {
+        throw new Error(result.error || 'Upload failed')
+      }
     } catch (error: any) {
-      console.error('Error adding images:', error)
-      alert('Failed to add images: ' + error.message)
+      console.error('Error uploading images:', error)
+      alert('Failed to upload images: ' + error.message)
     } finally {
       setUploadingImages(false)
       setUploadProgress({})
@@ -431,7 +533,10 @@ export function EditPropertyForm({ propertyId, initialData, isAdmin = false, ret
         bathrooms: parseInt(formData.bathrooms),
         description: formData.description,
         amenities: formData.amenities,
-        photos: formData.photos,
+        // Filter photos to only include valid HTTP URLs (no blob URLs or File objects)
+        photos: formData.photos.filter(photo =>
+          typeof photo === 'string' && photo.startsWith('http') && !photo.startsWith('blob:')
+        ),
       }
 
       // Update property via API (use admin or landlord endpoint based on isAdmin prop)
@@ -832,10 +937,10 @@ export function EditPropertyForm({ propertyId, initialData, isAdmin = false, ret
                   </Link>
                   <Button
                     onClick={handleSubmit}
-                    disabled={isLoading || !hasFormChanged()}
+                    disabled={isLoading || uploadingImages || !hasFormChanged()}
                     className="bg-accent hover:bg-accent/90 text-accent-foreground disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    {isLoading ? "Updating..." : "Update Property"}
+                    {uploadingImages ? "Uploading Images..." : isLoading ? "Updating..." : "Update Property"}
                   </Button>
                 </div>
               </CardContent>

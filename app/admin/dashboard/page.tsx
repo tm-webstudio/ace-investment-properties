@@ -1,7 +1,7 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
+import { useState, useEffect, Suspense } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { DashboardNavigationHeader } from "@/components/dashboard-navigation-header"
 import { DashboardFooter } from "@/components/dashboard-footer"
@@ -17,18 +17,33 @@ import { sampleAdmins } from "@/lib/sample-data"
 import { AdminDashboardNavigation } from "@/components/admin-dashboard-navigation"
 import { supabase } from "@/lib/supabase"
 
-export default function AdminDashboard() {
+function AdminDashboardContent() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [isLoading, setIsLoading] = useState(true)
   const [user, setUser] = useState<any>(null)
   const [userProfile, setUserProfile] = useState<any>(null)
   // In a real app, this would come from authentication
   const currentAdmin = sampleAdmins[0]
-  const [activeTab, setActiveTab] = useState("dashboard")
+  const [activeTab, setActiveTab] = useState(() => {
+    // Initialize activeTab from URL parameter or default to "dashboard"
+    return searchParams.get('tab') || "dashboard"
+  })
 
   useEffect(() => {
     checkAuth()
   }, [])
+
+  // Update URL when tab changes
+  useEffect(() => {
+    const currentTab = searchParams.get('tab')
+    if (currentTab !== activeTab) {
+      // Update URL without page reload
+      const newUrl = new URL(window.location.href)
+      newUrl.searchParams.set('tab', activeTab)
+      window.history.replaceState({}, '', newUrl.toString())
+    }
+  }, [activeTab, searchParams])
 
   const checkAuth = async () => {
     try {
@@ -153,7 +168,7 @@ export default function AdminDashboard() {
                   Review and manage all property listings on the platform
                 </p>
               </div>
-              <AdminDashboardProperties />
+              <AdminDashboardProperties currentTab={activeTab} />
             </div>
           )}
           {activeTab === "users" && (
@@ -204,5 +219,20 @@ export default function AdminDashboard() {
       </main>
       <DashboardFooter />
     </div>
+  )
+}
+
+export default function AdminDashboard() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading admin dashboard...</p>
+        </div>
+      </div>
+    }>
+      <AdminDashboardContent />
+    </Suspense>
   )
 }

@@ -6,8 +6,8 @@ import {
   Hr,
 } from '@react-email/components';
 import * as React from 'react';
-import EmailLayout from './components/EmailLayout';
-import { EmailIcon } from './components/EmailIcon';
+import EmailLayout from '../components/email-layout';
+import { EmailIcon } from '../components/email-icon';
 
 export default function PropertyRejected({
   propertyTitle = 'Modern 2 Bedroom Apartment',
@@ -17,7 +17,7 @@ export default function PropertyRejected({
   dashboardLink = `${process.env.NEXT_PUBLIC_SITE_URL}/landlord/dashboard`,
 }) {
   return (
-    <EmailLayout preview="Property needs updates">
+    <EmailLayout preview="Property listing update - Action required">
       {/* Icon + Title */}
       <Section style={titleSection}>
         <Text style={icon}>📝</Text>

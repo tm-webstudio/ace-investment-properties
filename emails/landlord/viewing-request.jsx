@@ -1,38 +1,39 @@
 import {
   Heading,
   Text,
-  Img,
   Section,
   Button,
   Hr,
+  Img,
 } from '@react-email/components';
 import * as React from 'react';
-import EmailLayout from './components/EmailLayout';
-import { EmailIcon } from './components/EmailIcon';
+import EmailLayout from '../components/email-layout';
+import { EmailIcon } from '../components/email-icon';
 
-export default function ViewingConfirmation({
+export default function ViewingRequest({
   propertyTitle = 'Modern 2 Bedroom Apartment',
   propertyAddress = '123 Nash Road, London, E1 1AA',
   propertyImage = '',
+  viewerName = 'Jane Doe',
+  viewerEmail = 'jane@example.com',
+  viewerPhone = '+44 7700 900001',
+  viewerType = 'Investor',
   viewingDate = '2026-01-15',
   viewingTime = '14:00',
-  landlordName = 'John Smith',
-  landlordPhone = '+44 7700 900000',
-  dashboardLink = `${process.env.NEXT_PUBLIC_SITE_URL}/investor/dashboard`,
+  message = 'I am interested in viewing this property. Please let me know if this time works for you.',
+  approveLink = `${process.env.NEXT_PUBLIC_SITE_URL}/api/viewings/approve?id=123`,
+  declineLink = `${process.env.NEXT_PUBLIC_SITE_URL}/api/viewings/decline?id=123`,
 }) {
-  const calendarLink = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=Property+Viewing:+${encodeURIComponent(propertyTitle)}&dates=${viewingDate.replace(/-/g, '')}T${viewingTime.replace(':', '')}00/${viewingDate.replace(/-/g, '')}T${viewingTime.replace(':', '')}00&details=${encodeURIComponent(propertyAddress)}&location=${encodeURIComponent(propertyAddress)}`;
-  const directionsLink = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(propertyAddress)}`;
-
   return (
-    <EmailLayout preview="Your viewing has been confirmed!">
+    <EmailLayout preview="New viewing request - Respond now">
       {/* Icon + Title */}
       <Section style={titleSection}>
         <div style={{ textAlign: 'center', marginBottom: '16px' }}>
-          <EmailIcon name="checkCircle" color="#10b981" size={48} />
+          <EmailIcon name="home" color="#10b981" size={48} />
         </div>
-        <Heading style={heading}>Viewing Confirmed!</Heading>
+        <Heading style={heading}>New Viewing Request</Heading>
         <Text style={subtitle}>
-          Great news! Your viewing request has been approved by the landlord.
+          You have received a new viewing request for your property.
         </Text>
       </Section>
 
@@ -54,80 +55,76 @@ export default function ViewingConfirmation({
         </Text>
       </Section>
 
-      {/* Viewing Details - White Box with Border */}
+      {/* Requester Info - White Box with Border */}
       <Section style={infoBox}>
         <Heading as="h3" style={infoHeading}>
-          Viewing Details
+          Requester Information
         </Heading>
         <table style={infoTable}>
           <tbody>
             <tr>
-              <td style={infoLabel}>Date:</td>
-              <td style={infoValue}>
-                {new Date(viewingDate).toLocaleDateString('en-GB', {
-                  weekday: 'long',
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric',
-                })}
+              <td style={infoLabel}>Name:</td>
+              <td style={infoValue}>{viewerName}</td>
+            </tr>
+            <tr>
+              <td style={infoLabel}>Email:</td>
+              <td style={infoValue}>{viewerEmail}</td>
+            </tr>
+            <tr>
+              <td style={infoLabel}>Phone:</td>
+              <td style={infoValue}>{viewerPhone}</td>
+            </tr>
+            <tr>
+              <td style={infoLabel}>Type:</td>
+              <td>
+                <span style={badge}>{viewerType}</span>
               </td>
-            </tr>
-            <tr>
-              <td style={infoLabel}>Time:</td>
-              <td style={infoValue}>{viewingTime}</td>
-            </tr>
-            <tr>
-              <td style={infoLabel}>Landlord:</td>
-              <td style={infoValue}>{landlordName}</td>
-            </tr>
-            <tr>
-              <td style={infoLabel}>Contact:</td>
-              <td style={infoValue}>{landlordPhone}</td>
             </tr>
           </tbody>
         </table>
       </Section>
 
+      {/* Viewing Details */}
+      <Section style={detailsSection}>
+        <Text style={detailsText}>
+          <EmailIcon name="calendar" color="#10b981" size={18} />
+          <strong>Requested Date:</strong>{' '}
+          {new Date(viewingDate).toLocaleDateString('en-GB', {
+            weekday: 'long',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+          })}
+        </Text>
+        <Text style={detailsText}>
+          <EmailIcon name="clock" color="#10b981" size={18} />
+          <strong>Requested Time:</strong> {viewingTime}
+        </Text>
+        {message && (
+          <>
+            <Text style={detailsText}>
+              <strong>Message:</strong>
+            </Text>
+            <Text style={messageText}>"{message}"</Text>
+          </>
+        )}
+      </Section>
+
       {/* Action Buttons */}
       <Section style={buttonSection}>
-        <Button href={calendarLink} style={calendarButton}>
-          Add to Calendar
+        <Button href={approveLink} style={approveButton}>
+          Approve Viewing
         </Button>
-        <Button href={directionsLink} style={directionsButton}>
-          Get Directions
+        <Button href={declineLink} style={declineButton}>
+          Decline Request
         </Button>
       </Section>
 
       <Hr style={hr} />
 
-      {/* Viewing Tips */}
-      <Section style={tipsBox}>
-        <Heading as="h3" style={tipsHeading}>
-          Viewing Tips
-        </Heading>
-        <Text style={tipText}>
-          <EmailIcon name="check" color="#10b981" size={16} />
-          Arrive 5 minutes early
-        </Text>
-        <Text style={tipText}>
-          <EmailIcon name="check" color="#10b981" size={16} />
-          Bring a list of questions
-        </Text>
-        <Text style={tipText}>
-          <EmailIcon name="check" color="#10b981" size={16} />
-          Take photos/notes if permitted
-        </Text>
-        <Text style={tipText}>
-          <EmailIcon name="check" color="#10b981" size={16} />
-          Check all rooms and amenities
-        </Text>
-      </Section>
-
-      <Section style={dashboardSection}>
-        <Button href={dashboardLink} style={dashboardButton}>
-          View My Dashboard
-        </Button>
-      </Section>
+      <Text style={tipText}>
+        <strong>Tip:</strong> Quick responses lead to better tenant relationships and faster bookings!
+      </Text>
     </EmailLayout>
   );
 }
@@ -217,12 +214,44 @@ const infoValue = {
   padding: '8px 0',
 };
 
+const badge = {
+  backgroundColor: '#10b981',
+  color: '#ffffff',
+  padding: '4px 12px',
+  borderRadius: '0',
+  fontSize: '12px',
+  fontWeight: 'bold',
+};
+
+const detailsSection = {
+  marginBottom: '24px',
+};
+
+const detailsText = {
+  color: '#1f2937',
+  fontSize: '14px',
+  margin: '8px 0',
+  display: 'flex',
+  alignItems: 'center',
+};
+
+const messageText = {
+  color: '#6b7280',
+  fontSize: '14px',
+  fontStyle: 'italic',
+  padding: '16px',
+  backgroundColor: '#f8f9fa',
+  borderLeft: '4px solid #10b981',
+  margin: '12px 0',
+  borderRadius: '0',
+};
+
 const buttonSection = {
   textAlign: 'center',
   margin: '32px 0',
 };
 
-const calendarButton = {
+const approveButton = {
   backgroundColor: '#10b981',
   color: '#ffffff',
   padding: '14px 32px',
@@ -233,8 +262,8 @@ const calendarButton = {
   margin: '0 8px 12px 8px',
 };
 
-const directionsButton = {
-  backgroundColor: '#1a1a2e',
+const declineButton = {
+  backgroundColor: '#ef4444',
   color: '#ffffff',
   padding: '14px 32px',
   borderRadius: '0',
@@ -249,41 +278,13 @@ const hr = {
   margin: '32px 0',
 };
 
-const tipsBox = {
-  backgroundColor: '#f8f9fa',
-  borderLeft: '4px solid #10b981',
-  borderRadius: '0',
-  padding: '24px',
-  marginBottom: '24px',
-};
-
-const tipsHeading = {
-  color: '#1f2937',
-  fontSize: '18px',
-  fontWeight: '600',
-  margin: '0 0 16px 0',
-};
-
 const tipText = {
   color: '#6b7280',
   fontSize: '14px',
-  margin: '8px 0',
   lineHeight: '22px',
-  display: 'flex',
-  alignItems: 'center',
-};
-
-const dashboardSection = {
-  textAlign: 'center',
-  margin: '30px 0',
-};
-
-const dashboardButton = {
-  backgroundColor: '#1a1a2e',
-  color: '#ffffff',
-  padding: '14px 32px',
+  margin: '20px 0',
+  padding: '16px',
+  backgroundColor: '#f8f9fa',
+  borderLeft: '4px solid #f97316',
   borderRadius: '0',
-  textDecoration: 'none',
-  fontWeight: 'bold',
-  display: 'inline-block',
 };

@@ -6,20 +6,17 @@ import {
   Hr,
 } from '@react-email/components';
 import * as React from 'react';
-import EmailLayout from './components/EmailLayout';
-import { EmailIcon } from './components/EmailIcon';
+import EmailLayout from '../components/email-layout';
+import { EmailIcon } from '../components/email-icon';
 
-export default function Welcome({
+export default function WelcomeLandlord({
   name = 'John Doe',
-  userType = 'Investor', // 'Investor' or 'Landlord'
-  dashboardLink = `${process.env.NEXT_PUBLIC_SITE_URL}/dashboard`,
-  profileLink = `${process.env.NEXT_PUBLIC_SITE_URL}/profile`,
+  dashboardLink = `${process.env.NEXT_PUBLIC_SITE_URL}/landlord/dashboard`,
+  profileLink = `${process.env.NEXT_PUBLIC_SITE_URL}/landlord/profile`,
   helpLink = `${process.env.NEXT_PUBLIC_SITE_URL}/help`,
 }) {
-  const isInvestor = userType === 'Investor';
-
   return (
-    <EmailLayout preview="Welcome to Ace Investment Properties">
+    <EmailLayout preview="Welcome! Start listing your properties today">
       {/* Icon + Title */}
       <Section style={titleSection}>
         <div style={{ textAlign: 'center', marginBottom: '16px' }}>
@@ -33,69 +30,38 @@ export default function Welcome({
 
       {/* User Type Badge */}
       <Section style={badgeSection}>
-        <span style={badge}>{userType}</span>
+        <span style={badge}>Landlord</span>
       </Section>
 
-      {/* User Type Specific Content - White Box with Border */}
+      {/* Landlord Features - White Box with Border */}
       <Section style={featuresBox}>
         <Heading as="h3" style={featuresHeading}>
-          {isInvestor ? 'As an Investor, you can:' : 'As a Landlord, you can:'}
+          As a Landlord, you can:
         </Heading>
-        {isInvestor ? (
-          <>
-            <Text style={featureText}>
-              <EmailIcon name="check" color="#10b981" size={16} />
-              Browse thousands of investment properties
-            </Text>
-            <Text style={featureText}>
-              <EmailIcon name="check" color="#10b981" size={16} />
-              Set your investment preferences for smart matching
-            </Text>
-            <Text style={featureText}>
-              <EmailIcon name="check" color="#10b981" size={16} />
-              Request property viewings with one click
-            </Text>
-            <Text style={featureText}>
-              <EmailIcon name="check" color="#10b981" size={16} />
-              Save and compare properties
-            </Text>
-            <Text style={featureText}>
-              <EmailIcon name="check" color="#10b981" size={16} />
-              Track your investment portfolio
-            </Text>
-            <Text style={featureText}>
-              <EmailIcon name="check" color="#10b981" size={16} />
-              Get personalized property recommendations
-            </Text>
-          </>
-        ) : (
-          <>
-            <Text style={featureText}>
-              <EmailIcon name="check" color="#10b981" size={16} />
-              List your properties and reach qualified investors
-            </Text>
-            <Text style={featureText}>
-              <EmailIcon name="check" color="#10b981" size={16} />
-              Manage viewing requests in one dashboard
-            </Text>
-            <Text style={featureText}>
-              <EmailIcon name="check" color="#10b981" size={16} />
-              Track your property portfolio performance
-            </Text>
-            <Text style={featureText}>
-              <EmailIcon name="check" color="#10b981" size={16} />
-              Communicate directly with potential tenants
-            </Text>
-            <Text style={featureText}>
-              <EmailIcon name="check" color="#10b981" size={16} />
-              Keep all documents organized and up-to-date
-            </Text>
-            <Text style={featureText}>
-              <EmailIcon name="check" color="#10b981" size={16} />
-              Receive alerts for expiring documents
-            </Text>
-          </>
-        )}
+        <Text style={featureText}>
+          <EmailIcon name="check" color="#10b981" size={16} />
+          List your properties and reach qualified investors
+        </Text>
+        <Text style={featureText}>
+          <EmailIcon name="check" color="#10b981" size={16} />
+          Manage viewing requests in one dashboard
+        </Text>
+        <Text style={featureText}>
+          <EmailIcon name="check" color="#10b981" size={16} />
+          Track your property portfolio performance
+        </Text>
+        <Text style={featureText}>
+          <EmailIcon name="check" color="#10b981" size={16} />
+          Communicate directly with potential tenants
+        </Text>
+        <Text style={featureText}>
+          <EmailIcon name="check" color="#10b981" size={16} />
+          Keep all documents organized and up-to-date
+        </Text>
+        <Text style={featureText}>
+          <EmailIcon name="check" color="#10b981" size={16} />
+          Receive alerts for expiring documents
+        </Text>
       </Section>
 
       {/* Next Steps - Light Gray Box with Green Border */}
@@ -103,21 +69,10 @@ export default function Welcome({
         <Heading as="h3" style={nextStepsHeading}>
           Get Started:
         </Heading>
-        {isInvestor ? (
-          <>
-            <Text style={stepText}>1. Complete your investor profile and set your preferences</Text>
-            <Text style={stepText}>2. Browse properties that match your investment criteria</Text>
-            <Text style={stepText}>3. Request viewings for properties you're interested in</Text>
-            <Text style={stepText}>4. Start building your property portfolio</Text>
-          </>
-        ) : (
-          <>
-            <Text style={stepText}>1. Complete your landlord profile</Text>
-            <Text style={stepText}>2. List your first property with photos and details</Text>
-            <Text style={stepText}>3. Upload required documents (certificates, insurance, etc.)</Text>
-            <Text style={stepText}>4. Start receiving viewing requests from qualified investors</Text>
-          </>
-        )}
+        <Text style={stepText}>1. Complete your landlord profile</Text>
+        <Text style={stepText}>2. List your first property with photos and details</Text>
+        <Text style={stepText}>3. Upload required documents (certificates, insurance, etc.)</Text>
+        <Text style={stepText}>4. Start receiving viewing requests from qualified investors</Text>
       </Section>
 
       {/* Action Buttons */}

@@ -807,7 +807,7 @@ export function AddPropertyForm() {
               city: formData.city,
               specificArea: formData.specificArea,
               postcode: formData.postcode,
-              photos: formData.photos.filter(photo => typeof photo === 'string') // Only include uploaded photo URLs
+              photos: formData.photos.filter(photo => typeof photo === 'string' && photo.startsWith('http') && !photo.startsWith('blob:')) // Only include valid HTTP URLs
             },
             contactInfo: {
               contactName: signupForm.firstName + ' ' + signupForm.lastName,
@@ -1114,7 +1114,7 @@ export function AddPropertyForm() {
                 city: formData.city,
                 county: formData.state,
                 postcode: formData.postcode,
-                photos: formData.photos.filter(photo => typeof photo === 'string') // Only include uploaded photo URLs
+                photos: formData.photos.filter(photo => typeof photo === 'string' && photo.startsWith('http') && !photo.startsWith('blob:')) // Only include valid HTTP URLs
               },
               contactInfo: {
                 contactName: formData.contactName || '',

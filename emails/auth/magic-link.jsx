@@ -6,15 +6,15 @@ import {
   Hr,
 } from '@react-email/components';
 import * as React from 'react';
-import EmailLayout from './components/EmailLayout';
-import { EmailIcon } from './components/EmailIcon';
+import EmailLayout from '../components/email-layout';
+import { EmailIcon } from '../components/email-icon';
 
 export default function MagicLink({
   email = 'user@example.com',
   magicLinkUrl = `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback?token=abc123`,
 }) {
   return (
-    <EmailLayout preview="Your login link">
+    <EmailLayout preview="Click to sign in - No password needed">
       {/* Icon + Title */}
       <Section style={titleSection}>
         <Text style={icon}>🔑</Text>

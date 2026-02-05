@@ -1,7 +1,7 @@
 "use client"
 
-import { useEffect, useState } from "react"
-import { useParams, useRouter } from "next/navigation"
+import { useEffect, useState, Suspense } from "react"
+import { useParams, useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { EditPropertyForm } from "@/components/edit-property-form"
 import { DashboardNavigationHeader } from "@/components/dashboard-navigation-header"
@@ -31,10 +31,12 @@ interface Property {
   updated_at: string
 }
 
-export default function AdminEditPropertyPage() {
+function AdminEditPropertyPageContent() {
   const params = useParams()
   const router = useRouter()
+  const searchParams = useSearchParams()
   const propertyId = params.id as string
+  const returnUrl = searchParams.get('returnUrl') || undefined
 
   const [property, setProperty] = useState<Property | null>(null)
   const [loading, setLoading] = useState(true)
@@ -186,9 +188,25 @@ export default function AdminEditPropertyPage() {
           propertyId={propertyId}
           initialData={property}
           isAdmin={true}
+          returnUrl={returnUrl}
         />
       </main>
       <DashboardFooter />
     </div>
+  )
+}
+
+export default function AdminEditPropertyPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading property...</p>
+        </div>
+      </div>
+    }>
+      <AdminEditPropertyPageContent />
+    </Suspense>
   )
 }

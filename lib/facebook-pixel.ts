@@ -173,16 +173,6 @@ export const customEvents = {
       content_ids: [propertyId],
     });
   },
-
-  /**
-   * Track when document expires
-   */
-  documentExpiring: (documentType: string, daysUntilExpiry: number) => {
-    trackCustomEvent('DocumentExpiring', {
-      document_type: documentType,
-      days_until_expiry: daysUntilExpiry,
-    });
-  },
 };
 
 /**

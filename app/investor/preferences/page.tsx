@@ -32,14 +32,14 @@ interface Step2Data {
 
 interface Location {
   id: string
+  region: string
   city: string
-  areas: string[]
-  radius: number
+  localAuthorities: string[]
 }
 
 interface Step3Data {
   locations: Location[]
-  additionalPreferences: string[]
+  additionalPreferences: string
   availableFrom: Date | null
   immediateAvailability: boolean
 }

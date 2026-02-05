@@ -3,7 +3,8 @@ import type { NextRequest } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { supabase } from '@/lib/supabase'
 import { sendEmail } from '@/lib/email'
-import Welcome from '@/emails/Welcome'
+import WelcomeInvestor from '@/emails/investor/welcome-investor'
+import WelcomeLandlord from '@/emails/landlord/welcome-landlord'
 
 const supabaseAdmin = process.env.SUPABASE_SERVICE_ROLE_KEY
   ? createClient(
@@ -58,13 +59,19 @@ export async function GET(request: NextRequest) {
           await sendEmail({
             to: data.user.email!,
             subject: 'Welcome to Ace Investment Properties!',
-            react: Welcome({
-              name: fullName,
-              userType: userType.charAt(0).toUpperCase() + userType.slice(1),
-              dashboardLink,
-              profileLink,
-              helpLink: `${siteUrl}/help`,
-            })
+            react: userType === 'investor'
+              ? WelcomeInvestor({
+                  name: fullName,
+                  dashboardLink,
+                  profileLink,
+                  helpLink: `${siteUrl}/help`,
+                })
+              : WelcomeLandlord({
+                  name: fullName,
+                  dashboardLink,
+                  profileLink,
+                  helpLink: `${siteUrl}/help`,
+                })
           })
 
           // Mark welcome as sent in user metadata to prevent duplicates

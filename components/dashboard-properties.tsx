@@ -30,9 +30,10 @@ interface Property {
 
 interface DashboardPropertiesProps {
   userId: string
+  currentTab?: string
 }
 
-export function DashboardProperties({ userId }: DashboardPropertiesProps) {
+export function DashboardProperties({ userId, currentTab = 'properties' }: DashboardPropertiesProps) {
   const [properties, setProperties] = useState<Property[]>([])
   const [loading, setLoading] = useState(true)
   const [initialLoad, setInitialLoad] = useState(true)
@@ -131,6 +132,7 @@ export function DashboardProperties({ userId }: DashboardPropertiesProps) {
             property={property}
             variant="landlord"
             onPropertyDeleted={() => fetchProperties(false)}
+            currentTab={currentTab}
           />
         ))}
       </div>

@@ -6,8 +6,8 @@ import {
   Hr,
 } from '@react-email/components';
 import * as React from 'react';
-import EmailLayout from './components/EmailLayout';
-import { EmailIcon } from './components/EmailIcon';
+import EmailLayout from '../components/email-layout';
+import { EmailIcon } from '../components/email-icon';
 
 export default function EmailChange({
   oldEmail = 'old@example.com',
@@ -15,7 +15,7 @@ export default function EmailChange({
   confirmUrl = `${process.env.NEXT_PUBLIC_SITE_URL}/auth/confirm-email-change?token=abc123`,
 }) {
   return (
-    <EmailLayout preview="Confirm your email change">
+    <EmailLayout preview="Confirm your new email address">
       {/* Icon + Title */}
       <Section style={titleSection}>
         <Text style={icon}>✉️</Text>

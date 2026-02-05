@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase'
 import { requireAuth } from '@/lib/middleware'
 import { sendEmail } from '@/lib/email'
-import ViewingRejected from '@/emails/ViewingRejected'
+import ViewingRejected from '@/emails/investor/viewing-rejected'
 import { formatPropertyAddress } from '@/lib/emailHelpers'
 
 // Validate environment variables

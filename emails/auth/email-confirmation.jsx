@@ -6,8 +6,8 @@ import {
   Hr,
 } from '@react-email/components';
 import * as React from 'react';
-import EmailLayout from './components/EmailLayout';
-import { EmailIcon } from './components/EmailIcon';
+import EmailLayout from '../components/email-layout';
+import { EmailIcon } from '../components/email-icon';
 
 export default function EmailConfirmation({
   email = 'user@example.com',
@@ -18,7 +18,7 @@ export default function EmailConfirmation({
   const finalUrl = confirmationUrl || confirmationLink || `${process.env.NEXT_PUBLIC_SITE_URL}/auth/confirm`
 
   return (
-    <EmailLayout preview="Confirm your email address">
+    <EmailLayout preview="Please confirm your email to get started">
       {/* Icon + Title */}
       <Section style={titleSection}>
         <div style={{ textAlign: 'center', marginBottom: '16px' }}>

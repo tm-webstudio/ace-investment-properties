@@ -21,14 +21,14 @@ interface Step2Data {
 
 interface Location {
   id: string
+  region: string
   city: string
-  areas: string[]
-  radius: number
+  localAuthorities: string[]
 }
 
 interface Step3Data {
   locations: Location[]
-  additionalPreferences: string[]
+  additionalPreferences: string
   availableFrom: Date | null
   immediateAvailability: boolean
 }
@@ -55,7 +55,7 @@ export function PreferencesModal({ onPreferencesUpdate }: PreferencesModalProps)
 
   const [step3Data, setStep3Data] = useState<Step3Data>({
     locations: [],
-    additionalPreferences: [],
+    additionalPreferences: "",
     availableFrom: null,
     immediateAvailability: false
   })

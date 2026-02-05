@@ -6,8 +6,8 @@ import {
   Hr,
 } from '@react-email/components';
 import * as React from 'react';
-import EmailLayout from './components/EmailLayout';
-import { EmailIcon } from './components/EmailIcon';
+import EmailLayout from '../components/email-layout';
+import { EmailIcon } from '../components/email-icon';
 
 export default function PasswordReset({
   name = 'User',
@@ -15,7 +15,7 @@ export default function PasswordReset({
   expiryMinutes = 60,
 }) {
   return (
-    <EmailLayout preview="Reset your password">
+    <EmailLayout preview="Reset your password - Link expires in 60 minutes">
       {/* Icon + Title */}
       <Section style={titleSection}>
         <div style={{ textAlign: 'center', marginBottom: '16px' }}>

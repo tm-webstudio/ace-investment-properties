@@ -31,7 +31,10 @@ function LandlordDashboardContent() {
   const searchParams = useSearchParams()
   const [user, setUser] = useState<UserProfile | null>(null)
   const [loading, setLoading] = useState(true)
-  const [activeTab, setActiveTab] = useState("dashboard")
+  const [activeTab, setActiveTab] = useState(() => {
+    // Initialize activeTab from URL parameter or default to "dashboard"
+    return searchParams.get('tab') || "dashboard"
+  })
   const [isEditingProfile, setIsEditingProfile] = useState(false)
   const [showConfirmationModal, setShowConfirmationModal] = useState(false)
 
@@ -131,6 +134,17 @@ function LandlordDashboardContent() {
       setIsEditingProfile(false)
     }
   }, [activeTab])
+
+  // Update URL when tab changes
+  useEffect(() => {
+    const currentTab = searchParams.get('tab')
+    if (currentTab !== activeTab) {
+      // Update URL without page reload
+      const newUrl = new URL(window.location.href)
+      newUrl.searchParams.set('tab', activeTab)
+      window.history.replaceState({}, '', newUrl.toString())
+    }
+  }, [activeTab, searchParams])
 
 
   if (loading) {
@@ -237,7 +251,7 @@ function LandlordDashboardContent() {
                   Manage your property listings and track their status
                 </p>
               </div>
-              <DashboardProperties userId={user.user_id} />
+              <DashboardProperties userId={user.user_id} currentTab={activeTab} />
             </div>
           )}
           {activeTab === "viewings" && (

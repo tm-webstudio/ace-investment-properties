@@ -1,7 +1,7 @@
 "use client"
 
-import { useEffect, useState } from "react"
-import { useParams } from "next/navigation"
+import { useEffect, useState, Suspense } from "react"
+import { useParams, useSearchParams } from "next/navigation"
 import { EditPropertyForm } from "@/components/edit-property-form"
 import { DashboardNavigationHeader } from "@/components/dashboard-navigation-header"
 import { DashboardFooter } from "@/components/dashboard-footer"
@@ -28,10 +28,12 @@ interface Property {
   updated_at: string
 }
 
-export default function EditPropertyPage() {
+function EditPropertyPageContent() {
   const params = useParams()
+  const searchParams = useSearchParams()
   const propertyId = params.id as string
-  
+  const returnUrl = searchParams.get('returnUrl') || undefined
+
   const [property, setProperty] = useState<Property | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -162,9 +164,23 @@ export default function EditPropertyPage() {
     <div className="min-h-screen flex flex-col">
       <DashboardNavigationHeader />
       <main className="flex-1 bg-background">
-        <EditPropertyForm propertyId={propertyId} initialData={property} />
+        <EditPropertyForm propertyId={propertyId} initialData={property} returnUrl={returnUrl} />
       </main>
       <DashboardFooter />
     </div>
+  )
+}
+export default function EditPropertyPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading property...</p>
+        </div>
+      </div>
+    }>
+      <EditPropertyPageContent />
+    </Suspense>
   )
 }

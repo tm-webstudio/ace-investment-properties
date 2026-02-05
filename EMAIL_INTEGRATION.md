@@ -12,8 +12,7 @@ This application uses **Resend** for transactional emails and **React Email** fo
 2. **ViewingRequest.jsx** - Sent to landlord when someone requests a viewing
 3. **ViewingRejected.jsx** - Sent when a landlord declines a viewing request
 4. **Welcome.jsx** - Sent to new users upon signup (different content for investors vs landlords)
-5. **DocumentExpiring.jsx** - Sent to landlords when documents are expiring (30, 14, 7 days)
-6. **PasswordReset.jsx** - Sent when user requests password reset
+5. **PasswordReset.jsx** - Sent when user requests password reset
 
 ### Utilities
 
@@ -29,11 +28,6 @@ Emails are automatically sent from these endpoints:
 - `PUT /api/viewings/:id/reject` → Sends **ViewingRejected** to requester
 - `POST /api/auth/signup` → Sends **Welcome** to new user
 
-### Background Jobs
-
-- **lib/jobs/checkExpiringDocuments.js** - Daily check for expiring documents
-- **api/cron/check-expiring-documents** - Cron endpoint for automated checks
-
 ## Configuration
 
 ### Environment Variables
@@ -43,24 +37,7 @@ Required in `.env.local` and Vercel:
 ```env
 RESEND_API_KEY=re_xxx...
 NEXT_PUBLIC_SITE_URL=https://aceinvestmentproperties.co.uk
-SUPABASE_SERVICE_ROLE_KEY=xxx... (for background jobs)
-CRON_SECRET=your-secret-here (for cron endpoint protection)
 ```
-
-### Vercel Cron Setup
-
-The `vercel.json` file configures automatic daily document expiry checks:
-
-```json
-{
-  "crons": [{
-    "path": "/api/cron/check-expiring-documents",
-    "schedule": "0 9 * * *"
-  }]
-}
-```
-
-This runs every day at 9:00 AM UTC.
 
 ## Testing
 
@@ -93,24 +70,6 @@ curl "http://localhost:3000/api/test-email?template=welcome-investor&to=your@ema
 
 # Test welcome email (landlord)
 curl "http://localhost:3000/api/test-email?template=welcome-landlord&to=your@email.com"
-
-# Test document expiring
-curl "http://localhost:3000/api/test-email?template=document-expiring&to=your@email.com"
-
-# Test document expired
-curl "http://localhost:3000/api/test-email?template=document-expired&to=your@email.com"
-```
-
-### Test Document Expiry Cron Job
-
-```bash
-# Dry run (no emails sent, just logs what would happen)
-curl -H "Authorization: Bearer your-cron-secret-here" \
-  "http://localhost:3000/api/cron/check-expiring-documents?dryRun=true"
-
-# Real run (sends emails)
-curl -H "Authorization: Bearer your-cron-secret-here" \
-  "http://localhost:3000/api/cron/check-expiring-documents"
 ```
 
 ## How It Works
@@ -144,13 +103,6 @@ curl -H "Authorization: Bearer your-cron-secret-here" \
 4. **Welcome email sent** with role-specific content
 5. User receives email with dashboard link and getting started guide
 
-### 5. Document Expiry Flow
-
-1. Vercel Cron runs daily at 9 AM UTC
-2. Job queries database for documents expiring in 30, 14, or 7 days
-3. **Email sent to landlord** for each expiring document
-4. Landlord receives reminder with upload link
-
 ## Email Design Guidelines
 
 All templates follow these standards:
@@ -160,7 +112,7 @@ All templates follow these standards:
 - **Primary Blue**: `#0066cc` - CTAs, links
 - **Success Green**: `#10b981` - Confirmations
 - **Error Red**: `#ef4444` - Rejections, urgent
-- **Warning Orange**: `#f97316` - Warnings, expiring documents
+- **Warning Orange**: `#f97316` - Warnings
 - **Neutral**: `#1a1a1a` - Text, secondary buttons
 
 ### Layout
@@ -210,12 +162,7 @@ Vercel dashboard → Your Project → Logs → Filter by `/api/cron`
    - Verify sender domain `aceinvestmentproperties.co.uk` is verified in Resend
    - Check Resend dashboard for failed sends
 
-2. **Cron job not running**
-   - Check `vercel.json` is deployed
-   - Verify `CRON_SECRET` is set
-   - Check Vercel cron logs
-
-3. **Templates not rendering**
+2. **Templates not rendering**
    - Ensure all props are passed correctly
    - Check browser console for React errors
    - Test in preview server first

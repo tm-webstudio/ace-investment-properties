@@ -1,17 +1,17 @@
 import { NextResponse } from 'next/server';
 import { sendEmail } from '@/lib/email';
-import ViewingConfirmation from '@/emails/ViewingConfirmation';
-import ViewingRequest from '@/emails/ViewingRequest';
-import ViewingRejected from '@/emails/ViewingRejected';
-import Welcome from '@/emails/Welcome';
-import DocumentExpiring from '@/emails/DocumentExpiring';
+import ViewingConfirmation from '@/emails/investor/viewing-confirmation';
+import ViewingRequest from '@/emails/landlord/viewing-request';
+import ViewingRejected from '@/emails/investor/viewing-rejected';
+import WelcomeInvestor from '@/emails/investor/welcome-investor';
+import WelcomeLandlord from '@/emails/landlord/welcome-landlord';
 
 /**
  * Test Email Endpoint
  * GET /api/test-email?template=viewing-confirmation&to=your-email@example.com
  *
  * Query params:
- * - template: viewing-confirmation, viewing-request, viewing-rejected, welcome, document-expiring
+ * - template: viewing-confirmation, viewing-request, viewing-rejected, welcome
  * - to: email address to send to (defaults to test email)
  */
 export async function GET(request) {
@@ -75,9 +75,8 @@ export async function GET(request) {
         break;
 
       case 'welcome-investor':
-        emailComponent = Welcome({
+        emailComponent = WelcomeInvestor({
           name: 'Jane Doe',
-          userType: 'Investor',
           dashboardLink: `${process.env.NEXT_PUBLIC_SITE_URL}/investor/dashboard`,
           profileLink: `${process.env.NEXT_PUBLIC_SITE_URL}/investor/profile`,
           helpLink: `${process.env.NEXT_PUBLIC_SITE_URL}/help`
@@ -86,42 +85,13 @@ export async function GET(request) {
         break;
 
       case 'welcome-landlord':
-        emailComponent = Welcome({
+        emailComponent = WelcomeLandlord({
           name: 'John Smith',
-          userType: 'Landlord',
           dashboardLink: `${process.env.NEXT_PUBLIC_SITE_URL}/landlord/dashboard`,
           profileLink: `${process.env.NEXT_PUBLIC_SITE_URL}/landlord/profile`,
           helpLink: `${process.env.NEXT_PUBLIC_SITE_URL}/help`
         });
         subject = 'Welcome to Ace Properties!';
-        break;
-
-      case 'document-expiring':
-        emailComponent = DocumentExpiring({
-          landlordName: 'John Smith',
-          propertyTitle: sampleProperty.title,
-          propertyAddress: sampleProperty.address,
-          documentType: 'Gas Safety Certificate',
-          expiryDate: '2026-02-15',
-          daysUntilExpiry: 14,
-          uploadLink: `${process.env.NEXT_PUBLIC_SITE_URL}/landlord/documents`,
-          dashboardLink: `${process.env.NEXT_PUBLIC_SITE_URL}/landlord/dashboard`
-        });
-        subject = 'Document Expiring Soon - Action Required';
-        break;
-
-      case 'document-expired':
-        emailComponent = DocumentExpiring({
-          landlordName: 'John Smith',
-          propertyTitle: sampleProperty.title,
-          propertyAddress: sampleProperty.address,
-          documentType: 'EPC Certificate',
-          expiryDate: '2025-12-01',
-          daysUntilExpiry: -5,
-          uploadLink: `${process.env.NEXT_PUBLIC_SITE_URL}/landlord/documents`,
-          dashboardLink: `${process.env.NEXT_PUBLIC_SITE_URL}/landlord/dashboard`
-        });
-        subject = 'Document Expired - Urgent Action Required';
         break;
 
       default:
@@ -133,9 +103,7 @@ export async function GET(request) {
               'viewing-request',
               'viewing-rejected',
               'welcome-investor',
-              'welcome-landlord',
-              'document-expiring',
-              'document-expired'
+              'welcome-landlord'
             ]
           },
           { status: 400 }

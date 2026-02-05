@@ -7,8 +7,8 @@ import {
   Img,
 } from '@react-email/components';
 import * as React from 'react';
-import EmailLayout from './components/EmailLayout';
-import { EmailIcon } from './components/EmailIcon';
+import EmailLayout from '../components/email-layout';
+import { EmailIcon } from '../components/email-icon';
 
 export default function ViewingReminder({
   propertyTitle = 'Modern 2 Bedroom Apartment',
@@ -31,7 +31,7 @@ export default function ViewingReminder({
   const mapsLink = directionsLink || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(propertyAddress)}`;
 
   return (
-    <EmailLayout preview="Viewing reminder - Tomorrow">
+    <EmailLayout preview="Reminder: Your property viewing is tomorrow">
       {/* Icon + Title */}
       <Section style={titleSection}>
         <Text style={icon}>⏰</Text>

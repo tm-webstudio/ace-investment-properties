@@ -42,7 +42,11 @@ interface Property {
   longitude?: number
 }
 
-export function AdminDashboardProperties() {
+interface AdminDashboardPropertiesProps {
+  currentTab?: string
+}
+
+export function AdminDashboardProperties({ currentTab = 'properties' }: AdminDashboardPropertiesProps = {}) {
   const [properties, setProperties] = useState<Property[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -313,6 +317,7 @@ export function AdminDashboardProperties() {
                   onReject={fetchProperties}
                   onPropertyDeleted={fetchProperties}
                   showGovernmentActions={property.status === 'draft'}
+                  currentTab={currentTab}
                 />
 
                 <PendingMetaStrip

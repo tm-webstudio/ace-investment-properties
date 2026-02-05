@@ -91,7 +91,7 @@ const main = {
 };
 
 const header = {
-  backgroundColor: '#1a1a2e',
+  backgroundColor: 'transparent',
   padding: '24px 0',
   textAlign: 'center',
 };
@@ -103,7 +103,7 @@ const headerContainer = {
 };
 
 const headerText = {
-  color: '#ffffff',
+  color: '#1a1a2e',
   fontSize: '20px',
   fontWeight: 'bold',
   margin: '0',
@@ -119,7 +119,7 @@ const container = {
 };
 
 const footer = {
-  backgroundColor: '#f5f5f5',
+  backgroundColor: 'transparent',
   padding: '20px 0',
 };
 

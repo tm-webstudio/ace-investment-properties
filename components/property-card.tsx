@@ -25,9 +25,10 @@ interface PropertyCardProps {
   onGovernmentApprove?: (propertyId: string) => void // Optional callback for govt-specific approval
   onGovernmentReject?: (propertyId: string) => void // Optional callback for govt-specific rejection
   showGovernmentActions?: boolean // Force showing government buttons even if no flag on property
+  currentTab?: string // Current active tab for proper redirect after edit
 }
 
-export function PropertyCard({ property, variant = 'default', onPropertyDeleted, onApprove, onReject, onGovernmentApprove, onGovernmentReject, showGovernmentActions = false }: PropertyCardProps) {
+export function PropertyCard({ property, variant = 'default', onPropertyDeleted, onApprove, onReject, onGovernmentApprove, onGovernmentReject, showGovernmentActions = false, currentTab }: PropertyCardProps) {
   const [isDeleting, setIsDeleting] = useState(false)
   const [deleteModalOpen, setDeleteModalOpen] = useState(false)
   const router = useRouter()
@@ -287,7 +288,10 @@ export function PropertyCard({ property, variant = 'default', onPropertyDeleted,
           data-dropdown-trigger
         >
           <DropdownMenuItem asChild>
-            <Link href={`/landlord/properties/${property.id}/edit`} className="cursor-pointer transition-colors duration-150">
+            <Link
+              href={`/landlord/properties/${property.id}/edit?returnUrl=${encodeURIComponent(`/landlord/dashboard?tab=${currentTab || 'properties'}`)}`}
+              className="cursor-pointer transition-colors duration-150"
+            >
               <Edit className="mr-2 h-4 w-4 text-current" />
               Edit Property
             </Link>
@@ -434,7 +438,10 @@ export function PropertyCard({ property, variant = 'default', onPropertyDeleted,
             data-dropdown-trigger
           >
             <DropdownMenuItem asChild>
-              <Link href={`/admin/properties/${property.id}/edit`} className="cursor-pointer transition-colors duration-150">
+              <Link
+                href={`/admin/properties/${property.id}/edit?returnUrl=${encodeURIComponent(`/admin/dashboard?tab=${currentTab || 'properties'}`)}`}
+                className="cursor-pointer transition-colors duration-150"
+              >
                 <Edit className="mr-2 h-4 w-4 text-current" />
                 Edit Property
               </Link>

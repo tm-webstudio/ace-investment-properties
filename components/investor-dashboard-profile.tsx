@@ -17,7 +17,10 @@ import { cn } from "@/lib/utils"
 
 interface Location {
   id?: string
+  region?: string
   city: string
+  localAuthorities?: string[]
+  // Legacy support
   areas?: string[]
 }
 
