@@ -5,6 +5,7 @@ import { formatPropertyForCard } from '@/lib/property-utils'
 export async function GET() {
   try {
     // Fetch featured properties from database
+    // Show both active and pending properties to populate the carousel
     const { data: properties, error } = await supabase
       .from('properties')
       .select(`
@@ -18,7 +19,7 @@ export async function GET() {
         amenities,
         address,
         city,
-        county,
+        local_authority,
         postcode,
         photos,
         status,
@@ -29,7 +30,7 @@ export async function GET() {
         created_at,
         updated_at
       `)
-      .eq('status', 'active')
+      .in('status', ['active', 'pending']) // Show active and pending properties
       .order('created_at', { ascending: false })
       .limit(20) // Get latest 20 properties
 
@@ -41,9 +42,13 @@ export async function GET() {
       )
     }
 
+    console.log(`Featured properties query returned ${properties?.length || 0} properties`)
+
     // Filter out properties without images and format for frontend
-    const formattedProperties = properties
-      .filter(property => property.photos && property.photos.length > 0)
+    const withPhotos = properties?.filter(property => property.photos && property.photos.length > 0) || []
+    console.log(`Properties with photos: ${withPhotos.length}`)
+
+    const formattedProperties = withPhotos
       .map(property => ({
         ...formatPropertyForCard(property),
         featured: true // Mark all as featured for now
