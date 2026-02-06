@@ -49,8 +49,10 @@ function PropertiesContent() {
   const [propertyTypeFilter, setPropertyTypeFilter] = useState("any")
   const [localAuthorityFilter, setLocalAuthorityFilter] = useState("any")
 
-  const displayName = location ? locationDisplayNames[location] || location : "All Locations"
-  const availableLocalAuthorities = location ? locationLocalAuthorities[location] || [] : []
+  const locationData = location ? getLocationBySlug(location) : null
+  const displayName = locationData?.displayName || location || "All Locations"
+  const availableLocalAuthorities = locationData?.localAuthorities || []
+  const postcodePrefix = locationData?.postcodePrefix
 
   // Debug logging
   useEffect(() => {
@@ -58,8 +60,9 @@ function PropertiesContent() {
       console.log('Properties Page - Location:', location)
       console.log('Properties Page - Display Name:', displayName)
       console.log('Properties Page - Local Authorities:', availableLocalAuthorities)
+      console.log('Properties Page - Postcode Prefix:', postcodePrefix)
     }
-  }, [location, displayName, availableLocalAuthorities])
+  }, [location, displayName, availableLocalAuthorities, postcodePrefix])
 
   useEffect(() => {
     const fetchProperties = async () => {
@@ -71,14 +74,24 @@ function PropertiesContent() {
         params.set("sortBy", sortBy)
         params.set("sortOrder", sortOrder)
 
-        // If location is selected, filter by its local authorities
-        if (location && availableLocalAuthorities.length > 0) {
-          // If specific local authority is selected, use only that one
-          if (localAuthorityFilter && localAuthorityFilter !== "any") {
-            params.set("localAuthority", localAuthorityFilter)
+        // If location is selected, filter by postcode prefix (for London) or local authorities
+        if (location) {
+          // For London areas, use postcode prefix filtering
+          if (postcodePrefix) {
+            params.set("postcodePrefix", postcodePrefix)
+            params.set("city", "London")
+
+            // If specific local authority is selected, add it as additional filter
+            if (localAuthorityFilter && localAuthorityFilter !== "any") {
+              params.set("localAuthority", localAuthorityFilter)
+            }
           } else {
-            // Otherwise, use all local authorities for this area
-            params.set("localAuthority", availableLocalAuthorities.join(","))
+            // For non-London areas, use local authority filtering
+            if (localAuthorityFilter && localAuthorityFilter !== "any") {
+              params.set("localAuthority", localAuthorityFilter)
+            } else if (availableLocalAuthorities.length > 0) {
+              params.set("localAuthority", availableLocalAuthorities.join(","))
+            }
           }
         }
 

@@ -12,6 +12,7 @@ export interface NavigationLocation {
   region: string // "London"
   subRegion: string // "Central London"
   localAuthorities: string[] // List of local authorities in this sub-region
+  postcodePrefix?: string // Optional postcode prefix for London areas
 }
 
 /**
@@ -20,6 +21,17 @@ export interface NavigationLocation {
  */
 function generateNavigationLocations(): NavigationLocation[] {
   const locations: NavigationLocation[] = []
+
+  // Postcode prefixes for London areas (fallback filtering)
+  const londonPostcodePrefixes: Record<string, string> = {
+    "Central London": "EC,WC",
+    "North London": "N,NW",
+    "North West London": "NW",
+    "East London": "E,IG,RM",
+    "South East London": "SE,BR,CR,DA",
+    "South West London": "SW,CR",
+    "West London": "W,SW,TW,UB,HA"
+  }
 
   // Iterate through each main region
   for (const [region, subRegions] of Object.entries(ukRegions)) {
@@ -37,12 +49,16 @@ function generateNavigationLocations(): NavigationLocation[] {
       // Get local authorities for this sub-region
       const authorities = localAuthorities[subRegion] || []
 
+      // Get postcode prefix for London areas
+      const postcodePrefix = region === "London" ? londonPostcodePrefixes[subRegion] : undefined
+
       locations.push({
         slug,
         displayName: subRegion,
         region,
         subRegion,
-        localAuthorities: authorities
+        localAuthorities: authorities,
+        postcodePrefix
       })
     }
   }
