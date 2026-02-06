@@ -11,65 +11,17 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ChevronLeft, ChevronRight, Building2 } from "lucide-react"
 import Link from "next/link"
 import type { Property } from "@/lib/sample-data"
+import { allNavigationLocations, getLocationBySlug } from "@/lib/navigation-locations"
 
-// Map location slugs to display names
-const locationDisplayNames: Record<string, string> = {
-  // London
-  "north-london": "North London",
-  "east-london": "East London",
-  "south-london": "South London",
-  "west-london": "West London",
-  "central-london": "Central London",
-  // Midlands
-  "birmingham": "Birmingham",
-  "coventry": "Coventry",
-  "leicester": "Leicester",
-  "nottingham": "Nottingham",
-  // North England
-  "manchester": "Manchester",
-  "liverpool": "Liverpool",
-  "leeds": "Leeds",
-  "newcastle": "Newcastle",
-  // South England
-  "brighton": "Brighton",
-  "bristol": "Bristol",
-  "oxford": "Oxford",
-  "cambridge": "Cambridge",
-}
+// Build location display names and search config from navigation locations
+const locationDisplayNames: Record<string, string> = Object.fromEntries(
+  allNavigationLocations.map(loc => [loc.slug, loc.displayName])
+)
 
-// Map location slugs to search configuration
-// For London areas, we use postcode prefixes; for other cities, we use city name
-interface LocationConfig {
-  city?: string
-  postcodePrefix?: string
-}
-
-const locationSearchConfig: Record<string, LocationConfig> = {
-  // London areas - filter by postcode prefix
-  // N = North London (N1-N22), NW = North West London (NW1-NW11)
-  "north-london": { city: "London", postcodePrefix: "N,NW" },
-  // E = East London (E1-E20), IG = Ilford/Barking
-  "east-london": { city: "London", postcodePrefix: "E,IG,RM" },
-  // SE = South East London (SE1-SE28), BR = Bromley, CR = Croydon, DA = Dartford
-  "south-london": { city: "London", postcodePrefix: "SE,BR,CR,DA" },
-  // W = West London (W2-W14), SW = South West (SW3-SW20), TW = Twickenham, UB = Uxbridge
-  "west-london": { city: "London", postcodePrefix: "W,SW,TW,UB,HA" },
-  // EC = East Central, WC = West Central, W1 = West End, SW1 = Westminster
-  "central-london": { city: "London", postcodePrefix: "EC,WC" },
-  // Other cities - use city name directly
-  "birmingham": { city: "Birmingham" },
-  "coventry": { city: "Coventry" },
-  "leicester": { city: "Leicester" },
-  "nottingham": { city: "Nottingham" },
-  "manchester": { city: "Manchester" },
-  "liverpool": { city: "Liverpool" },
-  "leeds": { city: "Leeds" },
-  "newcastle": { city: "Newcastle" },
-  "brighton": { city: "Brighton" },
-  "bristol": { city: "Bristol" },
-  "oxford": { city: "Oxford" },
-  "cambridge": { city: "Cambridge" },
-}
+// Map location slugs to their local authorities
+const locationLocalAuthorities: Record<string, string[]> = Object.fromEntries(
+  allNavigationLocations.map(loc => [loc.slug, loc.localAuthorities])
+)
 
 interface PaginationInfo {
   page: number
@@ -95,9 +47,19 @@ function PropertiesContent() {
   const [sortOrder, setSortOrder] = useState("desc")
   const [bedroomFilter, setBedroomFilter] = useState("any")
   const [propertyTypeFilter, setPropertyTypeFilter] = useState("any")
+  const [localAuthorityFilter, setLocalAuthorityFilter] = useState("any")
 
   const displayName = location ? locationDisplayNames[location] || location : "All Locations"
-  const searchConfig = location ? locationSearchConfig[location] : null
+  const availableLocalAuthorities = location ? locationLocalAuthorities[location] || [] : []
+
+  // Debug logging
+  useEffect(() => {
+    if (location) {
+      console.log('Properties Page - Location:', location)
+      console.log('Properties Page - Display Name:', displayName)
+      console.log('Properties Page - Local Authorities:', availableLocalAuthorities)
+    }
+  }, [location, displayName, availableLocalAuthorities])
 
   useEffect(() => {
     const fetchProperties = async () => {
@@ -109,12 +71,15 @@ function PropertiesContent() {
         params.set("sortBy", sortBy)
         params.set("sortOrder", sortOrder)
 
-        if (searchConfig?.city) {
-          params.set("city", searchConfig.city)
-        }
-
-        if (searchConfig?.postcodePrefix) {
-          params.set("postcodePrefix", searchConfig.postcodePrefix)
+        // If location is selected, filter by its local authorities
+        if (location && availableLocalAuthorities.length > 0) {
+          // If specific local authority is selected, use only that one
+          if (localAuthorityFilter && localAuthorityFilter !== "any") {
+            params.set("localAuthority", localAuthorityFilter)
+          } else {
+            // Otherwise, use all local authorities for this area
+            params.set("localAuthority", availableLocalAuthorities.join(","))
+          }
         }
 
         if (bedroomFilter && bedroomFilter !== "any") {
@@ -171,12 +136,17 @@ function PropertiesContent() {
     }
 
     fetchProperties()
-  }, [currentPage, searchConfig, sortBy, sortOrder, bedroomFilter, propertyTypeFilter])
+  }, [currentPage, location, availableLocalAuthorities, localAuthorityFilter, sortBy, sortOrder, bedroomFilter, propertyTypeFilter])
 
   // Reset to page 1 when filters change
   useEffect(() => {
     setCurrentPage(1)
-  }, [location, sortBy, sortOrder, bedroomFilter, propertyTypeFilter])
+  }, [location, sortBy, sortOrder, bedroomFilter, propertyTypeFilter, localAuthorityFilter])
+
+  // Reset local authority filter when location changes
+  useEffect(() => {
+    setLocalAuthorityFilter("any")
+  }, [location])
 
   const handleSortChange = (value: string) => {
     setSortBy(value)
@@ -205,7 +175,24 @@ function PropertiesContent() {
           </div>
 
           {/* Filters */}
-          <div className="grid grid-cols-2 sm:flex sm:flex-row gap-2 mb-6">
+          <div className="grid grid-cols-2 sm:flex sm:flex-row gap-2 mb-6 flex-wrap">
+            {/* Local Authority Filter - Only show when location is selected */}
+            {location && availableLocalAuthorities.length > 0 && (
+              <Select value={localAuthorityFilter} onValueChange={setLocalAuthorityFilter}>
+                <SelectTrigger className="w-full sm:w-48">
+                  <SelectValue placeholder="Area" />
+                </SelectTrigger>
+                <SelectContent className="max-h-80">
+                  <SelectItem value="any">All Areas</SelectItem>
+                  {availableLocalAuthorities.sort().map(authority => (
+                    <SelectItem key={authority} value={authority}>
+                      {authority}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+
             <Select value={bedroomFilter} onValueChange={setBedroomFilter}>
               <SelectTrigger className="w-full sm:w-36">
                 <SelectValue placeholder="Bedrooms" />

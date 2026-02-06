@@ -9,6 +9,7 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '12')
     const city = searchParams.get('city')
     const postcodePrefix = searchParams.get('postcodePrefix')
+    const localAuthority = searchParams.get('localAuthority')
     const minRent = searchParams.get('minRent')
     const maxRent = searchParams.get('maxRent')
     const bedrooms = searchParams.get('bedrooms')
@@ -16,7 +17,18 @@ export async function GET(request: NextRequest) {
     const status = searchParams.get('status') || 'active'
     const sortBy = searchParams.get('sortBy') || 'created_at'
     const sortOrder = searchParams.get('sortOrder') || 'desc'
-    
+
+    // Debug logging
+    console.log('Properties API - Filters:', {
+      city,
+      postcodePrefix,
+      localAuthority,
+      bedrooms,
+      propertyType,
+      page,
+      limit
+    })
+
     const offset = (page - 1) * limit
     
     let query = supabase
@@ -46,6 +58,19 @@ export async function GET(request: NextRequest) {
         // Use OR filter for multiple prefixes
         // Supabase OR syntax: column.operator.value
         const orFilter = prefixes.map(p => `postcode.ilike.${p}%`).join(',')
+        query = query.or(orFilter)
+      }
+    }
+
+    // Filter by local authority (for sub-regions like "Central London", "Greater Manchester")
+    if (localAuthority) {
+      // Handle multiple authorities separated by comma (e.g., "Camden,Westminster,Islington")
+      const authorities = localAuthority.split(',').map(a => a.trim())
+      if (authorities.length === 1) {
+        query = query.eq('local_authority', authorities[0])
+      } else {
+        // Use OR filter for multiple local authorities
+        const orFilter = authorities.map(a => `local_authority.eq.${a}`).join(',')
         query = query.or(orFilter)
       }
     }

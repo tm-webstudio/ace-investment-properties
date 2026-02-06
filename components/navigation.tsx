@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Menu, X, ChevronDown } from "lucide-react"
 import { useAuth } from "@/contexts/auth-context"
 import { UserDropdown } from "@/components/user-dropdown"
+import { navigationLocations } from "@/lib/navigation-locations"
 
 export function Navigation() {
   const [isOpen, setIsOpen] = useState(false)
@@ -51,148 +52,118 @@ export function Navigation() {
                 <>
                   {/* Invisible bridge to prevent hover gap */}
                   <div className="absolute top-full left-0 right-0 h-[0.75rem] z-[59]" />
-                  <div 
-                    className="absolute top-[calc(100%+0.75rem)] left-1/2 transform -translate-x-1/2 w-screen max-w-4xl bg-white text-gray-900 shadow-2xl border border-gray-200 z-[60]"
+                  <div
+                    className="absolute top-[calc(100%+0.75rem)] left-1/2 transform -translate-x-1/2 w-screen max-w-6xl bg-white text-gray-900 shadow-2xl border border-gray-200 z-[60]"
                     onMouseEnter={() => setIsMegaMenuOpen(true)}
                     onMouseLeave={() => setIsMegaMenuOpen(false)}
                   >
                     <div className="p-8">
-                      <div className="grid grid-cols-4 gap-8">
+                      <div className="grid grid-cols-6 gap-6">
                         {/* London Column */}
-                        <div className="space-y-4">
-                          <h3 className="font-serif font-medium text-lg text-primary border-b border-gray-300 pb-2">
+                        <div className="space-y-3">
+                          <h3 className="font-serif font-medium text-base text-primary border-b border-gray-300 pb-2">
                             London
                           </h3>
-                          <div className="space-y-2">
-                            <Link
-                              href="/properties?location=north-london"
-                              className="block text-sm hover:text-primary hover:bg-primary/10 transition-colors py-1 px-2 rounded"
-                            >
-                              North London
-                            </Link>
-                            <Link
-                              href="/properties?location=east-london"
-                              className="block text-sm hover:text-primary hover:bg-primary/10 transition-colors py-1 px-2 rounded"
-                            >
-                              East London
-                            </Link>
-                            <Link
-                              href="/properties?location=south-london"
-                              className="block text-sm hover:text-primary hover:bg-primary/10 transition-colors py-1 px-2 rounded"
-                            >
-                              South London
-                            </Link>
-                            <Link
-                              href="/properties?location=west-london"
-                              className="block text-sm hover:text-primary hover:bg-primary/10 transition-colors py-1 px-2 rounded"
-                            >
-                              West London
-                            </Link>
-                            <Link
-                              href="/properties?location=central-london"
-                              className="block text-sm hover:text-primary hover:bg-primary/10 transition-colors py-1 px-2 rounded"
-                            >
-                              Central London
-                            </Link>
+                          <div className="space-y-1 max-h-96 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+                            {navigationLocations.london.map(loc => (
+                              <Link
+                                key={loc.slug}
+                                href={`/properties?location=${loc.slug}`}
+                                className="block text-xs hover:text-primary hover:bg-primary/10 transition-colors py-1 px-2 rounded"
+                              >
+                                {loc.displayName}
+                              </Link>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* North West Column */}
+                        <div className="space-y-3">
+                          <h3 className="font-serif font-medium text-base text-primary border-b border-gray-300 pb-2">
+                            North West
+                          </h3>
+                          <div className="space-y-1 max-h-96 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+                            {navigationLocations.northWest.map(loc => (
+                              <Link
+                                key={loc.slug}
+                                href={`/properties?location=${loc.slug}`}
+                                className="block text-xs hover:text-primary hover:bg-primary/10 transition-colors py-1 px-2 rounded"
+                              >
+                                {loc.displayName}
+                              </Link>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* North East & Yorkshire Column */}
+                        <div className="space-y-3">
+                          <h3 className="font-serif font-medium text-base text-primary border-b border-gray-300 pb-2">
+                            North East & Yorkshire
+                          </h3>
+                          <div className="space-y-1 max-h-96 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+                            {navigationLocations.northEastYorkshire.map(loc => (
+                              <Link
+                                key={loc.slug}
+                                href={`/properties?location=${loc.slug}`}
+                                className="block text-xs hover:text-primary hover:bg-primary/10 transition-colors py-1 px-2 rounded"
+                              >
+                                {loc.displayName}
+                              </Link>
+                            ))}
                           </div>
                         </div>
 
                         {/* Midlands Column */}
-                        <div className="space-y-4">
-                          <h3 className="font-serif font-medium text-lg text-primary border-b border-gray-300 pb-2">
+                        <div className="space-y-3">
+                          <h3 className="font-serif font-medium text-base text-primary border-b border-gray-300 pb-2">
                             Midlands
                           </h3>
-                          <div className="space-y-2">
-                            <Link
-                              href="/properties?location=birmingham"
-                              className="block text-sm hover:text-primary hover:bg-primary/10 transition-colors py-1 px-2 rounded"
-                            >
-                              Birmingham
-                            </Link>
-                            <Link
-                              href="/properties?location=coventry"
-                              className="block text-sm hover:text-primary hover:bg-primary/10 transition-colors py-1 px-2 rounded"
-                            >
-                              Coventry
-                            </Link>
-                            <Link
-                              href="/properties?location=leicester"
-                              className="block text-sm hover:text-primary hover:bg-primary/10 transition-colors py-1 px-2 rounded"
-                            >
-                              Leicester
-                            </Link>
-                            <Link
-                              href="/properties?location=nottingham"
-                              className="block text-sm hover:text-primary hover:bg-primary/10 transition-colors py-1 px-2 rounded"
-                            >
-                              Nottingham
-                            </Link>
+                          <div className="space-y-1 max-h-96 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+                            {navigationLocations.midlands.map(loc => (
+                              <Link
+                                key={loc.slug}
+                                href={`/properties?location=${loc.slug}`}
+                                className="block text-xs hover:text-primary hover:bg-primary/10 transition-colors py-1 px-2 rounded"
+                              >
+                                {loc.displayName}
+                              </Link>
+                            ))}
                           </div>
                         </div>
 
-                        {/* North England Column */}
-                        <div className="space-y-4">
-                          <h3 className="font-serif font-medium text-lg text-primary border-b border-gray-300 pb-2">
-                            North England
+                        {/* South East Column */}
+                        <div className="space-y-3">
+                          <h3 className="font-serif font-medium text-base text-primary border-b border-gray-300 pb-2">
+                            South East
                           </h3>
-                          <div className="space-y-2">
-                            <Link
-                              href="/properties?location=manchester"
-                              className="block text-sm hover:text-primary hover:bg-primary/10 transition-colors py-1 px-2 rounded"
-                            >
-                              Manchester
-                            </Link>
-                            <Link
-                              href="/properties?location=liverpool"
-                              className="block text-sm hover:text-primary hover:bg-primary/10 transition-colors py-1 px-2 rounded"
-                            >
-                              Liverpool
-                            </Link>
-                            <Link
-                              href="/properties?location=leeds"
-                              className="block text-sm hover:text-primary hover:bg-primary/10 transition-colors py-1 px-2 rounded"
-                            >
-                              Leeds
-                            </Link>
-                            <Link
-                              href="/properties?location=newcastle"
-                              className="block text-sm hover:text-primary hover:bg-primary/10 transition-colors py-1 px-2 rounded"
-                            >
-                              Newcastle
-                            </Link>
+                          <div className="space-y-1 max-h-96 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+                            {navigationLocations.southEast.map(loc => (
+                              <Link
+                                key={loc.slug}
+                                href={`/properties?location=${loc.slug}`}
+                                className="block text-xs hover:text-primary hover:bg-primary/10 transition-colors py-1 px-2 rounded"
+                              >
+                                {loc.displayName}
+                              </Link>
+                            ))}
                           </div>
                         </div>
 
-                        {/* South England Column */}
-                        <div className="space-y-4">
-                          <h3 className="font-serif font-medium text-lg text-primary border-b border-gray-300 pb-2">
-                            South England
+                        {/* South West Column */}
+                        <div className="space-y-3">
+                          <h3 className="font-serif font-medium text-base text-primary border-b border-gray-300 pb-2">
+                            South West
                           </h3>
-                          <div className="space-y-2">
-                            <Link
-                              href="/properties?location=brighton"
-                              className="block text-sm hover:text-primary hover:bg-primary/10 transition-colors py-1 px-2 rounded"
-                            >
-                              Brighton
-                            </Link>
-                            <Link
-                              href="/properties?location=bristol"
-                              className="block text-sm hover:text-primary hover:bg-primary/10 transition-colors py-1 px-2 rounded"
-                            >
-                              Bristol
-                            </Link>
-                            <Link
-                              href="/properties?location=oxford"
-                              className="block text-sm hover:text-primary hover:bg-primary/10 transition-colors py-1 px-2 rounded"
-                            >
-                              Oxford
-                            </Link>
-                            <Link
-                              href="/properties?location=cambridge"
-                              className="block text-sm hover:text-primary hover:bg-primary/10 transition-colors py-1 px-2 rounded"
-                            >
-                              Cambridge
-                            </Link>
+                          <div className="space-y-1 max-h-96 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+                            {navigationLocations.southWest.map(loc => (
+                              <Link
+                                key={loc.slug}
+                                href={`/properties?location=${loc.slug}`}
+                                className="block text-xs hover:text-primary hover:bg-primary/10 transition-colors py-1 px-2 rounded"
+                              >
+                                {loc.displayName}
+                              </Link>
+                            ))}
                           </div>
                         </div>
                       </div>
@@ -294,98 +265,102 @@ export function Navigation() {
                   {/* London Region */}
                   <div className="space-y-2">
                     <div className="font-medium text-primary-foreground text-sm py-1">London</div>
-                    <div className="space-y-1 pl-3">
-                      <Link
-                        href="/properties?location=north-london"
-                        className="block text-sm text-primary-foreground/80 hover:text-accent transition-colors py-1"
-                        onClick={() => setIsOpen(false)}
-                      >
-                        North London
-                      </Link>
-                      <Link
-                        href="/properties?location=east-london"
-                        className="block text-sm text-primary-foreground/80 hover:text-accent transition-colors py-1"
-                        onClick={() => setIsOpen(false)}
-                      >
-                        East London
-                      </Link>
-                      <Link
-                        href="/properties?location=south-london"
-                        className="block text-sm text-primary-foreground/80 hover:text-accent transition-colors py-1"
-                        onClick={() => setIsOpen(false)}
-                      >
-                        South London
-                      </Link>
-                      <Link
-                        href="/properties?location=west-london"
-                        className="block text-sm text-primary-foreground/80 hover:text-accent transition-colors py-1"
-                        onClick={() => setIsOpen(false)}
-                      >
-                        West London
-                      </Link>
-                      <Link
-                        href="/properties?location=central-london"
-                        className="block text-sm text-primary-foreground/80 hover:text-accent transition-colors py-1"
-                        onClick={() => setIsOpen(false)}
-                      >
-                        Central London
-                      </Link>
+                    <div className="space-y-1 pl-3 max-h-60 overflow-y-auto">
+                      {navigationLocations.london.map(loc => (
+                        <Link
+                          key={loc.slug}
+                          href={`/properties?location=${loc.slug}`}
+                          className="block text-sm text-primary-foreground/80 hover:text-accent transition-colors py-1"
+                          onClick={() => setIsOpen(false)}
+                        >
+                          {loc.displayName}
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* North West Region */}
+                  <div className="space-y-2">
+                    <div className="font-medium text-primary-foreground text-sm py-1">North West</div>
+                    <div className="space-y-1 pl-3 max-h-60 overflow-y-auto">
+                      {navigationLocations.northWest.map(loc => (
+                        <Link
+                          key={loc.slug}
+                          href={`/properties?location=${loc.slug}`}
+                          className="block text-sm text-primary-foreground/80 hover:text-accent transition-colors py-1"
+                          onClick={() => setIsOpen(false)}
+                        >
+                          {loc.displayName}
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* North East & Yorkshire Region */}
+                  <div className="space-y-2">
+                    <div className="font-medium text-primary-foreground text-sm py-1">North East & Yorkshire</div>
+                    <div className="space-y-1 pl-3 max-h-60 overflow-y-auto">
+                      {navigationLocations.northEastYorkshire.map(loc => (
+                        <Link
+                          key={loc.slug}
+                          href={`/properties?location=${loc.slug}`}
+                          className="block text-sm text-primary-foreground/80 hover:text-accent transition-colors py-1"
+                          onClick={() => setIsOpen(false)}
+                        >
+                          {loc.displayName}
+                        </Link>
+                      ))}
                     </div>
                   </div>
 
                   {/* Midlands Region */}
                   <div className="space-y-2">
                     <div className="font-medium text-primary-foreground text-sm py-1">Midlands</div>
-                    <div className="space-y-1 pl-3">
-                      <Link
-                        href="/properties?location=birmingham"
-                        className="block text-sm text-primary-foreground/80 hover:text-accent transition-colors py-1"
-                        onClick={() => setIsOpen(false)}
-                      >
-                        Birmingham
-                      </Link>
-                      <Link
-                        href="/properties?location=coventry"
-                        className="block text-sm text-primary-foreground/80 hover:text-accent transition-colors py-1"
-                        onClick={() => setIsOpen(false)}
-                      >
-                        Coventry
-                      </Link>
-                      <Link
-                        href="/properties?location=leicester"
-                        className="block text-sm text-primary-foreground/80 hover:text-accent transition-colors py-1"
-                        onClick={() => setIsOpen(false)}
-                      >
-                        Leicester
-                      </Link>
+                    <div className="space-y-1 pl-3 max-h-60 overflow-y-auto">
+                      {navigationLocations.midlands.map(loc => (
+                        <Link
+                          key={loc.slug}
+                          href={`/properties?location=${loc.slug}`}
+                          className="block text-sm text-primary-foreground/80 hover:text-accent transition-colors py-1"
+                          onClick={() => setIsOpen(false)}
+                        >
+                          {loc.displayName}
+                        </Link>
+                      ))}
                     </div>
                   </div>
 
-                  {/* North England Region */}
+                  {/* South East Region */}
                   <div className="space-y-2">
-                    <div className="font-medium text-primary-foreground text-sm py-1">North England</div>
-                    <div className="space-y-1 pl-3">
-                      <Link
-                        href="/properties?location=manchester"
-                        className="block text-sm text-primary-foreground/80 hover:text-accent transition-colors py-1"
-                        onClick={() => setIsOpen(false)}
-                      >
-                        Manchester
-                      </Link>
-                      <Link
-                        href="/properties?location=liverpool"
-                        className="block text-sm text-primary-foreground/80 hover:text-accent transition-colors py-1"
-                        onClick={() => setIsOpen(false)}
-                      >
-                        Liverpool
-                      </Link>
-                      <Link
-                        href="/properties?location=leeds"
-                        className="block text-sm text-primary-foreground/80 hover:text-accent transition-colors py-1"
-                        onClick={() => setIsOpen(false)}
-                      >
-                        Leeds
-                      </Link>
+                    <div className="font-medium text-primary-foreground text-sm py-1">South East</div>
+                    <div className="space-y-1 pl-3 max-h-60 overflow-y-auto">
+                      {navigationLocations.southEast.map(loc => (
+                        <Link
+                          key={loc.slug}
+                          href={`/properties?location=${loc.slug}`}
+                          className="block text-sm text-primary-foreground/80 hover:text-accent transition-colors py-1"
+                          onClick={() => setIsOpen(false)}
+                        >
+                          {loc.displayName}
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* South West Region */}
+                  <div className="space-y-2">
+                    <div className="font-medium text-primary-foreground text-sm py-1">South West</div>
+                    <div className="space-y-1 pl-3 max-h-60 overflow-y-auto">
+                      {navigationLocations.southWest.map(loc => (
+                        <Link
+                          key={loc.slug}
+                          href={`/properties?location=${loc.slug}`}
+                          className="block text-sm text-primary-foreground/80 hover:text-accent transition-colors py-1"
+                          onClick={() => setIsOpen(false)}
+                        >
+                          {loc.displayName}
+                        </Link>
+                      ))}
                     </div>
                   </div>
 
