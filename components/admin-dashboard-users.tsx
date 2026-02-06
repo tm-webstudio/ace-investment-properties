@@ -94,15 +94,20 @@ export function AdminDashboardUsers() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {[1, 2, 3, 4, 5, 6].map((i) => (
             <Card key={i} className="rounded-none">
-              <CardContent className="p-6">
-                <div className="flex items-start gap-4">
-                  <div className="h-12 w-12 rounded-full bg-gray-300 animate-pulse"></div>
-                  <div className="flex-1 space-y-3">
-                    <div className="h-5 bg-gray-200 rounded w-3/4 animate-pulse"></div>
-                    <div className="space-y-2">
-                      <div className="h-4 bg-gray-200 rounded w-full animate-pulse"></div>
-                      <div className="h-4 bg-gray-200 rounded w-2/3 animate-pulse"></div>
-                    </div>
+              <CardContent className="px-4 py-1">
+                <div className="space-y-3">
+                  {/* Header with name and badge */}
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="h-5 bg-gray-200 rounded w-3/5 animate-pulse"></div>
+                    <div className="h-5 bg-gray-200 rounded w-16 animate-pulse"></div>
+                  </div>
+
+                  {/* Email, Phone, Properties, Joined */}
+                  <div className="space-y-2">
+                    <div className="h-4 bg-gray-200 rounded w-full animate-pulse"></div>
+                    <div className="h-4 bg-gray-200 rounded w-2/3 animate-pulse"></div>
+                    <div className="h-4 bg-gray-200 rounded w-1/2 animate-pulse"></div>
+                    <div className="h-3 bg-gray-200 rounded w-1/3 animate-pulse"></div>
                   </div>
                 </div>
               </CardContent>
@@ -134,13 +139,8 @@ export function AdminDashboardUsers() {
               key={user.id}
               className="rounded-none hover:shadow-md transition-shadow"
             >
-              <CardContent className="p-4">
+              <CardContent className="px-4 py-1">
                 <div className="flex items-start gap-4">
-                  {/* Avatar */}
-                  <div className="h-12 w-12 rounded-full bg-accent/10 flex items-center justify-center flex-shrink-0">
-                    <Users className="h-6 w-6 text-accent" />
-                  </div>
-
                   {/* User Info */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-2 mb-3">

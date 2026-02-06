@@ -17,6 +17,7 @@ interface User {
   user_type: string
   created_at: string
   property_count: number
+  locations?: string[] // Preferred locations from preferences
 }
 
 interface InvestorPreferences {
@@ -244,14 +245,27 @@ export function AdminDashboardInvestors() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {[1, 2, 3, 4, 5, 6].map((i) => (
             <Card key={i} className="rounded-none">
-              <CardContent className="p-6">
-                <div className="flex items-start gap-4">
-                  <div className="h-12 w-12 rounded-full bg-gray-300 animate-pulse"></div>
-                  <div className="flex-1 space-y-3">
-                    <div className="h-5 bg-gray-200 rounded w-3/4 animate-pulse"></div>
-                    <div className="space-y-2">
-                      <div className="h-4 bg-gray-200 rounded w-full animate-pulse"></div>
-                      <div className="h-4 bg-gray-200 rounded w-2/3 animate-pulse"></div>
+              <CardContent className="px-4 py-1">
+                <div className="space-y-3">
+                  {/* Header with name and badge */}
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="h-5 bg-gray-200 rounded w-3/5 animate-pulse"></div>
+                    <div className="h-5 bg-gray-200 rounded w-16 animate-pulse"></div>
+                  </div>
+
+                  {/* Email, Phone, Joined */}
+                  <div className="space-y-2">
+                    <div className="h-4 bg-gray-200 rounded w-full animate-pulse"></div>
+                    <div className="h-4 bg-gray-200 rounded w-2/3 animate-pulse"></div>
+                    <div className="h-3 bg-gray-200 rounded w-1/2 animate-pulse"></div>
+                  </div>
+
+                  {/* Location boxes separator and boxes */}
+                  <div className="pt-3 border-t border-gray-100 space-y-2">
+                    <div className="h-3 bg-gray-200 rounded w-1/3 animate-pulse"></div>
+                    <div className="flex gap-1.5">
+                      <div className="h-6 bg-gray-200 rounded w-20 animate-pulse"></div>
+                      <div className="h-6 bg-gray-200 rounded w-24 animate-pulse"></div>
                     </div>
                   </div>
                 </div>
@@ -285,13 +299,8 @@ export function AdminDashboardInvestors() {
               className="rounded-none hover:shadow-md transition-shadow cursor-pointer"
               onClick={() => fetchInvestorPreferences(user)}
             >
-              <CardContent className="p-4">
+              <CardContent className="px-4 py-1">
                 <div className="flex items-start gap-4">
-                  {/* Avatar */}
-                  <div className="h-12 w-12 rounded-full bg-accent/10 flex items-center justify-center flex-shrink-0">
-                    <Users className="h-6 w-6 text-accent" />
-                  </div>
-
                   {/* User Info */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-2 mb-3">
@@ -321,6 +330,31 @@ export function AdminDashboardInvestors() {
                         <span>Joined {new Date(user.created_at).toLocaleDateString('en-GB')}</span>
                       </div>
                     </div>
+
+                    {/* Location Box */}
+                    {user.locations && user.locations.length > 0 && (
+                      <div className="mt-3 pt-3 border-t border-gray-100">
+                        <div className="flex items-center gap-2 mb-1.5">
+                          <MapPin className="h-3.5 w-3.5 text-accent flex-shrink-0" />
+                          <span className="text-xs font-medium text-gray-600">Preferred Locations</span>
+                        </div>
+                        <div className="flex flex-wrap gap-1.5">
+                          {user.locations.slice(0, 3).map((location, index) => (
+                            <div
+                              key={index}
+                              className="inline-flex items-center px-2 py-1 bg-accent/10 border border-accent/20 rounded text-xs font-medium text-accent"
+                            >
+                              {location}
+                            </div>
+                          ))}
+                          {user.locations.length > 3 && (
+                            <div className="inline-flex items-center px-2 py-1 bg-gray-100 border border-gray-200 rounded text-xs font-medium text-gray-600">
+                              +{user.locations.length - 3} more
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               </CardContent>

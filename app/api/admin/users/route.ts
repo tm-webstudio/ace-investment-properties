@@ -73,6 +73,7 @@ export async function GET(request: NextRequest) {
       (users || []).map(async (userProfile) => {
         let email = ''
         let propertyCount = 0
+        let locations: string[] = []
 
         // Get user email from auth
         const { data: authUser } = await supabase.auth.admin.getUserById(userProfile.id)
@@ -90,6 +91,19 @@ export async function GET(request: NextRequest) {
           propertyCount = count || 0
         }
 
+        // Get preferred locations for investors
+        if (userProfile.user_type === 'investor') {
+          const { data: preferences } = await supabase
+            .from('investor_preferences')
+            .select('preference_data')
+            .eq('investor_id', userProfile.id)
+            .single()
+
+          if (preferences?.preference_data?.locations) {
+            locations = preferences.preference_data.locations.map((loc: any) => loc.city)
+          }
+        }
+
         return {
           id: userProfile.id,
           full_name: userProfile.full_name,
@@ -98,7 +112,8 @@ export async function GET(request: NextRequest) {
           phone: userProfile.phone,
           user_type: userProfile.user_type,
           created_at: userProfile.created_at,
-          property_count: propertyCount
+          property_count: propertyCount,
+          locations
         }
       })
     )
