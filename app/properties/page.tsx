@@ -174,7 +174,7 @@ function PropertiesContent() {
     <div className="min-h-screen flex flex-col">
       <Navigation />
       <main className="flex-1 bg-background">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-8">
           {/* Header */}
           <PageHeader
             category="Browse Properties"
@@ -188,74 +188,78 @@ function PropertiesContent() {
           />
 
           {/* Filters */}
-          <div className="grid grid-cols-2 sm:flex sm:flex-row gap-2 mb-6 flex-wrap">
-            {/* Local Authority Filter - Only show when location is selected */}
-            {location && availableLocalAuthorities.length > 0 && (
-              <Select value={localAuthorityFilter} onValueChange={setLocalAuthorityFilter}>
-                <SelectTrigger className="w-full sm:w-48">
-                  <SelectValue placeholder="Area" />
-                </SelectTrigger>
-                <SelectContent className="max-h-80">
-                  <SelectItem value="any">All Areas</SelectItem>
-                  {availableLocalAuthorities.sort().map(authority => (
-                    <SelectItem key={authority} value={authority}>
-                      {authority}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )}
+          <Card className="mb-6 bg-white shadow-sm border-border/50">
+            <CardContent className="px-4">
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+                {/* Local Authority Filter - Only show when location is selected */}
+                {location && availableLocalAuthorities.length > 0 && (
+                  <Select value={localAuthorityFilter} onValueChange={setLocalAuthorityFilter}>
+                    <SelectTrigger className="w-full bg-white hover:bg-gray-50 border-gray-200 rounded-none h-10">
+                      <SelectValue placeholder="Area" />
+                    </SelectTrigger>
+                    <SelectContent className="max-h-80">
+                      <SelectItem value="any">All Areas</SelectItem>
+                      {availableLocalAuthorities.sort().map(authority => (
+                        <SelectItem key={authority} value={authority}>
+                          {authority}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
 
-            <Select value={bedroomFilter} onValueChange={setBedroomFilter}>
-              <SelectTrigger className="w-full sm:w-36">
-                <SelectValue placeholder="Bedrooms" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="any">Any Beds</SelectItem>
-                <SelectItem value="0">Studio</SelectItem>
-                <SelectItem value="1">1 Bed</SelectItem>
-                <SelectItem value="2">2 Beds</SelectItem>
-                <SelectItem value="3">3 Beds</SelectItem>
-                <SelectItem value="4+">4+ Beds</SelectItem>
-              </SelectContent>
-            </Select>
+                <Select value={bedroomFilter} onValueChange={setBedroomFilter}>
+                  <SelectTrigger className="w-full bg-white hover:bg-gray-50 border-gray-200 rounded-none h-10">
+                    <SelectValue placeholder="Bedrooms" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="any">Any Beds</SelectItem>
+                    <SelectItem value="0">Studio</SelectItem>
+                    <SelectItem value="1">1 Bed</SelectItem>
+                    <SelectItem value="2">2 Beds</SelectItem>
+                    <SelectItem value="3">3 Beds</SelectItem>
+                    <SelectItem value="4+">4+ Beds</SelectItem>
+                  </SelectContent>
+                </Select>
 
-            <Select value={propertyTypeFilter} onValueChange={setPropertyTypeFilter}>
-              <SelectTrigger className="w-full sm:w-36">
-                <SelectValue placeholder="Property Type" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="any">Any Type</SelectItem>
-                <SelectItem value="flat">Flat</SelectItem>
-                <SelectItem value="house">House</SelectItem>
-                <SelectItem value="studio">Studio</SelectItem>
-                <SelectItem value="apartment">Apartment</SelectItem>
-                <SelectItem value="terraced">Terraced</SelectItem>
-                <SelectItem value="semi-detached">Semi-Detached</SelectItem>
-                <SelectItem value="detached">Detached</SelectItem>
-              </SelectContent>
-            </Select>
+                <Select value={propertyTypeFilter} onValueChange={setPropertyTypeFilter}>
+                  <SelectTrigger className="w-full bg-white hover:bg-gray-50 border-gray-200 rounded-none h-10">
+                    <SelectValue placeholder="Property Type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="any">Any Type</SelectItem>
+                    <SelectItem value="flat">Flat</SelectItem>
+                    <SelectItem value="house">House</SelectItem>
+                    <SelectItem value="studio">Studio</SelectItem>
+                    <SelectItem value="apartment">Apartment</SelectItem>
+                    <SelectItem value="terraced">Terraced</SelectItem>
+                    <SelectItem value="semi-detached">Semi-Detached</SelectItem>
+                    <SelectItem value="detached">Detached</SelectItem>
+                  </SelectContent>
+                </Select>
 
-            <Select value={sortBy} onValueChange={handleSortChange}>
-              <SelectTrigger className="w-full sm:w-36">
-                <SelectValue placeholder="Sort by" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="created_at">Date Added</SelectItem>
-                <SelectItem value="monthly_rent">Price</SelectItem>
-              </SelectContent>
-            </Select>
+                <Select value={sortBy} onValueChange={handleSortChange}>
+                  <SelectTrigger className="w-full bg-white hover:bg-gray-50 border-gray-200 rounded-none h-10">
+                    <SelectValue placeholder="Sort by" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="created_at">Date Added</SelectItem>
+                    <SelectItem value="monthly_rent">Price</SelectItem>
+                  </SelectContent>
+                </Select>
 
-            <Select value={sortOrder} onValueChange={handleOrderChange}>
-              <SelectTrigger className="w-full sm:w-32">
-                <SelectValue placeholder="Order" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="desc">{sortBy === "monthly_rent" ? "High to Low" : "Newest"}</SelectItem>
-                <SelectItem value="asc">{sortBy === "monthly_rent" ? "Low to High" : "Oldest"}</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+                <Select value={sortOrder} onValueChange={handleOrderChange}>
+                  <SelectTrigger className="w-full bg-white hover:bg-gray-50 border-gray-200 rounded-none h-10">
+                    <SelectValue placeholder="Order" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="desc">{sortBy === "monthly_rent" ? "High to Low" : "Newest"}</SelectItem>
+                    <SelectItem value="asc">{sortBy === "monthly_rent" ? "Low to High" : "Oldest"}</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </CardContent>
+          </Card>
 
           {/* Loading State */}
           {loading && (
@@ -378,7 +382,7 @@ function PropertiesLoading() {
     <div className="min-h-screen flex flex-col">
       <Navigation />
       <main className="flex-1 bg-background">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-8">
           {/* Header Skeleton */}
           <div className="mb-6">
             <div className="h-8 w-48 bg-gray-200 rounded animate-pulse" />
@@ -386,12 +390,17 @@ function PropertiesLoading() {
           </div>
 
           {/* Filter Skeleton */}
-          <div className="grid grid-cols-2 sm:flex sm:flex-row gap-2 mb-6">
-            <div className="h-10 w-full sm:w-36 bg-gray-200 rounded animate-pulse" />
-            <div className="h-10 w-full sm:w-36 bg-gray-200 rounded animate-pulse" />
-            <div className="h-10 w-full sm:w-36 bg-gray-200 rounded animate-pulse" />
-            <div className="h-10 w-full sm:w-32 bg-gray-200 rounded animate-pulse" />
-          </div>
+          <Card className="mb-6 bg-white shadow-sm border-border/50">
+            <CardContent className="px-4">
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+                <div className="h-10 w-full bg-gray-200 rounded-none animate-pulse" />
+                <div className="h-10 w-full bg-gray-200 rounded-none animate-pulse" />
+                <div className="h-10 w-full bg-gray-200 rounded-none animate-pulse" />
+                <div className="h-10 w-full bg-gray-200 rounded-none animate-pulse" />
+                <div className="h-10 w-full bg-gray-200 rounded-none animate-pulse" />
+              </div>
+            </CardContent>
+          </Card>
 
           {/* Grid Skeleton */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
