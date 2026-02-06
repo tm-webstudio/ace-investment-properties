@@ -15,11 +15,6 @@ export default function HomePage() {
           title="Newly Added London Properties"
           subtitle="Discover our handpicked selection of premium London rental properties available now"
         />
-        <FeaturedProperties
-          city="Midlands"
-          title="Newly Added Midlands Properties"
-          subtitle="Discover our handpicked selection of premium Midlands rental properties available now"
-        />
       </main>
       <Footer />
       <ScrollToTop />
