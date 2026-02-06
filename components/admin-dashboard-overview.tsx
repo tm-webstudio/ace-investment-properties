@@ -93,7 +93,7 @@ export function AdminDashboardOverview({ admin, onTabChange }: AdminDashboardOve
                   availability: property.availability,
                   address: property.address,
                   city: property.city,
-                  county: property.county,
+                  localAuthority: property.local_authority,
                   postcode: property.postcode,
                   property_licence: property.property_licence,
                   property_condition: property.property_condition,

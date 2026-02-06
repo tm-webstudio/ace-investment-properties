@@ -97,7 +97,7 @@ export async function GET(request: NextRequest) {
           description,
           address,
           city,
-          county,
+          local_authority,
           postcode,
           photos,
           status,

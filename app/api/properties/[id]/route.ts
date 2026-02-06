@@ -105,7 +105,7 @@ export async function PUT(
     // Only update provided fields
     const allowedFields = [
       'property_type', 'bedrooms', 'bathrooms', 'monthly_rent',
-      'available_date', 'description', 'amenities', 'address', 'city', 'county',
+      'available_date', 'description', 'amenities', 'address', 'city', 'local_authority',
       'postcode', 'photos', 'contact_name', 'contact_email', 'contact_phone', 'status'
     ]
 

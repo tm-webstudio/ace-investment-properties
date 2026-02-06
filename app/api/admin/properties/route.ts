@@ -128,7 +128,7 @@ export async function GET(request: NextRequest) {
           amenities: property.amenities || [],
           address: property.address,
           city: property.city,
-          county: property.county,
+          localAuthority: property.local_authority,
           postcode: property.postcode,
           photos: property.photos || [],
           images: property.photos || [],

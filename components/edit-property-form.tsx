@@ -157,7 +157,7 @@ export function EditPropertyForm({ propertyId, initialData, isAdmin = false, ret
     propertyCondition: data?.property_condition || "",
     address: data?.address || "",
     city: data?.city || "",
-    specificArea: data?.specific_area || data?.county || "",
+    specificArea: data?.specific_area || data?.local_authority || "",
     postcode: data?.postcode || "",
     monthlyRent: data?.monthly_rent != null ? String(data.monthly_rent) : "",
     availableDate: data?.available_date || "",

@@ -27,7 +27,7 @@ interface SavedProperty {
     description: string
     address: string
     city: string
-    county: string
+    localAuthority: string
     postcode: string
     photos: string[]
     status: string
@@ -119,7 +119,7 @@ export function InvestorDashboardSavedProperties() {
       availability: saved.property.availability || 'vacant',
       address: saved.property.address,
       city: saved.property.city,
-      state: saved.property.county,
+      state: saved.property.localAuthority,
       postcode: saved.property.postcode,
       photos: saved.property.photos,
       images: saved.property.photos,

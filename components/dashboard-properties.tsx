@@ -18,7 +18,7 @@ interface Property {
   description: string
   address: string
   city: string
-  county: string
+  localAuthority: string
   postcode: string
   photos: string[]
   status: string

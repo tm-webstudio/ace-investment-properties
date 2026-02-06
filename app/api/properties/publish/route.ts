@@ -127,29 +127,40 @@ export async function POST(request: NextRequest) {
       available_date: propertyData.availableDate,
       address: propertyData.address,
       city: propertyData.city,
-      county: propertyData.state,
+      localAuthority: propertyData.local_authority,
       postcode: propertyData.postcode,
       contact_name: propertyData.contactName,
       contact_email: propertyData.contactEmail,
       contact_phone: propertyData.contactPhone
     })
 
-    // Geocode the address to get coordinates for map display
+    // Get coordinates from property data or geocode if not available
     let coordinates = null
-    try {
-      coordinates = await geocodeAddress(
-        propertyData.address,
-        propertyData.city,
-        propertyData.postcode
-      )
-      if (coordinates) {
-        console.log('Successfully geocoded property:', coordinates)
-      } else {
-        console.warn('Could not geocode address - map will not be available')
+
+    // First check if coordinates are already provided from Google Places
+    if (propertyData.latitude && propertyData.longitude) {
+      coordinates = {
+        latitude: propertyData.latitude,
+        longitude: propertyData.longitude
       }
-    } catch (geocodeError) {
-      console.error('Error geocoding address:', geocodeError)
-      // Continue without coordinates - non-critical error
+      console.log('Using coordinates from Google Places:', coordinates)
+    } else {
+      // Fall back to geocoding if coordinates not provided
+      try {
+        coordinates = await geocodeAddress(
+          propertyData.address,
+          propertyData.city,
+          propertyData.postcode
+        )
+        if (coordinates) {
+          console.log('Successfully geocoded property:', coordinates)
+        } else {
+          console.warn('Could not geocode address - map will not be available')
+        }
+      } catch (geocodeError) {
+        console.error('Error geocoding address:', geocodeError)
+        // Continue without coordinates - non-critical error
+      }
     }
 
     // Create the property in properties table
@@ -169,7 +180,7 @@ export async function POST(request: NextRequest) {
         amenities: propertyData.amenities || [],
         address: propertyData.address,
         city: propertyData.city,
-        county: propertyData.state || propertyData.county,
+        local_authority: propertyData.local_authority,
         postcode: propertyData.postcode,
         photos: propertyData.photos || [],
         contact_name: propertyData.contactName || userProfile?.full_name || userProfile?.email || user.email,

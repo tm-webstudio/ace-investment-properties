@@ -25,7 +25,7 @@ interface Property {
   description: string
   address: string
   city: string
-  county: string
+  localAuthority: string
   postcode: string
   photos: string[]
   status: string
@@ -282,7 +282,7 @@ export function DashboardOverview({ userId, onTabChange }: DashboardOverviewProp
                         availability: property.availability || 'vacant', // Ensure availability is set
                         address: property.address,
                         city: property.city,
-                        state: property.county,
+                        state: property.localAuthority,
                         postcode: property.postcode,
                         photos: property.photos,
                         images: property.photos, // Also include this field for compatibility

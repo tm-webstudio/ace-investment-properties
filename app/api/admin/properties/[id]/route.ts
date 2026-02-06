@@ -66,7 +66,7 @@ export async function GET(
         amenities,
         address,
         city,
-        county,
+        local_authority,
         postcode,
         photos,
         status,
@@ -192,7 +192,7 @@ export async function PUT(
       property_condition: updateData.property_condition,
       address: updateData.address,
       city: updateData.city,
-      county: updateData.county,
+      local_authority: updateData.localAuthority,
       postcode: updateData.postcode,
       monthly_rent: Math.round(updateData.monthly_rent * 100), // Convert to pence
       available_date: updateData.available_date || null,

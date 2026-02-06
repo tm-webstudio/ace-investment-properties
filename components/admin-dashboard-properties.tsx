@@ -24,7 +24,7 @@ interface Property {
   amenities: string[]
   address: string
   city: string
-  county: string
+  localAuthority: string
   postcode: string
   photos: string[]
   status: string
@@ -207,7 +207,7 @@ export function AdminDashboardProperties({ currentTab = 'properties' }: AdminDas
       (property.address || '').toLowerCase().includes(searchLower) ||
       (property.city || '').toLowerCase().includes(searchLower) ||
       (property.postcode || '').toLowerCase().includes(searchLower) ||
-      (property.county || '').toLowerCase().includes(searchLower)
+      (property.localAuthority || '').toLowerCase().includes(searchLower)
     )
   })
 

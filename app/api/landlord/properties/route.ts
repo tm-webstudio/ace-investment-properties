@@ -32,7 +32,7 @@ export async function GET(request: NextRequest) {
         amenities,
         address,
         city,
-        county,
+        local_authority,
         postcode,
         photos,
         status,

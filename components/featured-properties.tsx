@@ -12,7 +12,7 @@ interface Property {
   price: number
   address: string
   city: string
-  county: string
+  localAuthority: string
   bedrooms: number
   bathrooms: number
   propertyType: string
@@ -23,7 +23,17 @@ interface Property {
   featured: boolean
 }
 
-export function FeaturedProperties() {
+interface FeaturedPropertiesProps {
+  city?: string
+  title?: string
+  subtitle?: string
+}
+
+export function FeaturedProperties({
+  city = 'London',
+  title = 'Newly Added London Properties',
+  subtitle = 'Discover our handpicked selection of premium London rental properties available now'
+}: FeaturedPropertiesProps) {
   const [featuredProperties, setFeaturedProperties] = useState<Property[]>([])
   const [loading, setLoading] = useState(true)
   const scrollRef = useRef<HTMLDivElement>(null)
@@ -44,9 +54,9 @@ export function FeaturedProperties() {
     const fetchProperties = async () => {
       try {
         setLoading(true)
-        const response = await fetch('/api/properties/featured')
+        const response = await fetch(`/api/properties/featured?city=${encodeURIComponent(city)}`)
         const data = await response.json()
-        
+
         if (data.success) {
           setFeaturedProperties(data.properties.slice(0, 6)) // Limit to 6 for carousel
         }
@@ -60,7 +70,7 @@ export function FeaturedProperties() {
     }
 
     fetchProperties()
-  }, [])
+  }, [city])
 
   const scrollLeft = () => {
     if (scrollRef.current) {
@@ -95,13 +105,13 @@ export function FeaturedProperties() {
   }, [])
 
   return (
-    <section className="py-12 lg:py-16 bg-background">
+    <section className="py-8 lg:py-12 bg-background">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col md:flex-row md:items-start md:justify-between mb-5 md:mb-6">
           <div>
-            <h2 className="font-serif text-2xl md:text-3xl font-medium text-foreground mb-2 md:mb-3">Newly Added Properties</h2>
-            <p className="text-muted-foreground max-w-2xl text-base md:text-[17px]">
-              Discover our handpicked selection of premium rental properties available now
+            <h2 className="font-serif text-xl md:text-2xl font-medium text-foreground mb-2 md:mb-3">{title}</h2>
+            <p className="text-muted-foreground max-w-2xl text-sm md:text-base">
+              {subtitle}
             </p>
           </div>
         </div>

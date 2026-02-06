@@ -10,7 +10,16 @@ export default function HomePage() {
       <Navigation />
       <main className="flex-1">
         <HeroSection />
-        <FeaturedProperties />
+        <FeaturedProperties
+          city="London"
+          title="Newly Added London Properties"
+          subtitle="Discover our handpicked selection of premium London rental properties available now"
+        />
+        <FeaturedProperties
+          city="Midlands"
+          title="Newly Added Midlands Properties"
+          subtitle="Discover our handpicked selection of premium Midlands rental properties available now"
+        />
       </main>
       <Footer />
       <ScrollToTop />
