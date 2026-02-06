@@ -12,6 +12,7 @@ import { ChevronLeft, ChevronRight, Building2 } from "lucide-react"
 import Link from "next/link"
 import type { Property } from "@/lib/sample-data"
 import { allNavigationLocations, getLocationBySlug } from "@/lib/navigation-locations"
+import { PageHeader } from "@/components/page-header"
 
 // Build location display names and search config from navigation locations
 const locationDisplayNames: Record<string, string> = Object.fromEntries(
@@ -175,17 +176,16 @@ function PropertiesContent() {
       <main className="flex-1 bg-background">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {/* Header */}
-          <div className="mb-6">
-            <h1 className="font-serif text-2xl md:text-3xl font-medium text-foreground">
-              {displayName}
-            </h1>
-            <p className="text-sm md:text-base text-muted-foreground mt-1">
-              {pagination && pagination.total > 0
+          <PageHeader
+            category="Browse Properties"
+            title={displayName}
+            subtitle={
+              pagination && pagination.total > 0
                 ? `${pagination.total} ${pagination.total === 1 ? 'property' : 'properties'} available`
                 : loading ? 'Loading properties...' : 'No properties found'
-              }
-            </p>
-          </div>
+            }
+            variant="primary"
+          />
 
           {/* Filters */}
           <div className="grid grid-cols-2 sm:flex sm:flex-row gap-2 mb-6 flex-wrap">
