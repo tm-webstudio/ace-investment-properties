@@ -47,18 +47,24 @@ export function PropertyDetails({ property }: PropertyDetailsProps) {
             {(() => {
               // Use string comparison for more reliable date checking
               const availableDateStr = property.availableDate;
-              const todayStr = '2025-09-04'; // Current date
+              const todayStr = format(new Date(), 'yyyy-MM-dd'); // Current date
               const isAvailableNow = availableDateStr <= todayStr;
 
               // Debug logging
               console.log('Property:', property.title, 'Available:', availableDateStr, 'Today:', todayStr, 'IsAvailableNow:', isAvailableNow);
 
               return (
-                <Badge className={`font-semibold ${
+                <Badge className={`font-semibold flex items-center gap-1.5 ${
                   isAvailableNow
-                    ? 'bg-accent text-accent-foreground hover:bg-accent/90'
+                    ? 'bg-green-600 text-white hover:bg-green-700'
                     : 'bg-red-600 text-white hover:bg-red-700'
                 }`}>
+                  {isAvailableNow && (
+                    <span className="relative flex h-2 w-2">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-white"></span>
+                    </span>
+                  )}
                   {isAvailableNow ? 'Available Now' : `Available ${format(new Date(availableDateStr), 'dd/MM/yyyy')}`}
                 </Badge>
               );

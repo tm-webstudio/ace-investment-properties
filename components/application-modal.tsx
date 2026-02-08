@@ -171,7 +171,7 @@ export function ApplicationModal({ property, onBookViewing, onReserve, isReserve
                 )}
 
                 <form onSubmit={handleReserveSubmit} className="space-y-4">
-                  <div>
+                  <div className="space-y-1.5">
                     <Label htmlFor="reserve-name">Full Name *</Label>
                     <Input
                       id="reserve-name"
@@ -182,7 +182,7 @@ export function ApplicationModal({ property, onBookViewing, onReserve, isReserve
                     />
                   </div>
 
-                  <div>
+                  <div className="space-y-1.5">
                     <Label htmlFor="reserve-email">Email Address *</Label>
                     <Input
                       id="reserve-email"
@@ -194,7 +194,7 @@ export function ApplicationModal({ property, onBookViewing, onReserve, isReserve
                     />
                   </div>
 
-                  <div>
+                  <div className="space-y-1.5">
                     <Label htmlFor="reserve-phone">Phone Number *</Label>
                     <Input
                       id="reserve-phone"
@@ -206,7 +206,7 @@ export function ApplicationModal({ property, onBookViewing, onReserve, isReserve
                     />
                   </div>
 
-                  <div>
+                  <div className="space-y-1.5">
                     <Label htmlFor="reserve-message">Message (Optional)</Label>
                     <Textarea
                       id="reserve-message"

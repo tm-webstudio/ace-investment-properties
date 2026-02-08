@@ -83,7 +83,7 @@ export default function PropertyPage({ params }: PropertyPageProps) {
       <div className="min-h-screen flex flex-col">
         <Navigation />
         <main className="flex-1 bg-background">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pt-[22px]">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pt-4 sm:pt-[22px]">
             <div className="animate-pulse space-y-8">
               <div className="h-64 bg-gray-300 rounded-lg"></div>
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -117,7 +117,7 @@ export default function PropertyPage({ params }: PropertyPageProps) {
     <div className="min-h-screen flex flex-col">
       <Navigation />
       <main className="flex-1 bg-background">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pt-[22px]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pt-4 sm:pt-[22px]">
           {/* Property Gallery */}
           <PropertyGallery images={property.images} title={property.title} propertyId={property.id} />
 

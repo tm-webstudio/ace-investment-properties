@@ -515,7 +515,7 @@ export function BookViewingModal({ isOpen, onClose, propertyId, propertyData }: 
                 </div>
               )}
               
-              <div>
+              <div className="space-y-1.5">
                 <Label htmlFor="login-email">Email</Label>
                 <Input
                   id="login-email"
@@ -525,8 +525,8 @@ export function BookViewingModal({ isOpen, onClose, propertyId, propertyData }: 
                   required
                 />
               </div>
-              
-              <div>
+
+              <div className="space-y-1.5">
                 <Label htmlFor="login-password">Password</Label>
                 <div className="relative">
                   <Input
@@ -584,7 +584,7 @@ export function BookViewingModal({ isOpen, onClose, propertyId, propertyData }: 
               )}
               
               <div className="grid grid-cols-2 gap-3">
-                <div>
+                <div className="space-y-1.5">
                   <Label htmlFor="firstName">First Name</Label>
                   <Input
                     id="firstName"
@@ -593,7 +593,7 @@ export function BookViewingModal({ isOpen, onClose, propertyId, propertyData }: 
                     required
                   />
                 </div>
-                <div>
+                <div className="space-y-1.5">
                   <Label htmlFor="lastName">Last Name</Label>
                   <Input
                     id="lastName"
@@ -603,8 +603,8 @@ export function BookViewingModal({ isOpen, onClose, propertyId, propertyData }: 
                   />
                 </div>
               </div>
-              
-              <div>
+
+              <div className="space-y-1.5">
                 <Label htmlFor="signup-email">Email</Label>
                 <Input
                   id="signup-email"
@@ -615,7 +615,7 @@ export function BookViewingModal({ isOpen, onClose, propertyId, propertyData }: 
                 />
               </div>
               
-              <div>
+              <div className="space-y-1.5">
                 <Label htmlFor="phone">Phone Number</Label>
                 <Input
                   id="phone"
@@ -626,8 +626,8 @@ export function BookViewingModal({ isOpen, onClose, propertyId, propertyData }: 
                   required
                 />
               </div>
-              
-              <div>
+
+              <div className="space-y-1.5">
                 <Label htmlFor="signup-password">Password</Label>
                 <div className="relative">
                   <Input
@@ -647,8 +647,8 @@ export function BookViewingModal({ isOpen, onClose, propertyId, propertyData }: 
                   </button>
                 </div>
               </div>
-              
-              <div>
+
+              <div className="space-y-1.5">
                 <Label htmlFor="confirmPassword">Confirm Password</Label>
                 <div className="relative">
                   <Input
@@ -667,8 +667,8 @@ export function BookViewingModal({ isOpen, onClose, propertyId, propertyData }: 
                   </button>
                 </div>
               </div>
-              
-              <div>
+
+              <div className="space-y-1.5">
                 <Label>I am a:</Label>
                 <RadioGroup 
                   value={authForm.userType} 
@@ -754,7 +754,7 @@ export function BookViewingModal({ isOpen, onClose, propertyId, propertyData }: 
               )}
               
               {/* Date Selection */}
-              <div>
+              <div className="space-y-1.5">
                 <Label>Select Viewing Date *</Label>
                 <Popover>
                   <PopoverTrigger asChild>
@@ -796,7 +796,7 @@ export function BookViewingModal({ isOpen, onClose, propertyId, propertyData }: 
 
               {/* Time Selection */}
               {bookingForm.viewingDate && (
-                <div>
+                <div className="space-y-1.5">
                   <Label>Select Time *</Label>
                   <div className="grid grid-cols-2 gap-3">
                     <div>
@@ -844,7 +844,7 @@ export function BookViewingModal({ isOpen, onClose, propertyId, propertyData }: 
               )}
 
               {/* Contact Information */}
-              <div>
+              <div className="space-y-1.5">
                 <Label htmlFor="userName">Your Name *</Label>
                 <Input
                   id="userName"
@@ -854,7 +854,7 @@ export function BookViewingModal({ isOpen, onClose, propertyId, propertyData }: 
                 />
               </div>
 
-              <div>
+              <div className="space-y-1.5">
                 <Label htmlFor="userEmail">Email Address *</Label>
                 <Input
                   id="userEmail"
@@ -865,7 +865,7 @@ export function BookViewingModal({ isOpen, onClose, propertyId, propertyData }: 
                 />
               </div>
 
-              <div>
+              <div className="space-y-1.5">
                 <Label htmlFor="userPhone">Phone Number *</Label>
                 <Input
                   id="userPhone"
@@ -877,7 +877,7 @@ export function BookViewingModal({ isOpen, onClose, propertyId, propertyData }: 
                 />
               </div>
 
-              <div>
+              <div className="space-y-1.5">
                 <Label htmlFor="message">Message (Optional)</Label>
                 <Textarea
                   id="message"
