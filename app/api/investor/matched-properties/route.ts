@@ -97,6 +97,17 @@ export async function GET(request: NextRequest) {
       })
     }
 
+    // Debug logging
+    console.log('=== MATCHING DEBUG ===')
+    console.log('Investor:', user.id)
+    console.log('Preferences:', {
+      locations: preferences.preference_data?.locations,
+      budget: preferences.preference_data?.budget,
+      bedrooms: preferences.preference_data?.bedrooms,
+      propertyTypes: preferences.preference_data?.propertyTypes,
+      licenses: preferences.preference_data?.licenses
+    })
+
     // Get matched properties using the database function
     const { data: matchedProperties, error: matchError } = await supabaseAdmin
       .rpc('get_matched_properties_for_investor', {
@@ -106,10 +117,23 @@ export async function GET(request: NextRequest) {
         min_match_score: minScore
       })
 
+    console.log('Matched properties:', matchedProperties?.length || 0)
+    if (matchError) {
+      console.error('Match error:', matchError)
+    }
+    if (matchedProperties && matchedProperties.length > 0) {
+      console.log('Sample match:', {
+        property: matchedProperties[0].property_data?.title,
+        score: matchedProperties[0].match_score,
+        reasons: matchedProperties[0].match_reasons
+      })
+    }
+    console.log('=== END MATCHING DEBUG ===')
+
     if (matchError) {
       console.error('Error getting matched properties:', matchError)
-      return NextResponse.json({ 
-        error: 'Failed to get matched properties' 
+      return NextResponse.json({
+        error: 'Failed to get matched properties'
       }, { status: 500 })
     }
 

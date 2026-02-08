@@ -185,24 +185,54 @@ export async function POST(request: NextRequest) {
 
     // Validate required fields
     if (!operator_type || !preference_data) {
-      return NextResponse.json({ 
-        error: 'operator_type and preference_data are required' 
+      return NextResponse.json({
+        error: 'operator_type and preference_data are required'
       }, { status: 400 })
     }
 
     // Validate operator_type
     const validOperatorTypes = ['sa_operator', 'supported_living', 'social_housing', 'other']
     if (!validOperatorTypes.includes(operator_type)) {
-      return NextResponse.json({ 
-        error: 'Invalid operator_type' 
+      return NextResponse.json({
+        error: 'Invalid operator_type'
       }, { status: 400 })
     }
 
     // Check if operator_type_other is provided when operator_type is 'other'
     if (operator_type === 'other' && !operator_type_other) {
-      return NextResponse.json({ 
-        error: 'operator_type_other is required when operator_type is "other"' 
+      return NextResponse.json({
+        error: 'operator_type_other is required when operator_type is "other"'
       }, { status: 400 })
+    }
+
+    // Validate and normalize location data
+    if (preference_data.locations && Array.isArray(preference_data.locations)) {
+      preference_data.locations = preference_data.locations.map((loc: any) => {
+        // Ensure we have localAuthorities array
+        if (!loc.localAuthorities || !Array.isArray(loc.localAuthorities)) {
+          if (loc.localAuthority) {
+            // Convert singular to plural for consistency
+            loc.localAuthorities = [loc.localAuthority]
+            delete loc.localAuthority
+          } else {
+            throw new Error('Invalid location: localAuthorities required')
+          }
+        }
+
+        // Validate required fields
+        if (!loc.city || loc.localAuthorities.length === 0) {
+          throw new Error('Invalid location: city and localAuthorities required')
+        }
+
+        // Filter out empty strings
+        loc.localAuthorities = loc.localAuthorities.filter((auth: string) => auth && auth.trim())
+
+        if (loc.localAuthorities.length === 0) {
+          throw new Error('Invalid location: at least one local authority required')
+        }
+
+        return loc
+      })
     }
 
     // Prepare data for upsert

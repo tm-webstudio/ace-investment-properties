@@ -46,11 +46,37 @@ export async function GET(
       return NextResponse.json({ error: 'Property not found' }, { status: 404 })
     }
 
+    // Debug logging
+    console.log('=== PROPERTY MATCHING DEBUG ===')
+    console.log('Property ID:', propertyId)
+    console.log('Property details:', {
+      title: property.title,
+      city: property.city,
+      local_authority: property.local_authority,
+      price: property.asking_price,
+      bedrooms: property.bedrooms,
+      type: property.property_type,
+      license: property.license_type
+    })
+
     // Find matching investors using the property matching function
     const { data: matchingInvestors, error: matchError } = await supabase
       .rpc('find_matching_investors_for_property', {
         p_property_id: propertyId
       })
+
+    console.log('Matched investors:', matchingInvestors?.length || 0)
+    if (matchError) {
+      console.error('Match error:', matchError)
+    }
+    if (matchingInvestors && matchingInvestors.length > 0) {
+      console.log('Sample match:', {
+        investor: matchingInvestors[0].full_name || matchingInvestors[0].email,
+        score: matchingInvestors[0].match_score,
+        locations: matchingInvestors[0].preference_data?.locations
+      })
+    }
+    console.log('=== END PROPERTY MATCHING DEBUG ===')
 
     if (matchError) {
       console.error('Error finding matching investors:', matchError)
