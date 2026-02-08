@@ -87,6 +87,11 @@ export async function POST(request: NextRequest) {
       status: newStatus
     }
 
+    // Set published_at timestamp when approving
+    if (action === 'approve') {
+      updateData.published_at = new Date().toISOString()
+    }
+
     const { data: updatedProperty, error: updateError } = await supabaseAdmin
       .from('properties')
       .update(updateData)

@@ -54,7 +54,9 @@ export function FeaturedProperties({
     const fetchProperties = async () => {
       try {
         setLoading(true)
-        const response = await fetch(`/api/properties/featured?city=${encodeURIComponent(city)}`)
+        const response = await fetch(`/api/properties/featured?city=${encodeURIComponent(city)}`, {
+          cache: 'no-store' // Disable caching to get fresh data
+        })
         const data = await response.json()
 
         if (data.success) {
@@ -70,6 +72,13 @@ export function FeaturedProperties({
     }
 
     fetchProperties()
+
+    // Auto-refresh every 60 seconds to pick up newly approved properties
+    const intervalId = setInterval(() => {
+      fetchProperties()
+    }, 60000) // 60 seconds
+
+    return () => clearInterval(intervalId)
   }, [city])
 
   const scrollLeft = () => {
