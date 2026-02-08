@@ -152,8 +152,8 @@ export function SimilarProperties({ currentPropertyId, propertyType }: SimilarPr
     return (
       <section className="mt-16">
         <div className="mb-5 md:mb-6">
-          <h2 className="font-serif text-2xl md:text-3xl font-bold text-foreground mb-2 md:mb-3">Similar Properties</h2>
-          <p className="text-muted-foreground text-base md:text-[17px]">
+          <h2 className="font-serif text-xl md:text-2xl font-medium text-foreground mb-2">Similar Properties</h2>
+          <p className="text-muted-foreground text-sm md:text-base">
             Loading similar properties...
           </p>
         </div>
@@ -191,8 +191,8 @@ export function SimilarProperties({ currentPropertyId, propertyType }: SimilarPr
   return (
     <section className="mt-16">
       <div className="mb-5 md:mb-6">
-        <h2 className="font-serif text-2xl md:text-3xl font-bold text-foreground mb-2 md:mb-3">Similar Properties</h2>
-        <p className="text-muted-foreground text-base md:text-[17px]">
+        <h2 className="font-serif text-xl md:text-2xl font-medium text-foreground mb-2">Similar Properties</h2>
+        <p className="text-muted-foreground text-sm md:text-base">
           Other {propertyType} properties you might be interested in
         </p>
       </div>

@@ -2,7 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import { PropertyTitle } from "@/components/property-title"
-import { Bed, Bath, MapPin } from "lucide-react"
+import { Bed, Bath, MapPin, Info } from "lucide-react"
 import { format } from "date-fns"
 import type { Property } from "@/lib/sample-data"
 import dynamic from 'next/dynamic'
@@ -31,7 +31,7 @@ export function PropertyDetails({ property }: PropertyDetailsProps) {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="space-y-4">
+      <div className="space-y-3">
         <div>
           <h1 className="font-sans text-xl md:text-2xl font-semibold text-foreground">
             <PropertyTitle
@@ -40,23 +40,23 @@ export function PropertyDetails({ property }: PropertyDetailsProps) {
               postcode={property.postcode}
             />
           </h1>
-          <div className="text-lg md:text-xl font-semibold text-accent mt-2">
+          <div className="text-lg md:text-xl font-semibold text-accent mt-1">
             £{property.price.toLocaleString()} pcm
           </div>
-          <div className="mt-3">
+          <div className="mt-2">
             {(() => {
               // Use string comparison for more reliable date checking
               const availableDateStr = property.availableDate;
               const todayStr = '2025-09-04'; // Current date
               const isAvailableNow = availableDateStr <= todayStr;
-              
+
               // Debug logging
               console.log('Property:', property.title, 'Available:', availableDateStr, 'Today:', todayStr, 'IsAvailableNow:', isAvailableNow);
-              
+
               return (
                 <Badge className={`font-semibold ${
-                  isAvailableNow 
-                    ? 'bg-accent text-accent-foreground hover:bg-accent/90' 
+                  isAvailableNow
+                    ? 'bg-accent text-accent-foreground hover:bg-accent/90'
                     : 'bg-red-600 text-white hover:bg-red-700'
                 }`}>
                   {isAvailableNow ? 'Available Now' : `Available ${format(new Date(availableDateStr), 'dd/MM/yyyy')}`}
@@ -67,15 +67,15 @@ export function PropertyDetails({ property }: PropertyDetailsProps) {
         </div>
 
         {/* Key Stats */}
-        <div className="flex flex-wrap gap-6 text-muted-foreground">
+        <div className="flex flex-wrap gap-4 text-muted-foreground text-base">
           <div className="flex items-center">
-            <Bed className="h-5 w-5 mr-2" />
+            <Bed className="h-[18px] w-[18px] mr-1.5" />
             <span>
               {property.bedrooms} bedroom{property.bedrooms !== 1 ? "s" : ""}
             </span>
           </div>
           <div className="flex items-center">
-            <Bath className="h-5 w-5 mr-2" />
+            <Bath className="h-[18px] w-[18px] mr-1.5" />
             <span>
               {property.bathrooms} bathroom{property.bathrooms !== 1 ? "s" : ""}
             </span>
@@ -101,32 +101,47 @@ export function PropertyDetails({ property }: PropertyDetailsProps) {
           </ul>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
-          <div className="flex justify-between py-3 border-b border-border">
-            <span className="text-muted-foreground">Property Type</span>
-            <span className="font-medium">{property.propertyType}</span>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 pt-4 border-t border-border">
+          <div className="space-y-1">
+            <div className="flex items-center gap-1.5">
+              <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                Property Type
+              </span>
+              <Info className="h-3.5 w-3.5 text-muted-foreground" />
+            </div>
+            <div className="font-semibold text-foreground">{property.propertyType}</div>
           </div>
-          <div className="flex justify-between py-3 border-b border-border">
-            <span className="text-muted-foreground">Bedrooms</span>
-            <span className="font-medium">{property.bedrooms}</span>
+
+          <div className="space-y-1">
+            <div className="flex items-center gap-1.5">
+              <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                Bedrooms
+              </span>
+              <Info className="h-3.5 w-3.5 text-muted-foreground" />
+            </div>
+            <div className="font-semibold text-foreground">{property.bedrooms}</div>
           </div>
-          <div className="flex justify-between py-3 border-b border-border">
-            <span className="text-muted-foreground">Monthly Rent</span>
-            <span className="font-medium">£{property.price.toLocaleString()}</span>
+
+          <div className="space-y-1">
+            <div className="flex items-center gap-1.5">
+              <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                Bathrooms
+              </span>
+              <Info className="h-3.5 w-3.5 text-muted-foreground" />
+            </div>
+            <div className="font-semibold text-foreground">{property.bathrooms}</div>
           </div>
-          <div className="flex justify-between py-3 border-b border-border">
-            <span className="text-muted-foreground">Bathrooms</span>
-            <span className="font-medium">{property.bathrooms}</span>
-          </div>
-          <div className="flex justify-between py-3 border-b border-border">
-            <span className="text-muted-foreground">Available Date</span>
-            <span className="font-medium">{format(new Date(property.availableDate), 'dd/MM/yyyy')}</span>
-          </div>
-          <div className="flex justify-between py-3 border-b border-border">
-            <span className="text-muted-foreground">Pet Policy</span>
-            <span className="font-medium">
+
+          <div className="space-y-1">
+            <div className="flex items-center gap-1.5">
+              <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                Pet Policy
+              </span>
+              <Info className="h-3.5 w-3.5 text-muted-foreground" />
+            </div>
+            <div className="font-semibold text-foreground">
               {property.amenities.includes("Pet-friendly") ? "Pet Friendly" : "No Pets"}
-            </span>
+            </div>
           </div>
         </div>
       </div>

@@ -23,6 +23,7 @@ interface PropertyPageProps {
 export default function PropertyPage({ params }: PropertyPageProps) {
   const { id } = use(params)
   const [isBookViewingOpen, setIsBookViewingOpen] = useState(false)
+  const [isReserveOpen, setIsReserveOpen] = useState(false)
   const [property, setProperty] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -73,6 +74,10 @@ export default function PropertyPage({ params }: PropertyPageProps) {
     setIsBookViewingOpen(true)
   }
 
+  const handleReserve = () => {
+    setIsReserveOpen(true)
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen flex flex-col">
@@ -116,7 +121,7 @@ export default function PropertyPage({ params }: PropertyPageProps) {
           {/* Property Gallery */}
           <PropertyGallery images={property.images} title={property.title} propertyId={property.id} />
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-4 md:mt-8">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-4">
             {/* Main Content */}
             <div className="lg:col-span-2 space-y-8">
               <PropertyDetails property={property} />
@@ -125,7 +130,13 @@ export default function PropertyPage({ params }: PropertyPageProps) {
             {/* Sidebar - Sticky on desktop */}
             <div className="lg:sticky lg:top-24 lg:self-start">
               <div className="space-y-4 lg:max-h-[calc(100vh-7rem)] lg:overflow-auto">
-                <ApplicationModal property={property} onBookViewing={handleBookViewing} />
+                <ApplicationModal
+                  property={property}
+                  onBookViewing={handleBookViewing}
+                  onReserve={handleReserve}
+                  isReserveOpen={isReserveOpen}
+                  onReserveClose={() => setIsReserveOpen(false)}
+                />
                 <LandlordCard
                   name={property.landlordName}
                   phone={property.landlordPhone}
