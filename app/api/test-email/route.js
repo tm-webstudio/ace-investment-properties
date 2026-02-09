@@ -1,10 +1,12 @@
 import { NextResponse } from 'next/server';
 import { sendEmail } from '@/lib/email';
+import { supabase } from '@/lib/supabase';
 import ViewingConfirmation from '@/emails/investor/viewing-confirmation';
 import ViewingRequest from '@/emails/landlord/viewing-request';
 import ViewingRejected from '@/emails/investor/viewing-rejected';
 import WelcomeInvestor from '@/emails/investor/welcome-investor';
 import WelcomeLandlord from '@/emails/landlord/welcome-landlord';
+import NewPropertyMatch from '@/emails/investor/new-property-match';
 
 /**
  * Test Email Endpoint
@@ -94,6 +96,41 @@ export async function GET(request) {
         subject = 'Welcome to Ace Properties!';
         break;
 
+      case 'new-property-match':
+        // Try to fetch a real property from the database, fallback to mock data
+        const { data: property } = await supabase
+          .from('properties')
+          .select('id, property_type, bedrooms, monthly_rent, address, city, postcode, images')
+          .limit(1)
+          .maybeSingle();
+
+        // Use real property data if available, otherwise use mock data
+        const propertyData = property || {
+          id: 'mock-123',
+          property_type: 'Modern Apartment',
+          bedrooms: 2,
+          monthly_rent: 1200,
+          address: '123 Nash Road',
+          city: 'London',
+          postcode: 'E1 1AA',
+          images: ['https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=600&h=400&fit=crop']
+        };
+
+        const propertyImages = propertyData.images || [];
+        const mainImage = propertyImages[0] || 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=600&h=400&fit=crop';
+
+        emailComponent = NewPropertyMatch({
+          propertyTitle: `${propertyData.property_type} - ${propertyData.bedrooms} Bedroom`,
+          propertyAddress: `${propertyData.address}, ${propertyData.city}, ${propertyData.postcode}`,
+          propertyImage: mainImage,
+          propertyPrice: `£${propertyData.monthly_rent?.toLocaleString()} pcm`,
+          matchScore: 95,
+          propertyUrl: `${process.env.NEXT_PUBLIC_SITE_URL}/properties/${propertyData.id}`,
+          dashboardLink: `${process.env.NEXT_PUBLIC_SITE_URL}/investor/dashboard`
+        });
+        subject = 'New Property Match!';
+        break;
+
       default:
         return NextResponse.json(
           {
@@ -103,7 +140,8 @@ export async function GET(request) {
               'viewing-request',
               'viewing-rejected',
               'welcome-investor',
-              'welcome-landlord'
+              'welcome-landlord',
+              'new-property-match'
             ]
           },
           { status: 400 }

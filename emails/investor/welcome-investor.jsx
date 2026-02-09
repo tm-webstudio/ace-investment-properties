@@ -108,7 +108,7 @@ const titleSection = {
 
 const heading = {
   color: '#1f2937',
-  fontSize: '32px',
+  fontSize: '28px',
   fontFamily: '"Playfair Display", Georgia, serif',
   fontWeight: '500',
   margin: '0 0 8px 0',
@@ -122,7 +122,7 @@ const subtitle = {
 
 const badgeSection = {
   textAlign: 'center',
-  marginBottom: '32px',
+  marginBottom: '24px',
 };
 
 const badge = {

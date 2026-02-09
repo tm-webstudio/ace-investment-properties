@@ -101,12 +101,12 @@ export default function ReservationRequest({
 // Styles
 const titleSection = {
   textAlign: 'center',
-  marginBottom: '32px',
+  marginBottom: '24px',
 };
 
 const heading = {
   color: '#1f2937',
-  fontSize: '32px',
+  fontSize: '28px',
   fontFamily: '"Playfair Display", Georgia, serif',
   fontWeight: '500',
   margin: '0 0 8px 0',
@@ -128,7 +128,7 @@ const propertyBox = {
 
 const propertyTitleStyle = {
   color: '#991b1b',
-  fontSize: '24px',
+  fontSize: '28px',
   fontFamily: '"Playfair Display", Georgia, serif',
   fontWeight: '500',
   margin: '0 0 8px 0',

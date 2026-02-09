@@ -88,7 +88,7 @@ const main = {
   backgroundColor: '#f8f9fa',
   fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
   margin: 0,
-  padding: 0,
+  padding: '0 10px',
 };
 
 const header = {
@@ -105,18 +105,19 @@ const headerContainer = {
 
 const headerText = {
   color: '#1a1a2e',
-  fontSize: '20px',
-  fontWeight: 'bold',
+  fontSize: '16px',
+  fontWeight: '900',
   margin: '0',
-  letterSpacing: '1px',
+  letterSpacing: '0.05em',
   textAlign: 'center',
+  fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
 };
 
 const container = {
   backgroundColor: '#ffffff',
   maxWidth: '600px',
   margin: '0 auto',
-  padding: '40px 20px',
+  padding: '24px 20px 40px 20px',
 };
 
 const footer = {
