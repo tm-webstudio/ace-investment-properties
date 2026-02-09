@@ -1,13 +1,26 @@
--- Migration: Fix matching functions with area expansion
+-- Migration: Fix matching functions with area expansion + region matching + budget unit fix
 -- Date: 2026-02-09
--- Purpose: Update matching to use localAuthorities field and expand area names to constituent local authorities
+-- Purpose: Update matching to use localAuthorities field, expand area names,
+--          match region against city for generic local_authority values,
+--          fix budget unit mismatch (prefs in pounds, monthly_rent in pence),
+--          and rescale scoring to 100-point system with tiered location matching.
+--
+-- Scoring weights (max 100):
+--   Location (exact borough/city expansion): 40pts
+--   Location (region fallback): 25pts
+--   Budget: 25pts
+--   Bedrooms: 15pts
+--   Property type: 10pts
+--   License: 5pts
+--   Availability: 5pts
+-- Minimum threshold: 25 (at least a region-level location match)
 
 -- Drop existing functions
 DROP FUNCTION IF EXISTS get_matched_properties_for_investor(UUID, INTEGER, INTEGER, INTEGER);
 DROP FUNCTION IF EXISTS find_matching_investors_for_property(UUID);
 
 -- ============================================================================
--- 1. Create get_matched_properties_for_investor function with area expansion
+-- 1. get_matched_properties_for_investor
 -- ============================================================================
 
 CREATE OR REPLACE FUNCTION get_matched_properties_for_investor(
@@ -33,48 +46,49 @@ DECLARE
     property_types_val TEXT[];
     immediate_availability BOOLEAN;
 BEGIN
-    -- Extract and expand local authorities from localAuthorities/areas array
-    -- Uses backward compatibility: checks localAuthorities first, then falls back to areas
+    -- Extract and expand local authorities from BOTH localAuthorities/areas AND city fields.
+    -- This ensures city-level expansion (e.g. city="London" -> ["London"]) is always included
+    -- alongside specific borough expansions, matching the behavior of find_matching_investors_for_property.
     SELECT ARRAY(
         SELECT DISTINCT LOWER(TRIM(expanded_auth))
         FROM jsonb_array_elements(COALESCE(pref.preference_data->'locations', '[]'::jsonb)) AS loc,
-             jsonb_array_elements_text(
-                 COALESCE(loc->'localAuthorities', loc->'areas', '[]'::jsonb)
-             ) AS auth,
-             LATERAL unnest(expand_area_to_authorities(auth)) AS expanded_auth
-        WHERE auth IS NOT NULL AND auth != ''
+             LATERAL (
+                 -- Expand from localAuthorities/areas field
+                 SELECT jsonb_array_elements_text(
+                     COALESCE(loc->'localAuthorities', loc->'areas', '[]'::jsonb)
+                 ) AS auth_name
+                 UNION ALL
+                 -- Also expand from city field
+                 SELECT loc->>'city' AS auth_name
+                 WHERE loc->>'city' IS NOT NULL AND loc->>'city' != ''
+             ) AS auth_source,
+             LATERAL unnest(expand_area_to_authorities(auth_source.auth_name)) AS expanded_auth
+        WHERE auth_source.auth_name IS NOT NULL AND auth_source.auth_name != ''
     )
     INTO local_authorities
     FROM investor_preferences pref
     WHERE pref.investor_id = investor_uuid;
 
-    -- If localAuthorities array is empty, fall back to using city field for expansion
-    IF array_length(local_authorities, 1) IS NULL THEN
-        SELECT ARRAY(
-            SELECT DISTINCT LOWER(TRIM(expanded_auth))
-            FROM jsonb_array_elements(COALESCE(pref.preference_data->'locations', '[]'::jsonb)) AS loc,
-                 LATERAL unnest(expand_area_to_authorities(loc->>'city')) AS expanded_auth
-            WHERE loc->>'city' IS NOT NULL AND loc->>'city' != ''
-        )
-        INTO local_authorities
-        FROM investor_preferences pref
-        WHERE pref.investor_id = investor_uuid;
-    END IF;
-
-    -- Extract cities
+    -- Extract cities AND regions for broader matching (region fallback)
     SELECT ARRAY(
-        SELECT DISTINCT LOWER(TRIM(loc->>'city'))
-        FROM jsonb_array_elements(COALESCE(pref.preference_data->'locations', '[]'::jsonb)) AS loc
-        WHERE loc->>'city' IS NOT NULL AND loc->>'city' != ''
+        SELECT DISTINCT LOWER(TRIM(val))
+        FROM jsonb_array_elements(COALESCE(pref.preference_data->'locations', '[]'::jsonb)) AS loc,
+             LATERAL (
+                 SELECT loc->>'city' AS val
+                 UNION
+                 SELECT loc->>'region' AS val
+             ) AS city_region
+        WHERE val IS NOT NULL AND val != ''
     )
     INTO locations
     FROM investor_preferences pref
     WHERE pref.investor_id = investor_uuid;
 
     -- Extract other preferences
+    -- Budget prefs are in pounds, monthly_rent is stored in pence -> multiply by 100
     SELECT
-        COALESCE((pref.preference_data->'budget'->>'min')::NUMERIC, 0),
-        COALESCE((pref.preference_data->'budget'->>'max')::NUMERIC, 999999999),
+        COALESCE((pref.preference_data->'budget'->>'min')::NUMERIC, 0) * 100,
+        COALESCE((pref.preference_data->'budget'->>'max')::NUMERIC, 999999999) * 100,
         COALESCE((pref.preference_data->'bedrooms'->>'min')::INTEGER, 0),
         COALESCE((pref.preference_data->'bedrooms'->>'max')::INTEGER, 999),
         COALESCE(
@@ -100,13 +114,13 @@ BEGIN
         SELECT
             p.*,
             (
-                -- Location match (50 points) - MANDATORY
+                -- Location match: 40pts exact borough/city expansion, 25pts region fallback
                 CASE
-                    WHEN (
-                        (p.local_authority IS NOT NULL AND LOWER(TRIM(p.local_authority)) = ANY(local_authorities))
-                        OR
-                        (p.city IS NOT NULL AND LOWER(TRIM(p.city)) = ANY(locations))
-                    ) THEN 50
+                    WHEN (p.local_authority IS NOT NULL AND LOWER(TRIM(p.local_authority)) = ANY(local_authorities))
+                    THEN 40
+                    WHEN (p.city IS NOT NULL AND LOWER(TRIM(p.city)) = ANY(locations))
+                      OR (p.local_authority IS NOT NULL AND LOWER(TRIM(p.local_authority)) = ANY(locations))
+                    THEN 25
                     ELSE 0
                 END
                 +
@@ -116,33 +130,36 @@ BEGIN
                     ELSE 0
                 END
                 +
-                -- Bedrooms match (20 points)
+                -- Bedrooms match (15 points)
                 CASE
-                    WHEN p.bedrooms::INTEGER BETWEEN min_bedrooms_val AND max_bedrooms_val THEN 20
+                    WHEN p.bedrooms::INTEGER BETWEEN min_bedrooms_val AND max_bedrooms_val THEN 15
                     ELSE 0
                 END
                 +
-                -- Property type match (15 points)
+                -- Property type match (10 points)
                 CASE
                     WHEN cardinality(property_types_val) = 0
                       OR LOWER(TRIM(p.property_type)) = ANY(property_types_val)
                       OR ('houses' = ANY(property_types_val) AND LOWER(TRIM(p.property_type)) = 'house')
                       OR ('flats' = ANY(property_types_val) AND LOWER(TRIM(p.property_type)) = 'flat')
-                    THEN 15
+                    THEN 10
                     ELSE 0
                 END
                 +
-                -- License match (10 points)
+                -- License match (5 points)
                 CASE
-                    WHEN 'hmo' = ANY(property_types_val) AND LOWER(TRIM(p.property_licence)) = 'hmo' THEN 10
-                    WHEN p.property_licence IS NOT NULL THEN 5
+                    WHEN 'hmo' = ANY(property_types_val) AND LOWER(TRIM(p.property_licence)) = 'hmo' THEN 5
+                    WHEN p.property_licence IS NOT NULL
+                         AND TRIM(p.property_licence) != ''
+                         AND LOWER(TRIM(p.property_licence)) != 'none'
+                    THEN 3
                     ELSE 0
                 END
                 +
-                -- Availability match (10 points)
+                -- Availability match (5 points)
                 CASE
-                    WHEN immediate_availability AND LOWER(TRIM(p.availability)) = 'vacant' THEN 10
-                    WHEN NOT immediate_availability THEN 5
+                    WHEN immediate_availability AND LOWER(TRIM(p.availability)) = 'vacant' THEN 5
+                    WHEN NOT immediate_availability THEN 3
                     ELSE 0
                 END
             ) AS score
@@ -150,8 +167,8 @@ BEGIN
         WHERE p.status = 'active'
           AND (
               (p.local_authority IS NOT NULL AND LOWER(TRIM(p.local_authority)) = ANY(local_authorities))
-              OR
-              (p.city IS NOT NULL AND LOWER(TRIM(p.city)) = ANY(locations))
+              OR (p.city IS NOT NULL AND LOWER(TRIM(p.city)) = ANY(locations))
+              OR (p.local_authority IS NOT NULL AND LOWER(TRIM(p.local_authority)) = ANY(locations))
           )
     )
     SELECT
@@ -159,9 +176,15 @@ BEGIN
         sp.score::INTEGER AS match_score,
         ARRAY(
             SELECT reason FROM (
-                SELECT 'Location match' AS reason, 1 AS priority
-                WHERE (sp.local_authority IS NOT NULL AND LOWER(TRIM(sp.local_authority)) = ANY(local_authorities))
-                   OR (sp.city IS NOT NULL AND LOWER(TRIM(sp.city)) = ANY(locations))
+                SELECT 'Exact location match' AS reason, 1 AS priority
+                WHERE sp.local_authority IS NOT NULL AND LOWER(TRIM(sp.local_authority)) = ANY(local_authorities)
+                UNION ALL
+                SELECT 'Location match (region)', 1
+                WHERE NOT (sp.local_authority IS NOT NULL AND LOWER(TRIM(sp.local_authority)) = ANY(local_authorities))
+                  AND (
+                      (sp.city IS NOT NULL AND LOWER(TRIM(sp.city)) = ANY(locations))
+                      OR (sp.local_authority IS NOT NULL AND LOWER(TRIM(sp.local_authority)) = ANY(locations))
+                  )
                 UNION ALL
                 SELECT 'Budget match', 2
                 WHERE sp.monthly_rent BETWEEN min_budget_val AND max_budget_val
@@ -182,7 +205,7 @@ BEGIN
             ORDER BY priority
         ) AS match_reasons
     FROM scored_properties sp
-    WHERE sp.score >= min_match_score
+    WHERE sp.score >= GREATEST(min_match_score, 25)
     ORDER BY sp.score DESC
     LIMIT page_limit
     OFFSET page_offset;
@@ -190,7 +213,7 @@ END;
 $$;
 
 -- ============================================================================
--- 2. Create find_matching_investors_for_property function with area expansion
+-- 2. find_matching_investors_for_property
 -- ============================================================================
 
 CREATE OR REPLACE FUNCTION find_matching_investors_for_property(
@@ -237,12 +260,10 @@ BEGIN
     FROM properties prop
     WHERE prop.id = p_property_id;
 
-    -- If property not found, return empty
     IF NOT FOUND THEN
         RETURN;
     END IF;
 
-    -- Return matching investors
     RETURN QUERY
     SELECT
         up.id,
@@ -252,9 +273,8 @@ BEGIN
         ip.operator_type as investor_type,
         up.created_at,
         ip.preference_data,
-        -- Calculate match score
         (
-            -- Location match (50 points)
+            -- Location match: 40pts exact borough/city expansion, 25pts region fallback
             CASE
                 WHEN EXISTS (
                     SELECT 1
@@ -264,38 +284,43 @@ BEGIN
                          ) AS auth,
                          LATERAL unnest(expand_area_to_authorities(auth)) AS expanded_auth
                     WHERE LOWER(TRIM(expanded_auth)) = property_local_authority_val
-                       OR LOWER(TRIM(loc->>'city')) = property_city_val
-                ) THEN 50
-                -- Fall back to city expansion if localAuthorities array is empty
+                ) THEN 40
                 WHEN EXISTS (
                     SELECT 1
                     FROM jsonb_array_elements(COALESCE(ip.preference_data->'locations', '[]'::jsonb)) AS loc,
                          LATERAL unnest(expand_area_to_authorities(loc->>'city')) AS expanded_auth
                     WHERE LOWER(TRIM(expanded_auth)) = property_local_authority_val
-                       OR LOWER(TRIM(loc->>'city')) = property_city_val
-                ) THEN 50
+                ) THEN 40
+                WHEN EXISTS (
+                    SELECT 1
+                    FROM jsonb_array_elements(COALESCE(ip.preference_data->'locations', '[]'::jsonb)) AS loc
+                    WHERE LOWER(TRIM(loc->>'city')) = property_city_val
+                       OR LOWER(TRIM(loc->>'city')) = property_local_authority_val
+                       OR LOWER(TRIM(loc->>'region')) = property_city_val
+                       OR LOWER(TRIM(loc->>'region')) = property_local_authority_val
+                ) THEN 25
                 ELSE 0
             END
             +
-            -- Budget match (25 points)
+            -- Budget match (25 points) - budget prefs in pounds, monthly_rent in pence
             CASE
                 WHEN property_price_val BETWEEN
-                    COALESCE((ip.preference_data->'budget'->>'min')::NUMERIC, 0) AND
-                    COALESCE((ip.preference_data->'budget'->>'max')::NUMERIC, 999999999)
+                    COALESCE((ip.preference_data->'budget'->>'min')::NUMERIC, 0) * 100 AND
+                    COALESCE((ip.preference_data->'budget'->>'max')::NUMERIC, 999999999) * 100
                 THEN 25
                 ELSE 0
             END
             +
-            -- Bedrooms match (20 points)
+            -- Bedrooms match (15 points)
             CASE
                 WHEN property_bedrooms_val BETWEEN
                     COALESCE((ip.preference_data->'bedrooms'->>'min')::INTEGER, 0) AND
                     COALESCE((ip.preference_data->'bedrooms'->>'max')::INTEGER, 999)
-                THEN 20
+                THEN 15
                 ELSE 0
             END
             +
-            -- Property type match (15 points)
+            -- Property type match (10 points)
             CASE
                 WHEN NOT jsonb_path_exists(ip.preference_data, '$.property_types[*]')
                   OR EXISTS (
@@ -305,26 +330,29 @@ BEGIN
                          OR (ptype = 'houses' AND property_type_val = 'house')
                          OR (ptype = 'flats' AND property_type_val = 'flat')
                   )
-                THEN 15
+                THEN 10
                 ELSE 0
             END
             +
-            -- License match (10 points)
+            -- License match (5 points)
             CASE
                 WHEN EXISTS (
                     SELECT 1
                     FROM jsonb_array_elements_text(ip.preference_data->'property_types') AS ptype
                     WHERE ptype = 'hmo' AND property_license_val = 'hmo'
-                ) THEN 10
-                WHEN property_license_val IS NOT NULL THEN 5
+                ) THEN 5
+                WHEN property_license_val IS NOT NULL
+                     AND property_license_val != ''
+                     AND property_license_val != 'none'
+                THEN 3
                 ELSE 0
             END
             +
-            -- Availability match (10 points)
+            -- Availability match (5 points)
             CASE
                 WHEN COALESCE((ip.preference_data->'availability'->>'immediate')::BOOLEAN, FALSE)
-                     AND property_availability_val = 'vacant' THEN 10
-                WHEN NOT COALESCE((ip.preference_data->'availability'->>'immediate')::BOOLEAN, FALSE) THEN 5
+                     AND property_availability_val = 'vacant' THEN 5
+                WHEN NOT COALESCE((ip.preference_data->'availability'->>'immediate')::BOOLEAN, FALSE) THEN 3
                 ELSE 0
             END
         )::INTEGER AS match_score
@@ -333,7 +361,6 @@ BEGIN
     WHERE ip.is_active = true
       AND ip.preference_data IS NOT NULL
       AND (
-          -- Location filter with area expansion
           EXISTS (
               SELECT 1
               FROM jsonb_array_elements(COALESCE(ip.preference_data->'locations', '[]'::jsonb)) AS loc,
@@ -342,20 +369,26 @@ BEGIN
                    ) AS auth,
                    LATERAL unnest(expand_area_to_authorities(auth)) AS expanded_auth
               WHERE LOWER(TRIM(expanded_auth)) = property_local_authority_val
-                 OR LOWER(TRIM(loc->>'city')) = property_city_val
           )
           OR
-          -- Fall back to city expansion if localAuthorities array is empty
           EXISTS (
               SELECT 1
               FROM jsonb_array_elements(COALESCE(ip.preference_data->'locations', '[]'::jsonb)) AS loc,
                    LATERAL unnest(expand_area_to_authorities(loc->>'city')) AS expanded_auth
               WHERE LOWER(TRIM(expanded_auth)) = property_local_authority_val
-                 OR LOWER(TRIM(loc->>'city')) = property_city_val
+          )
+          OR
+          EXISTS (
+              SELECT 1
+              FROM jsonb_array_elements(COALESCE(ip.preference_data->'locations', '[]'::jsonb)) AS loc
+              WHERE LOWER(TRIM(loc->>'city')) = property_city_val
+                 OR LOWER(TRIM(loc->>'city')) = property_local_authority_val
+                 OR LOWER(TRIM(loc->>'region')) = property_city_val
+                 OR LOWER(TRIM(loc->>'region')) = property_local_authority_val
           )
       )
       AND (
-          -- Location match (50 points)
+          -- Compute total score inline and filter by threshold >= 25
           CASE
               WHEN EXISTS (
                   SELECT 1
@@ -365,22 +398,28 @@ BEGIN
                        ) AS auth,
                        LATERAL unnest(expand_area_to_authorities(auth)) AS expanded_auth
                   WHERE LOWER(TRIM(expanded_auth)) = property_local_authority_val
-                     OR LOWER(TRIM(loc->>'city')) = property_city_val
-              ) THEN 50
+              ) THEN 40
               WHEN EXISTS (
                   SELECT 1
                   FROM jsonb_array_elements(COALESCE(ip.preference_data->'locations', '[]'::jsonb)) AS loc,
                        LATERAL unnest(expand_area_to_authorities(loc->>'city')) AS expanded_auth
                   WHERE LOWER(TRIM(expanded_auth)) = property_local_authority_val
-                     OR LOWER(TRIM(loc->>'city')) = property_city_val
-              ) THEN 50
+              ) THEN 40
+              WHEN EXISTS (
+                  SELECT 1
+                  FROM jsonb_array_elements(COALESCE(ip.preference_data->'locations', '[]'::jsonb)) AS loc
+                  WHERE LOWER(TRIM(loc->>'city')) = property_city_val
+                     OR LOWER(TRIM(loc->>'city')) = property_local_authority_val
+                     OR LOWER(TRIM(loc->>'region')) = property_city_val
+                     OR LOWER(TRIM(loc->>'region')) = property_local_authority_val
+              ) THEN 25
               ELSE 0
           END
           +
           CASE
               WHEN property_price_val BETWEEN
-                  COALESCE((ip.preference_data->'budget'->>'min')::NUMERIC, 0) AND
-                  COALESCE((ip.preference_data->'budget'->>'max')::NUMERIC, 999999999)
+                  COALESCE((ip.preference_data->'budget'->>'min')::NUMERIC, 0) * 100 AND
+                  COALESCE((ip.preference_data->'budget'->>'max')::NUMERIC, 999999999) * 100
               THEN 25
               ELSE 0
           END
@@ -389,7 +428,7 @@ BEGIN
               WHEN property_bedrooms_val BETWEEN
                   COALESCE((ip.preference_data->'bedrooms'->>'min')::INTEGER, 0) AND
                   COALESCE((ip.preference_data->'bedrooms'->>'max')::INTEGER, 999)
-              THEN 20
+              THEN 15
               ELSE 0
           END
           +
@@ -402,7 +441,7 @@ BEGIN
                        OR (ptype = 'houses' AND property_type_val = 'house')
                        OR (ptype = 'flats' AND property_type_val = 'flat')
                 )
-              THEN 15
+              THEN 10
               ELSE 0
           END
           +
@@ -411,25 +450,28 @@ BEGIN
                   SELECT 1
                   FROM jsonb_array_elements_text(ip.preference_data->'property_types') AS ptype
                   WHERE ptype = 'hmo' AND property_license_val = 'hmo'
-              ) THEN 10
-              WHEN property_license_val IS NOT NULL THEN 5
+              ) THEN 5
+              WHEN property_license_val IS NOT NULL
+                   AND property_license_val != ''
+                   AND property_license_val != 'none'
+              THEN 3
               ELSE 0
           END
           +
           CASE
               WHEN COALESCE((ip.preference_data->'availability'->>'immediate')::BOOLEAN, FALSE)
-                   AND property_availability_val = 'vacant' THEN 10
-              WHEN NOT COALESCE((ip.preference_data->'availability'->>'immediate')::BOOLEAN, FALSE) THEN 5
+                   AND property_availability_val = 'vacant' THEN 5
+              WHEN NOT COALESCE((ip.preference_data->'availability'->>'immediate')::BOOLEAN, FALSE) THEN 3
               ELSE 0
           END
-      ) >= 50
+      ) >= 25
     ORDER BY match_score DESC;
 END;
 $$;
 
 -- Add helpful comments
 COMMENT ON FUNCTION get_matched_properties_for_investor IS
-'Matches properties to investor preferences with area expansion. Uses localAuthorities field with fallback to areas for backward compatibility. Expands area names (e.g., "East London") to constituent local authorities. Minimum match score is 50 (location match required).';
+'Matches properties to investor preferences with area expansion (both localAuthorities and city), region-level matching, correct budget unit conversion (prefs in pounds, rent in pence), and 100-point scoring scale with tiered location matching (40pts exact borough/city expansion, 25pts region fallback).';
 
 COMMENT ON FUNCTION find_matching_investors_for_property IS
-'Finds matching investors for a property with area expansion. Uses localAuthorities field with fallback to areas for backward compatibility. Expands area names to constituent local authorities. Minimum match score is 50 (location match required).';
+'Finds matching investors for a property with area expansion (both localAuthorities and city), region-level matching, correct budget unit conversion, and 100-point scoring scale with tiered location matching (40pts exact borough/city expansion, 25pts region fallback).';
