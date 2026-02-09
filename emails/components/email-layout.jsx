@@ -8,6 +8,7 @@ import {
   Link,
   Hr,
   Font,
+  Preview,
 } from '@react-email/components';
 import * as React from 'react';
 
@@ -36,7 +37,7 @@ export default function EmailLayout({ children, preview }) {
           fontStyle="normal"
         />
       </Head>
-      {preview && <preview>{preview}</preview>}
+      {preview && <Preview>{preview}</Preview>}
       <Body style={main}>
         {/* Header */}
         <Section style={header}>
