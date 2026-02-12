@@ -13,6 +13,8 @@ import Link from "next/link"
 import type { Property } from "@/lib/sample-data"
 import { allNavigationLocations, getLocationBySlug } from "@/lib/navigation-locations"
 import { PageHeader } from "@/components/page-header"
+import { supabase } from "@/lib/supabase"
+import { extractPreferences, calculateMatchScore } from "@/lib/propertyMatching"
 
 // Build location display names and search config from navigation locations
 const locationDisplayNames: Record<string, string> = Object.fromEntries(
@@ -50,10 +52,38 @@ function PropertiesContent() {
   const [propertyTypeFilter, setPropertyTypeFilter] = useState("any")
   const [localAuthorityFilter, setLocalAuthorityFilter] = useState("any")
 
+  // Match scoring for logged-in investors
+  const [investorPrefs, setInvestorPrefs] = useState<any>(null)
+  const [matchScores, setMatchScores] = useState<Record<string, { matchScore: number, matchBreakdown: any }>>({})
+
   const locationData = location ? getLocationBySlug(location) : null
   const displayName = locationData?.displayName || location || "All Locations"
   const availableLocalAuthorities = locationData?.localAuthorities || []
   const postcodePrefix = locationData?.postcodePrefix
+
+  // Fetch investor preferences if logged in
+  useEffect(() => {
+    async function fetchPrefs() {
+      try {
+        const { data: { session } } = await supabase.auth.getSession()
+        if (!session?.access_token) return
+
+        const response = await fetch('/api/investor/preferences', {
+          headers: { 'Authorization': `Bearer ${session.access_token}` }
+        })
+        if (response.ok) {
+          const data = await response.json()
+          if (data.success && data.preferences?.preference_data) {
+            const extracted = extractPreferences(data.preferences.preference_data)
+            setInvestorPrefs(extracted)
+          }
+        }
+      } catch (e) {
+        // Not logged in or not an investor — no match scores
+      }
+    }
+    fetchPrefs()
+  }, [])
 
   // Debug logging
   useEffect(() => {
@@ -140,6 +170,16 @@ function PropertiesContent() {
           }))
           setProperties(formattedProperties)
           setPagination(data.pagination)
+
+          // Calculate match scores if investor prefs available
+          if (investorPrefs) {
+            const scores: Record<string, { matchScore: number, matchBreakdown: any }> = {}
+            for (const p of data.properties) {
+              const result = calculateMatchScore(investorPrefs, p)
+              scores[p.id] = result
+            }
+            setMatchScores(scores)
+          }
         }
       } catch (error) {
         console.error("Error fetching properties:", error)
@@ -150,7 +190,7 @@ function PropertiesContent() {
     }
 
     fetchProperties()
-  }, [currentPage, location, availableLocalAuthorities, localAuthorityFilter, sortBy, sortOrder, bedroomFilter, propertyTypeFilter])
+  }, [currentPage, location, availableLocalAuthorities, localAuthorityFilter, sortBy, sortOrder, bedroomFilter, propertyTypeFilter, investorPrefs])
 
   // Reset to page 1 when filters change
   useEffect(() => {
@@ -245,6 +285,7 @@ function PropertiesContent() {
                   <SelectContent>
                     <SelectItem value="created_at">Date Added</SelectItem>
                     <SelectItem value="monthly_rent">Price</SelectItem>
+                    {investorPrefs && <SelectItem value="best_match">Best Match</SelectItem>}
                   </SelectContent>
                 </Select>
 
@@ -288,8 +329,16 @@ function PropertiesContent() {
           {!loading && properties.length > 0 && (
             <>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mb-8">
-                {properties.map((property) => (
-                  <PropertyCard key={property.id} property={property} />
+                {(sortBy === 'best_match'
+                  ? [...properties].sort((a, b) => (matchScores[b.id]?.matchScore || 0) - (matchScores[a.id]?.matchScore || 0))
+                  : properties
+                ).map((property) => (
+                  <PropertyCard
+                    key={property.id}
+                    property={property}
+                    matchScore={matchScores[property.id]?.matchScore}
+                    matchBreakdown={matchScores[property.id]?.matchBreakdown}
+                  />
                 ))}
               </div>
 

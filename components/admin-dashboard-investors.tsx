@@ -142,7 +142,7 @@ export function AdminDashboardInvestors() {
       }
 
       // Fetch matched properties
-      const matchedResponse = await fetch(`/api/admin/investors/${investor.id}/matched-properties?limit=10`, {
+      const matchedResponse = await fetch(`/api/admin/investors/${investor.id}/matched-properties?limit=10&minScore=60`, {
         headers: {
           'Authorization': `Bearer ${session.access_token}`
         }

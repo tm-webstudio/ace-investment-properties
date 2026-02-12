@@ -16,6 +16,13 @@ import { format } from "date-fns"
 import { supabase } from "@/lib/supabase"
 import type { Property } from "@/lib/sample-data"
 
+interface MatchBreakdown {
+  location: number
+  price: number
+  bedrooms: number
+  type: number
+}
+
 interface PropertyCardProps {
   property: Property
   variant?: 'default' | 'landlord' | 'admin' // 'default' shows heart, 'landlord' shows dropdown, 'admin' shows approve/reject
@@ -26,12 +33,24 @@ interface PropertyCardProps {
   onGovernmentReject?: (propertyId: string) => void // Optional callback for govt-specific rejection
   showGovernmentActions?: boolean // Force showing government buttons even if no flag on property
   currentTab?: string // Current active tab for proper redirect after edit
+  matchScore?: number
+  matchBreakdown?: MatchBreakdown
 }
 
-export function PropertyCard({ property, variant = 'default', onPropertyDeleted, onApprove, onReject, onGovernmentApprove, onGovernmentReject, showGovernmentActions = false, currentTab }: PropertyCardProps) {
+export function PropertyCard({ property, variant = 'default', onPropertyDeleted, onApprove, onReject, onGovernmentApprove, onGovernmentReject, showGovernmentActions = false, currentTab, matchScore, matchBreakdown }: PropertyCardProps) {
   const [isDeleting, setIsDeleting] = useState(false)
   const [deleteModalOpen, setDeleteModalOpen] = useState(false)
   const router = useRouter()
+
+  // Filter out invalid blob URLs (they don't work cross-origin)
+  const validImages = (property.images || property.photos || []).filter((url: string) => {
+    if (!url) return false
+    // Skip blob URLs that aren't from current origin
+    if (url.startsWith('blob:') && !url.startsWith(`blob:${window.location.origin}`)) {
+      return false
+    }
+    return true
+  })
 
   // Get formatted property title
   const propertyTitle = property.address && property.city ? (
@@ -141,9 +160,9 @@ export function PropertyCard({ property, variant = 'default', onPropertyDeleted,
         {(isAwaitingApproval || isRejected) && (
           <div className="absolute inset-0 bg-black/25 z-[4] pointer-events-none backdrop-blur-[1px]" />
         )}
-        {(property.images || property.photos)?.[0] ? (
+        {validImages[0] ? (
           <Image
-            src={(property.images || property.photos)[0]}
+            src={validImages[0]}
             alt={typeof propertyTitle === 'string' ? propertyTitle : property.title || 'Property'}
             width={400}
             height={250}
@@ -199,6 +218,21 @@ export function PropertyCard({ property, variant = 'default', onPropertyDeleted,
         <div className="absolute top-4 right-4 z-[10]">
           {topRightAction}
         </div>
+        {matchScore !== undefined && (
+          <div className="absolute bottom-3 left-3 z-[8]" title={matchBreakdown ? `Location: ${matchBreakdown.location}% | Price: ${matchBreakdown.price}% | Bedrooms: ${matchBreakdown.bedrooms}% | Type: ${matchBreakdown.type}%` : undefined}>
+            <Badge
+              className={`text-xs font-bold shadow-lg rounded-none px-2 py-1 ${
+                matchScore >= 80
+                  ? 'bg-green-600 text-white hover:bg-green-700'
+                  : matchScore >= 60
+                  ? 'bg-amber-500 text-white hover:bg-amber-600'
+                  : 'bg-gray-500 text-white hover:bg-gray-600'
+              }`}
+            >
+              {matchScore}% Match
+            </Badge>
+          </div>
+        )}
         <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
       </div>
 

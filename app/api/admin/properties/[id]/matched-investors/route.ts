@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { getInvestorMatches } from '@/lib/propertyMatching'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -35,60 +36,21 @@ export async function GET(
       return NextResponse.json({ error: 'Forbidden - Admin access required' }, { status: 403 })
     }
 
-    // Get property details
-    const { data: property, error: propertyError } = await supabase
-      .from('properties')
-      .select('*')
-      .eq('id', propertyId)
-      .single()
-
-    if (propertyError || !property) {
-      return NextResponse.json({ error: 'Property not found' }, { status: 404 })
-    }
-
-    // Debug logging
-    console.log('=== PROPERTY MATCHING DEBUG ===')
+    // Use JS-based matching
+    console.log('=== MATCHING INVESTORS DEBUG ===')
     console.log('Property ID:', propertyId)
-    console.log('Property details:', {
-      title: property.title,
-      city: property.city,
-      local_authority: property.local_authority,
-      price: property.asking_price,
-      bedrooms: property.bedrooms,
-      type: property.property_type,
-      license: property.license_type
-    })
 
-    // Find matching investors using the property matching function
-    const { data: matchingInvestors, error: matchError } = await supabase
-      .rpc('find_matching_investors_for_property', {
-        p_property_id: propertyId
-      })
+    const investors = await getInvestorMatches(propertyId, { minScore: 60 })
 
-    console.log('Matched investors:', matchingInvestors?.length || 0)
-    if (matchError) {
-      console.error('Match error:', matchError)
+    console.log('Matched investors count:', investors.length)
+    if (investors.length > 0) {
+      console.log('Sample investor:', investors[0])
     }
-    if (matchingInvestors && matchingInvestors.length > 0) {
-      console.log('Sample match:', {
-        investor: matchingInvestors[0].full_name || matchingInvestors[0].email,
-        score: matchingInvestors[0].match_score,
-        locations: matchingInvestors[0].preference_data?.locations
-      })
-    }
-    console.log('=== END PROPERTY MATCHING DEBUG ===')
-
-    if (matchError) {
-      console.error('Error finding matching investors:', matchError)
-      return NextResponse.json({
-        success: true,
-        investors: []
-      })
-    }
+    console.log('=== END MATCHING INVESTORS DEBUG ===')
 
     return NextResponse.json({
       success: true,
-      investors: matchingInvestors || []
+      investors
     })
 
   } catch (error: any) {

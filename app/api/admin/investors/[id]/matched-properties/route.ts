@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { formatPropertyForCard } from '@/lib/property-utils'
+import { getMatchedProperties } from '@/lib/propertyMatching'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -52,7 +53,7 @@ export async function GET(
     const { searchParams } = new URL(request.url)
     const limit = Math.min(parseInt(searchParams.get('limit') || '10'), 50)
     const offset = parseInt(searchParams.get('offset') || '0')
-    const minScore = parseInt(searchParams.get('minScore') || '0')
+    const minScore = parseInt(searchParams.get('minScore') || '60')
 
     // Check if investor has preferences set up
     const { data: preferences, error: prefError } = await supabase
@@ -72,43 +73,14 @@ export async function GET(
       })
     }
 
-    // Get matched properties using the database function
-    const { data: matchedProperties, error: matchError } = await supabase
-      .rpc('get_matched_properties_for_investor', {
-        investor_uuid: investorId,
-        page_limit: limit,
-        page_offset: offset,
-        min_match_score: minScore
-      })
-
-    if (matchError) {
-      console.error('Error getting matched properties:', matchError)
-      return NextResponse.json({
-        success: true,
-        properties: [],
-        total: 0,
-        hasPreferences: true,
-        error: 'Failed to get matched properties'
-      })
-    }
-
-    // Transform the data for frontend consumption
-    const formattedProperties = matchedProperties?.map((item: any) => {
-      const property = item.property_data
-      const formattedProperty = formatPropertyForCard(property)
-
-      return {
-        ...formattedProperty,
-        matchScore: item.match_score,
-        matchReasons: item.match_reasons
-      }
-    }) || []
+    // Use JS-based matching (same as investor API)
+    const result = await getMatchedProperties(investorId, { minScore, limit, offset })
 
     return NextResponse.json({
       success: true,
-      properties: formattedProperties,
-      total: formattedProperties.length,
-      hasPreferences: true
+      properties: result.properties,
+      total: result.total,
+      hasPreferences: result.hasPreferences
     })
 
   } catch (error) {

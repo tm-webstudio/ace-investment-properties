@@ -97,33 +97,53 @@ export async function GET(request) {
         break;
 
       case 'new-property-match':
-        // Try to fetch a real property from the database, fallback to mock data
+        // Try to fetch a real property with photos from the database, fallback to mock data
         const { data: property } = await supabase
           .from('properties')
-          .select('id, property_type, bedrooms, monthly_rent, address, city, postcode, images')
+          .select('id, property_type, bedrooms, bathrooms, monthly_rent, address, city, postcode, photos, availability, property_licence, property_condition, amenities, description')
+          .not('photos', 'is', null)
+          .filter('photos', 'neq', '{}')
           .limit(1)
           .maybeSingle();
 
         // Use real property data if available, otherwise use mock data
         const propertyData = property || {
           id: 'mock-123',
-          property_type: 'Modern Apartment',
+          property_type: 'Apartment',
           bedrooms: 2,
-          monthly_rent: 1200,
+          bathrooms: 1,
+          monthly_rent: 120000, // stored in pence (£1,200)
           address: '123 Nash Road',
           city: 'London',
           postcode: 'E1 1AA',
-          images: ['https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=600&h=400&fit=crop']
+          photos: ['https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=600&h=400&fit=crop'],
+          availability: 'vacant',
+          property_licence: 'hmo',
+          property_condition: 'excellent',
+          amenities: ['Garden', 'Parking', 'Close to Transport'],
+          description: 'Beautiful property in excellent condition'
         };
 
-        const propertyImages = propertyData.images || [];
+        const propertyImages = propertyData.photos || [];
         const mainImage = propertyImages[0] || 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=600&h=400&fit=crop';
 
+        // Format address: remove door number and only use outward postcode
+        const addressWithoutNumber = propertyData.address.replace(/^\d+\s*/, '');
+        const outwardPostcode = (propertyData.postcode?.split(' ')[0] || propertyData.postcode).toUpperCase();
+        const formattedCity = propertyData.city.charAt(0).toUpperCase() + propertyData.city.slice(1).toLowerCase();
+
         emailComponent = NewPropertyMatch({
-          propertyTitle: `${propertyData.property_type} - ${propertyData.bedrooms} Bedroom`,
-          propertyAddress: `${propertyData.address}, ${propertyData.city}, ${propertyData.postcode}`,
+          propertyType: propertyData.property_type,
+          bedrooms: propertyData.bedrooms,
+          bathrooms: propertyData.bathrooms,
+          propertyAddress: `${addressWithoutNumber}, ${formattedCity}, ${outwardPostcode}`,
           propertyImage: mainImage,
-          propertyPrice: `£${propertyData.monthly_rent?.toLocaleString()} pcm`,
+          propertyPrice: (propertyData.monthly_rent / 100)?.toLocaleString(),
+          availability: propertyData.availability,
+          propertyLicence: propertyData.property_licence,
+          condition: propertyData.property_condition,
+          amenities: propertyData.amenities || [],
+          description: propertyData.description,
           matchScore: 95,
           propertyUrl: `${process.env.NEXT_PUBLIC_SITE_URL}/properties/${propertyData.id}`,
           dashboardLink: `${process.env.NEXT_PUBLIC_SITE_URL}/investor/dashboard`

@@ -64,7 +64,7 @@ export function InvestorDashboardPreferences({ preferences: initialPreferences }
 
       // Fetch matched properties
       const response = await fetch(
-        `/api/investor/matched-properties?minScore=0&limit=50`,
+        `/api/investor/matched-properties?minScore=60&limit=50`,
         {
           headers: {
             'Authorization': `Bearer ${session.access_token}`

@@ -16,6 +16,13 @@ interface RecommendedPropertiesProps {
   preferences?: any
 }
 
+interface MatchBreakdown {
+  location: number
+  price: number
+  bedrooms: number
+  type: number
+}
+
 interface MatchedProperty {
   id: string
   title: string
@@ -32,7 +39,8 @@ interface MatchedProperty {
   property_condition?: string
   availability?: string
   matchScore: number
-  matchReasons: string[]
+  matchReasons?: string[]
+  matchBreakdown?: MatchBreakdown
 }
 
 export function RecommendedProperties({ className, preferences }: RecommendedPropertiesProps) {
@@ -65,7 +73,7 @@ export function RecommendedProperties({ className, preferences }: RecommendedPro
         return
       }
 
-      const minScore = showBestOnly ? 80 : 0
+      const minScore = showBestOnly ? 80 : 60
       const response = await fetch(
         `/api/investor/matched-properties?minScore=${minScore}&limit=6&offset=${offset}`,
         {
@@ -535,6 +543,8 @@ export function RecommendedProperties({ className, preferences }: RecommendedPro
                 >
                   <PropertyCard
                     property={convertedProperty}
+                    matchScore={property.matchScore}
+                    matchBreakdown={property.matchBreakdown}
                   />
                 </div>
               )

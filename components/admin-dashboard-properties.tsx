@@ -169,6 +169,9 @@ export function AdminDashboardProperties({ currentTab = 'properties' }: AdminDas
 
       const data = await response.json()
 
+      console.log('Matched investors API response:', data)
+      console.log('Investors count:', data.investors?.length)
+
       if (data.success && data.investors) {
         setMatchedInvestors(data.investors)
         setTimeout(updateScrollButtonsInvestors, 100)
@@ -432,9 +435,30 @@ export function AdminDashboardProperties({ currentTab = 'properties' }: AdminDas
                               </p>
                             )}
                             {investor.preference_data?.bedrooms && (
-                              <p className="text-[10px] text-gray-600">
+                              <p className="text-[10px] text-gray-600 mb-1.5">
                                 {investor.preference_data.bedrooms.min}-{investor.preference_data.bedrooms.max} bedrooms
                               </p>
+                            )}
+                            {investor.match_breakdown && (
+                              <div className="space-y-1 pt-1 border-t border-gray-100">
+                                {[
+                                  { label: 'Location', value: investor.match_breakdown.location },
+                                  { label: 'Price', value: investor.match_breakdown.price },
+                                  { label: 'Beds', value: investor.match_breakdown.bedrooms },
+                                  { label: 'Type', value: investor.match_breakdown.type },
+                                ].map(item => (
+                                  <div key={item.label} className="flex items-center gap-1.5">
+                                    <span className="text-[9px] text-gray-500 w-12">{item.label}</span>
+                                    <div className="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                                      <div
+                                        className={`h-full rounded-full ${item.value >= 80 ? 'bg-green-500' : item.value >= 60 ? 'bg-amber-500' : 'bg-gray-400'}`}
+                                        style={{ width: `${item.value}%` }}
+                                      />
+                                    </div>
+                                    <span className="text-[9px] text-gray-500 w-6 text-right">{item.value}%</span>
+                                  </div>
+                                ))}
+                              </div>
                             )}
                           </div>
                         </div>
