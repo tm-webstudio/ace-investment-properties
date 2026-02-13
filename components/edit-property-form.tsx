@@ -525,7 +525,7 @@ export function EditPropertyForm({ propertyId, initialData, isAdmin = false, ret
         property_condition: formData.propertyCondition,
         address: formData.address,
         city: formData.city,
-        specific_area: formData.specificArea,
+        local_authority: formData.specificArea,
         postcode: formData.postcode,
         monthly_rent: parseFloat(formData.monthlyRent),
         available_date: formData.availableDate,
