@@ -13,21 +13,6 @@ import { formatPropertyForCard } from './property-utils'
 // Location data helpers (JS-side equivalent of expand_area_to_authorities)
 // ============================================================
 
-// Build reverse lookup: local authority → sub-region
-const authorityToSubRegion: Record<string, string> = {}
-// Build reverse lookup: sub-region → region
-const subRegionToRegion: Record<string, string> = {}
-
-for (const [region, subRegions] of Object.entries(ukRegions)) {
-  for (const subRegion of subRegions) {
-    subRegionToRegion[subRegion.toLowerCase()] = region.toLowerCase()
-    const authorities = localAuthorities[subRegion] || []
-    for (const auth of authorities) {
-      authorityToSubRegion[auth.toLowerCase()] = subRegion.toLowerCase()
-    }
-  }
-}
-
 /**
  * Expand an area name to its local authorities (JS equivalent of DB function).
  * - If input is a local authority → return [input]
@@ -37,7 +22,7 @@ for (const [region, subRegions] of Object.entries(ukRegions)) {
  */
 export function expandAreaToAuthorities(area: string): string[] {
   if (!area) return []
-  const areaLower = area.toLowerCase()
+  const areaLower = area.trim().toLowerCase()
 
   // Check if it's a region (e.g. "London", "North West")
   for (const [region, subRegions] of Object.entries(ukRegions)) {
@@ -62,41 +47,6 @@ export function expandAreaToAuthorities(area: string): string[] {
   return [areaLower]
 }
 
-/**
- * Get the region for a property based on its local_authority or city.
- */
-export function getRegionForProperty(property: any): string | null {
-  const la = (property.local_authority || '').toLowerCase()
-  const city = (property.city || '').toLowerCase()
-
-  // Try local_authority first
-  if (la) {
-    const subRegion = authorityToSubRegion[la]
-    if (subRegion) {
-      const region = subRegionToRegion[subRegion]
-      if (region) return region
-    }
-    // la might itself be a sub-region name
-    if (subRegionToRegion[la]) return subRegionToRegion[la]
-  }
-
-  // Try city
-  if (city) {
-    const subRegion = authorityToSubRegion[city]
-    if (subRegion) {
-      const region = subRegionToRegion[subRegion]
-      if (region) return region
-    }
-    if (subRegionToRegion[city]) return subRegionToRegion[city]
-    // city might be a region name itself (e.g. "London")
-    for (const region of Object.keys(ukRegions)) {
-      if (region.toLowerCase() === city) return city
-    }
-  }
-
-  return null
-}
-
 // ============================================================
 // Extract flat preferences from nested JSONB
 // ============================================================
@@ -109,32 +59,32 @@ export function extractPreferences(preferenceData: any) {
   // Collect all local authorities from all locations, expanded
   const allLocalAuthorities = new Set<string>()
   const allCities = new Set<string>()
-  const allRegions = new Set<string>()
 
   for (const loc of locations) {
     // localAuthorities is an array of strings for each location entry
     const locAuths = loc.localAuthorities || []
-    for (const auth of locAuths) {
-      const expanded = expandAreaToAuthorities(auth)
+    if (locAuths.length > 0) {
+      for (const auth of locAuths) {
+        const expanded = expandAreaToAuthorities(auth)
+        expanded.forEach(a => allLocalAuthorities.add(a))
+      }
+    } else if (loc.city) {
+      // Empty localAuthorities = investor wants ALL areas in this sub-region/city
+      // e.g. city:"South East London", localAuthorities:[] → expand to [bexley, bromley, greenwich, lewisham]
+      // e.g. city:"Birmingham", localAuthorities:[] → expand to [birmingham]
+      const expanded = expandAreaToAuthorities(loc.city)
       expanded.forEach(a => allLocalAuthorities.add(a))
     }
 
     if (loc.city) {
-      const cityLower = loc.city.toLowerCase()
+      const cityLower = loc.city.trim().toLowerCase()
       allCities.add(cityLower)
-      // Don't expand city to authorities - only explicit localAuthorities selections should be expanded
-      // This prevents "London" from expanding to all 33 boroughs when a specific sub-region like "South East London" is selected
-    }
-
-    if (loc.region) {
-      allRegions.add(loc.region.toLowerCase())
     }
   }
 
   const extracted = {
     localAuthorities: [...allLocalAuthorities],
     cities: [...allCities],
-    regions: [...allRegions],
     budgetMin: preferenceData.budget?.min ?? null,
     budgetMax: preferenceData.budget?.max ?? null,
     bedroomsMin: preferenceData.bedrooms?.min ?? null,
@@ -144,8 +94,7 @@ export function extractPreferences(preferenceData: any) {
 
   console.log('Extracted preferences:', {
     localAuthorities: extracted.localAuthorities.slice(0, 5),
-    cities: extracted.cities,
-    regions: extracted.regions
+    cities: extracted.cities
   })
 
   return extracted
@@ -159,16 +108,15 @@ export function extractPreferences(preferenceData: any) {
  * Location score (weight: 50%)
  * - Local authority match: 100
  * - City match: 80
- * - Region match: 60
  * - No match: 0
  */
 export function calculateLocationScore(prefs: any, property: any): number {
-  if (!prefs || (prefs.localAuthorities.length === 0 && prefs.cities.length === 0 && prefs.regions.length === 0)) {
+  if (!prefs || (prefs.localAuthorities.length === 0 && prefs.cities.length === 0)) {
     return 100 // No location preference = everything matches
   }
 
-  const propLA = (property.local_authority || '').toLowerCase()
-  const propCity = (property.city || '').toLowerCase()
+  const propLA = (property.local_authority || '').trim().toLowerCase()
+  const propCity = (property.city || '').trim().toLowerCase()
 
   // Check local authority match
   // Note: Generic "London" and "Greater London" should not match - only specific boroughs
@@ -205,8 +153,7 @@ export function calculateLocationScore(prefs: any, property: any): number {
       // This prevents "West London" investors from matching "East London" properties
       if (hasLondonBoroughs) {
         console.log(`✗ Skipping generic "London" city match - investor has specific boroughs: ${prefs.localAuthorities.filter(a => londonBoroughs.includes(a)).slice(0, 3).join(', ')}...`)
-        // Property must match via specific local_authority (line 187), not via city
-        // Fall through to region check or return 0
+        // Property must match via specific local_authority, not via city
       } else {
         // No London boroughs at all - unlikely but allow city match
         console.log(`✓ City match: ${propCity}`)
@@ -219,16 +166,7 @@ export function calculateLocationScore(prefs: any, property: any): number {
     }
   }
 
-  // Check region match
-  // IMPORTANT: Don't use region matching for London - the sub-regions are too different
-  // (East London vs South East London should NOT match just because both are in "London" region)
-  const propRegion = getRegionForProperty(property)
-  if (propRegion && propRegion !== 'london' && prefs.regions.includes(propRegion)) {
-    console.log(`✓ Region match: ${propRegion}`)
-    return 60
-  }
-
-  console.log(`✗ No location match for property: LA=${propLA}, City=${propCity}, Region=${propRegion}`)
+  console.log(`✗ No location match for property: LA=${propLA}, City=${propCity}`)
   return 0
 }
 
@@ -478,8 +416,7 @@ export async function getInvestorMatches(propertyId: string, { minScore = 60 } =
     console.log('Investor preferences found:', investorPrefs.length)
     console.log('Property location:', {
       local_authority: property.local_authority,
-      city: property.city,
-      region: getRegionForProperty(property)
+      city: property.city
     })
 
     // Score each investor

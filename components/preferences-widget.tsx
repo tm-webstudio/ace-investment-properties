@@ -16,7 +16,7 @@ interface PreferencesWidgetProps {
       property_types: string[]
       bedrooms: { min: number; max: number }
       budget: { min: number; max: number; type: string }
-      locations: Array<{ city: string; areas: string[]; radius: number }>
+      locations: Array<{ city: string; localAuthorities?: string[]; areas?: string[]; radius?: number }>
       additional_preferences: string[]
     }
     updated_at: string
@@ -48,8 +48,9 @@ export function PreferencesWidget({ preferences, onPreferencesUpdate }: Preferen
     }).join(', ')
   }
 
-  const formatLocations = (locations: Array<{ city: string; areas: string[]; radius: number }>) => {
+  const formatLocations = (locations: Array<{ city: string; localAuthorities?: string[]; areas?: string[]; radius?: number }>) => {
     if (!locations || locations.length === 0) return 'Not specified'
+    // For the compact widget view, just show cities
     return locations.map(loc => loc.city).join(', ')
   }
 

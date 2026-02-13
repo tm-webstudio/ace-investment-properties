@@ -137,11 +137,16 @@ export function InvestorDashboardPreferences({ preferences: initialPreferences }
                 }
               </span>
             </div>
-            <div>
+            <div className="col-span-2">
               <span className="text-gray-900">Locations: </span>
               <span className="text-gray-600">
                 {prefData.locations?.length > 0
-                  ? prefData.locations.map((loc: any) => loc.city).slice(0, 2).join(', ') +
+                  ? prefData.locations.map((loc: any) => {
+                      if (loc.localAuthorities && loc.localAuthorities.length > 0) {
+                        return `${loc.city} (${loc.localAuthorities.join(', ')})`
+                      }
+                      return loc.city
+                    }).slice(0, 2).join('; ') +
                     (prefData.locations.length > 2 ? ` +${prefData.locations.length - 2} more` : '')
                   : 'Not specified'
                 }

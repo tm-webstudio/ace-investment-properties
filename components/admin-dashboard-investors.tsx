@@ -29,7 +29,7 @@ interface InvestorPreferences {
     budget?: { min: number; max: number }
     bedrooms?: { min: number; max: number }
     property_types?: string[]
-    locations?: Array<{ city: string }>
+    locations?: Array<{ city: string; localAuthorities?: string[] }>
   }
   notification_enabled: boolean
   is_active: boolean
@@ -434,11 +434,23 @@ export function AdminDashboardInvestors() {
                   <div className="col-span-2">
                     <p className="text-[11px] uppercase tracking-wide text-gray-500 font-medium mb-1.5">Preferred Locations</p>
                     <div className="flex flex-wrap gap-1">
-                      {investorPreferences.preference_data.locations.map((loc, index) => (
-                        <Badge key={index} variant="outline" className="text-xs font-normal">
-                          {loc.city}
-                        </Badge>
-                      ))}
+                      {investorPreferences.preference_data.locations.map((loc, index) => {
+                        const hasLocalAuthorities = loc.localAuthorities && loc.localAuthorities.length > 0
+                        return (
+                          <div key={index} className="flex flex-wrap items-center gap-1">
+                            {/* City badge */}
+                            <Badge variant="outline" className="text-xs font-normal bg-primary/5">
+                              {loc.city}
+                            </Badge>
+                            {/* Local authorities badges */}
+                            {hasLocalAuthorities && loc.localAuthorities!.map((auth, authIndex) => (
+                              <Badge key={authIndex} variant="secondary" className="text-xs font-normal">
+                                {auth}
+                              </Badge>
+                            ))}
+                          </div>
+                        )
+                      })}
                     </div>
                   </div>
                 )}
