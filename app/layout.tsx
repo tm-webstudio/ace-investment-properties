@@ -34,6 +34,20 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${inter.variable} ${playfair.variable} antialiased`}>
       <head>
+        {/* Google tag (gtag.js) */}
+        <Script
+          src="https://www.googletagmanager.com/gtag/js?id=AW-17963961737"
+          strategy="afterInteractive"
+        />
+        <Script id="google-analytics" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'AW-17963961737');
+          `}
+        </Script>
+
         {/* Meta Pixel Code */}
         <Script id="meta-pixel" strategy="afterInteractive">
           {`
