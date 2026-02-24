@@ -3,6 +3,7 @@ import { createClient } from '@supabase/supabase-js'
 import { supabase } from '@/lib/supabase'
 import { rateLimit } from '@/lib/middleware'
 import { signUpWithEmail } from '@/lib/authHelpers'
+import { sendLandlordSignupToGHL, sendInvestorSignupToGHL } from '@/lib/ghl'
 
 // Create admin client for database operations
 const supabaseAdmin = process.env.SUPABASE_SERVICE_ROLE_KEY
@@ -105,6 +106,36 @@ export async function POST(request: NextRequest) {
         },
         { status: 500 }
       )
+    }
+
+    // Send landlord signup to GoHighLevel (non-blocking)
+    if (user_type === 'landlord') {
+      try {
+        await sendLandlordSignupToGHL({
+          firstName: first_name,
+          lastName: last_name,
+          email,
+          phone: phone_number || ''
+        })
+      } catch (ghlError) {
+        console.error('GHL landlord signup sync failed:', ghlError)
+      }
+    }
+
+    // Send investor signup to GoHighLevel (non-blocking)
+    if (user_type === 'investor') {
+      try {
+        await sendInvestorSignupToGHL({
+          firstName: first_name,
+          lastName: last_name,
+          email,
+          phone: phone_number || '',
+          companyName: company_name || '',
+          preferences
+        })
+      } catch (ghlError) {
+        console.error('GHL investor signup sync failed:', ghlError)
+      }
     }
 
     // Save investor preferences if provided

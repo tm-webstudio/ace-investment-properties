@@ -8,7 +8,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 
 interface Step2Data {
   propertyTypes: string[]
-  propertyLicenses: string[]
+  propertyLicences: string[]
   bedroomsMin: number
   bedroomsMax: number
   budgetMin: number
@@ -29,7 +29,7 @@ const propertyTypeOptions = [
   { id: "commercial", label: "Commercial to Residential" }
 ]
 
-const propertyLicenseOptions = [
+const propertyLicenceOptions = [
   { id: "hmo_license", label: "HMO Licence" },
   { id: "c2_license", label: "C2 Licence" },
   { id: "selective_license", label: "Selective Licence" },
@@ -55,16 +55,16 @@ export function OnboardingStep2({ data, onChange }: OnboardingStep2Props) {
     onChange({ propertyTypes: newPropertyTypes })
   }
 
-  const handlePropertyLicenseChange = (licenseId: string, checked: boolean) => {
-    let newPropertyLicenses = [...(data.propertyLicenses || [])]
+  const handlePropertyLicenceChange = (licenceId: string, checked: boolean) => {
+    let newPropertyLicences = [...(data.propertyLicences || [])]
 
     if (checked) {
-      newPropertyLicenses.push(licenseId)
+      newPropertyLicences.push(licenceId)
     } else {
-      newPropertyLicenses = newPropertyLicenses.filter(id => id !== licenseId)
+      newPropertyLicences = newPropertyLicences.filter(id => id !== licenceId)
     }
 
-    onChange({ propertyLicenses: newPropertyLicenses })
+    onChange({ propertyLicences: newPropertyLicences })
   }
 
   return (
@@ -99,12 +99,12 @@ export function OnboardingStep2({ data, onChange }: OnboardingStep2Props) {
           Property Licences
         </Label>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          {propertyLicenseOptions.map((option) => (
+          {propertyLicenceOptions.map((option) => (
             <div key={option.id} className="flex items-center space-x-3 p-3 border border-gray-200 rounded-lg hover:border-primary/50 transition-colors">
               <Checkbox
                 id={option.id}
-                checked={(data.propertyLicenses || []).includes(option.id)}
-                onCheckedChange={(checked) => handlePropertyLicenseChange(option.id, checked as boolean)}
+                checked={(data.propertyLicences || []).includes(option.id)}
+                onCheckedChange={(checked) => handlePropertyLicenceChange(option.id, checked as boolean)}
               />
               <Label
                 htmlFor={option.id}

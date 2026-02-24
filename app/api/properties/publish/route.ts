@@ -225,8 +225,18 @@ export async function POST(request: NextRequest) {
         {
           title: newProperty?.address || propertyData?.address || 'Property',
           address: [newProperty?.address, newProperty?.city, newProperty?.postcode].filter(Boolean).join(', '),
-          price: newProperty?.monthly_rent ? newProperty.monthly_rent / 100 : propertyData?.monthlyRent,
-          type: newProperty?.property_type || propertyData?.propertyType
+          type: newProperty?.property_type || propertyData?.propertyType,
+          bedrooms: newProperty?.bedrooms,
+          bathrooms: newProperty?.bathrooms,
+          monthlyRent: newProperty?.monthly_rent ? newProperty.monthly_rent / 100 : propertyData?.monthlyRent,
+          availableDate: newProperty?.available_date,
+          city: newProperty?.city,
+          postcode: newProperty?.postcode,
+          localAuthority: newProperty?.local_authority,
+          condition: newProperty?.property_condition,
+          licence: newProperty?.property_licence,
+          contactPhone: newProperty?.contact_phone,
+          contactEmail: newProperty?.contact_email
         }
       )
     } catch (ghlError) {

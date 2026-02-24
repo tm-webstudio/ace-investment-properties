@@ -32,7 +32,7 @@ const DOCUMENT_TYPES = [
   { key: 'gas_safety', label: 'Gas Safety Certificate' },
   { key: 'epc', label: 'EPC Certificate' },
   { key: 'electrical_safety', label: 'Electrical Certificate' },
-  { key: 'hmo_license', label: 'Licenses' }
+  { key: 'hmo_license', label: 'Licences' }
 ]
 
 export async function GET(

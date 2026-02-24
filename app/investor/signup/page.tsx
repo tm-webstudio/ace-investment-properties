@@ -23,7 +23,7 @@ interface Step1Data {
 
 interface Step2Data {
   propertyTypes: string[]
-  propertyLicenses: string[]
+  propertyLicences: string[]
   bedroomsMin: number
   bedroomsMax: number
   budgetMin: number
@@ -71,7 +71,7 @@ export default function InvestorSignup() {
 
   const [step2Data, setStep2Data] = useState<Step2Data>({
     propertyTypes: [],
-    propertyLicenses: [],
+    propertyLicences: [],
     bedroomsMin: 1,
     bedroomsMax: 3,
     budgetMin: 500,
@@ -291,7 +291,7 @@ export default function InvestorSignup() {
         properties_managing: step1Data.propertiesManaging,
         preference_data: {
           property_types: step2Data.propertyTypes,
-          property_licenses: step2Data.propertyLicenses,
+          property_licenses: step2Data.propertyLicences,
           bedrooms: {
             min: step2Data.bedroomsMin,
             max: step2Data.bedroomsMax
