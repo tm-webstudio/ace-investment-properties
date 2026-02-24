@@ -61,6 +61,13 @@ export default function SignUpPage() {
       const data = await response.json()
 
       if (data.success) {
+        if (typeof window !== 'undefined' && typeof (window as any).gtag === 'function') {
+          ;(window as any).gtag('event', 'conversion', {
+            send_to: 'AW-17963961737/-CFOCIiMwPwbEImb8fVC',
+            value: 1.0,
+            currency: 'GBP'
+          })
+        }
         setSuccess("Account created successfully! Please check your email for verification.")
         // Optionally redirect after successful signup
         setTimeout(() => {

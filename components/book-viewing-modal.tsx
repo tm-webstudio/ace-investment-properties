@@ -374,6 +374,13 @@ export function BookViewingModal({ isOpen, onClose, propertyId, propertyData }: 
       const result = await response.json()
 
       if (result.success) {
+        if (typeof window !== 'undefined' && typeof (window as any).gtag === 'function') {
+          ;(window as any).gtag('event', 'conversion', {
+            send_to: 'AW-17963961737/-CFOCIiMwPwbEImb8fVC',
+            value: 1.0,
+            currency: 'GBP'
+          })
+        }
         setSuccessData({
           date: format(bookingForm.viewingDate, 'EEEE, MMMM do, yyyy'),
           time: bookingForm.viewingTime,

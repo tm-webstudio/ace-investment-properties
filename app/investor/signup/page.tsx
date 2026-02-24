@@ -331,6 +331,13 @@ export default function InvestorSignup() {
 
       if (data.success) {
         clearDraft() // Clear the saved draft
+        if (typeof window !== 'undefined' && typeof (window as any).gtag === 'function') {
+          ;(window as any).gtag('event', 'conversion', {
+            send_to: 'AW-17963961737/-CFOCIiMwPwbEImb8fVC',
+            value: 1.0,
+            currency: 'GBP'
+          })
+        }
         if (data.matchedProperties !== undefined) {
           router.push(`/auth/signin?message=Account created successfully! We found ${data.matchedProperties} properties matching your criteria. Please check your email for verification.`)
         } else {
