@@ -9,6 +9,7 @@ import * as React from 'react';
 import EmailLayout from '../components/email-layout';
 import EmailHeader from '../components/email-header';
 import PropertyCard from '../components/property-card';
+import EmailBox from '../components/email-box';
 
 export default function NewProperty({
   submittedByName = 'Jane Doe',
@@ -35,7 +36,7 @@ export default function NewProperty({
       />
 
       {/* Submitter Info Box */}
-      <Section style={infoBox}>
+      <EmailBox variant="outline">
         <Heading as="h3" style={infoHeading}>
           Landlord Info
         </Heading>
@@ -55,7 +56,7 @@ export default function NewProperty({
             </tr>
           </tbody>
         </table>
-      </Section>
+      </EmailBox>
 
       {/* Property Card */}
       <PropertyCard
@@ -83,29 +84,21 @@ export default function NewProperty({
       <Hr style={hr} />
 
       {/* Tip Box */}
-      <Section style={tipBox}>
+      <EmailBox variant="orange">
         <Text style={tipText}>
           <strong>Tip:</strong> Review the property details and approve or request changes via the admin panel.
         </Text>
-      </Section>
+      </EmailBox>
     </EmailLayout>
   );
 }
 
 // Styles
-const infoBox = {
-  backgroundColor: '#ffffff',
-  border: '2px solid #e5e7eb',
-  borderRadius: '0',
-  padding: '24px',
-  marginBottom: '24px',
-};
-
 const infoHeading = {
   color: '#1f2937',
-  fontSize: '18px',
+  fontSize: '15px',
   fontWeight: '600',
-  margin: '0 0 16px 0',
+  margin: '0 0 10px 0',
 };
 
 const infoTable = {
@@ -117,42 +110,35 @@ const infoLabel = {
   color: '#6b7280',
   fontSize: '14px',
   fontWeight: '600',
-  padding: '8px 0',
+  padding: '4px 0',
   width: '100px',
 };
 
 const infoValue = {
   color: '#1f2937',
   fontSize: '14px',
-  padding: '8px 0',
+  padding: '4px 0',
 };
 
 const buttonSection = {
   textAlign: 'center',
-  margin: '32px 0',
+  margin: '20px 0',
 };
 
 const callButton = {
   backgroundColor: '#10b981',
   color: '#ffffff',
-  padding: '14px 32px',
+  padding: '12px 24px',
   borderRadius: '0',
   textDecoration: 'none',
-  fontWeight: 'bold',
+  fontSize: '14px',
+  fontWeight: '600',
   display: 'inline-block',
 };
 
 const hr = {
   borderColor: '#e5e7eb',
   margin: '32px 0',
-};
-
-const tipBox = {
-  backgroundColor: '#f8f9fa',
-  borderLeft: '4px solid #1a1a2e',
-  borderRadius: '0',
-  padding: '16px 20px',
-  marginBottom: '24px',
 };
 
 const tipText = {

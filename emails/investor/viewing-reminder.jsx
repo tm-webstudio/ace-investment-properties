@@ -9,6 +9,7 @@ import {
 import * as React from 'react';
 import EmailLayout from '../components/email-layout';
 import EmailHeader from '../components/email-header';
+import EmailBox from '../components/email-box';
 
 export default function ViewingReminder({
   propertyTitle = 'Modern 2 Bedroom Apartment',
@@ -40,7 +41,7 @@ export default function ViewingReminder({
       />
 
       {/* Property Box - Blue Border */}
-      <Section style={propertyBox}>
+      <EmailBox variant="outline">
         {propertyImage && (
           <Img
             src={propertyImage}
@@ -54,10 +55,10 @@ export default function ViewingReminder({
         <Text style={propertyAddress}>
           {propertyAddress}
         </Text>
-      </Section>
+      </EmailBox>
 
       {/* Viewing Details - Yellow Box */}
-      <Section style={infoBox}>
+      <EmailBox variant="plain-white">
         <Heading as="h3" style={infoHeading}>
           Viewing Details
         </Heading>
@@ -81,7 +82,7 @@ export default function ViewingReminder({
             </tr>
           </tbody>
         </table>
-      </Section>
+      </EmailBox>
 
       {/* Action Button */}
       <Section style={buttonSection}>
@@ -93,7 +94,7 @@ export default function ViewingReminder({
       <Hr style={hr} />
 
       {/* Tips Box - Green */}
-      <Section style={tipsBox}>
+      <EmailBox variant="green-dark">
         <Heading as="h3" style={tipsHeading}>
           Viewing Checklist
         </Heading>
@@ -103,7 +104,7 @@ export default function ViewingReminder({
         <Text style={tipText}>Take photos/notes if permitted</Text>
         <Text style={tipText}>Check all rooms and amenities</Text>
         <Text style={tipText}>Note any concerns or repairs needed</Text>
-      </Section>
+      </EmailBox>
 
       <Section style={dashboardSection}>
         <Button href={dashboardLink} style={dashboardButton}>
@@ -119,14 +120,6 @@ export default function ViewingReminder({
 }
 
 // Styles matching ACE Investment Properties brand
-const propertyBox = {
-  border: '2px solid #e5e7eb',
-  borderRadius: '0',
-  padding: '24px',
-  marginBottom: '24px',
-  backgroundColor: '#ffffff',
-};
-
 const propertyImageStyle = {
   width: '100%',
   height: 'auto',
@@ -148,18 +141,11 @@ const propertyAddress = {
   margin: 0,
 };
 
-const infoBox = {
-  backgroundColor: '#ffffff',
-  borderRadius: '0',
-  padding: '20px',
-  marginBottom: '24px',
-};
-
 const infoHeading = {
   color: '#1f2937',
-  fontSize: '18px',
+  fontSize: '15px',
   fontWeight: '500',
-  margin: '0 0 16px 0',
+  margin: '0 0 10px 0',
 };
 
 const infoTable = {
@@ -171,41 +157,35 @@ const infoLabel = {
   color: '#6b7280',
   fontSize: '14px',
   fontWeight: '600',
-  padding: '8px 0',
+  padding: '4px 0',
   width: '100px',
 };
 
 const infoValue = {
   color: '#1f2937',
   fontSize: '14px',
-  padding: '8px 0',
+  padding: '4px 0',
 };
 
 const buttonSection = {
   textAlign: 'center',
-  margin: '32px 0',
+  margin: '20px 0',
 };
 
 const directionsButton = {
   backgroundColor: '#10b981',
   color: '#ffffff',
-  padding: '14px 32px',
+  padding: '12px 24px',
   borderRadius: '0',
   textDecoration: 'none',
-  fontWeight: 'bold',
+  fontSize: '14px',
+  fontWeight: '600',
   display: 'inline-block',
 };
 
 const hr = {
   borderColor: '#e5e7eb',
   margin: '32px 0',
-};
-
-const tipsBox = {
-  backgroundColor: '#f8f9fa', borderLeft: '4px solid #10b981',
-  borderRadius: '0',
-  padding: '20px',
-  marginBottom: '24px',
 };
 
 const tipsHeading = {
@@ -224,16 +204,17 @@ const tipText = {
 
 const dashboardSection = {
   textAlign: 'center',
-  margin: '30px 0',
+  margin: '20px 0',
 };
 
 const dashboardButton = {
   backgroundColor: '#1a1a2e',
   color: '#ffffff',
-  padding: '14px 32px',
+  padding: '12px 24px',
   borderRadius: '0',
   textDecoration: 'none',
-  fontWeight: 'bold',
+  fontSize: '14px',
+  fontWeight: '600',
   display: 'inline-block',
 };
 

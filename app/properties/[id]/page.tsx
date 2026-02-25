@@ -23,7 +23,6 @@ interface PropertyPageProps {
 export default function PropertyPage({ params }: PropertyPageProps) {
   const { id } = use(params)
   const [isBookViewingOpen, setIsBookViewingOpen] = useState(false)
-  const [isReserveOpen, setIsReserveOpen] = useState(false)
   const [property, setProperty] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -72,10 +71,6 @@ export default function PropertyPage({ params }: PropertyPageProps) {
 
   const handleBookViewing = () => {
     setIsBookViewingOpen(true)
-  }
-
-  const handleReserve = () => {
-    setIsReserveOpen(true)
   }
 
   if (loading) {
@@ -133,9 +128,6 @@ export default function PropertyPage({ params }: PropertyPageProps) {
                 <ApplicationModal
                   property={property}
                   onBookViewing={handleBookViewing}
-                  onReserve={handleReserve}
-                  isReserveOpen={isReserveOpen}
-                  onReserveClose={() => setIsReserveOpen(false)}
                 />
                 <LandlordCard
                   name={property.landlordName}

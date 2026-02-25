@@ -8,6 +8,7 @@ import {
 import * as React from 'react';
 import EmailLayout from '../components/email-layout';
 import EmailHeader from '../components/email-header';
+import EmailBox from '../components/email-box';
 
 export default function PasswordReset({
   name = 'User',
@@ -24,14 +25,14 @@ export default function PasswordReset({
       />
 
       {/* Security Notice - Orange Box */}
-      <Section style={securityBox}>
+      <EmailBox variant="orange">
         <Heading as="h3" style={securityHeading}>
           🛡️ Security Notice
         </Heading>
         <Text style={securityText}>
           If you didn't request this password reset, please ignore this email. Your account is safe and no changes have been made.
         </Text>
-      </Section>
+      </EmailBox>
 
       {/* Reset Button */}
       <Section style={buttonSection}>
@@ -46,7 +47,7 @@ export default function PasswordReset({
       <Hr style={hr} />
 
       {/* Link Alternative - Light Gray Box */}
-      <Section style={alternativeBox}>
+      <EmailBox variant="plain">
         <Heading as="h3" style={alternativeHeading}>
           Button not working?
         </Heading>
@@ -54,10 +55,10 @@ export default function PasswordReset({
           Copy and paste this link into your browser:
         </Text>
         <Text style={linkText}>{resetLink}</Text>
-      </Section>
+      </EmailBox>
 
       {/* Important Info - Light Yellow Box */}
-      <Section style={infoBox}>
+      <EmailBox variant="plain-white">
         <Heading as="h3" style={infoHeading}>
           Important Information:
         </Heading>
@@ -65,10 +66,10 @@ export default function PasswordReset({
         <Text style={infoItem}>🔒 This link can only be used once</Text>
         <Text style={infoItem}>🌐 Make sure you're on aceinvestmentproperties.co.uk</Text>
         <Text style={infoItem}>❌ Never share this link with anyone</Text>
-      </Section>
+      </EmailBox>
 
       {/* Password Tips - Green Box */}
-      <Section style={tipsBox}>
+      <EmailBox variant="green-dark">
         <Heading as="h3" style={tipsHeading}>
           Create a Strong Password:
         </Heading>
@@ -77,10 +78,10 @@ export default function PasswordReset({
         <Text style={tipText}>• Include numbers and symbols</Text>
         <Text style={tipText}>• Avoid common words or personal information</Text>
         <Text style={tipText}>• Don't reuse passwords from other accounts</Text>
-      </Section>
+      </EmailBox>
 
       {/* Help Section - Red Box */}
-      <Section style={helpBox}>
+      <EmailBox variant="red">
         <Text style={helpText}>
           <strong>Didn't request this?</strong><br />
           If you didn't request a password reset, please contact our security team immediately at{' '}
@@ -88,7 +89,7 @@ export default function PasswordReset({
             security@aceinvestmentproperties.co.uk
           </a>
         </Text>
-      </Section>
+      </EmailBox>
 
       <Hr style={hr} />
 
@@ -124,14 +125,6 @@ const subtitle = {
   margin: 0,
 };
 
-const securityBox = {
-  backgroundColor: '#f8f9fa',
-  borderLeft: '4px solid #f97316',
-  borderRadius: '0',
-  padding: '20px',
-  marginBottom: '24px',
-};
-
 const securityHeading = {
   color: '#92400e',
   fontSize: '18px',
@@ -148,7 +141,7 @@ const securityText = {
 
 const buttonSection = {
   textAlign: 'center',
-  margin: '32px 0',
+  margin: '20px 0',
 };
 
 const instructionText = {
@@ -161,23 +154,17 @@ const instructionText = {
 const resetButton = {
   backgroundColor: '#10b981',
   color: '#ffffff',
-  padding: '14px 32px',
+  padding: '12px 24px',
   borderRadius: '0',
   textDecoration: 'none',
-  fontWeight: 'bold',
+  fontSize: '14px',
+  fontWeight: '600',
   display: 'inline-block',
 };
 
 const hr = {
   borderColor: '#e5e7eb',
   margin: '32px 0',
-};
-
-const alternativeBox = {
-  backgroundColor: '#f8f9fa',
-  borderRadius: '0',
-  padding: '20px',
-  marginBottom: '24px',
 };
 
 const alternativeHeading = {
@@ -205,13 +192,6 @@ const linkText = {
   border: '1px solid #e5e7eb',
 };
 
-const infoBox = {
-  backgroundColor: '#ffffff',
-  borderRadius: '0',
-  padding: '20px',
-  marginBottom: '24px',
-};
-
 const infoHeading = {
   color: '#1f2937',
   fontSize: '18px',
@@ -227,13 +207,6 @@ const infoItem = {
   paddingLeft: '5px',
 };
 
-const tipsBox = {
-  backgroundColor: '#f8f9fa', borderLeft: '4px solid #10b981',
-  borderRadius: '0',
-  padding: '20px',
-  marginBottom: '24px',
-};
-
 const tipsHeading = {
   color: '#047857',
   fontSize: '18px',
@@ -247,14 +220,6 @@ const tipText = {
   margin: '6px 0',
   lineHeight: '22px',
   paddingLeft: '5px',
-};
-
-const helpBox = {
-  backgroundColor: '#fef2f2',
-  borderLeft: '4px solid #ef4444',
-  borderRadius: '0',
-  padding: '20px',
-  marginBottom: '24px',
 };
 
 const helpText = {

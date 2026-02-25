@@ -10,6 +10,7 @@ import * as React from 'react';
 import EmailLayout from '../components/email-layout';
 import EmailHeader from '../components/email-header';
 import { EmailIcon } from '../components/email-icon';
+import EmailBox from '../components/email-box';
 
 export default function ViewingConfirmation({
   propertyTitle = 'Modern 2 Bedroom Apartment',
@@ -34,7 +35,7 @@ export default function ViewingConfirmation({
       />
 
       {/* Property Box - White with Border */}
-      <Section style={propertyBox}>
+      <EmailBox variant="outline">
         {propertyImage && (
           <Img
             src={propertyImage}
@@ -49,10 +50,10 @@ export default function ViewingConfirmation({
           <EmailIcon name="mapPin" color="#6b7280" size={16} />
           {propertyAddress}
         </Text>
-      </Section>
+      </EmailBox>
 
       {/* Viewing Details - White Box with Border */}
-      <Section style={infoBox}>
+      <EmailBox variant="outline">
         <Heading as="h3" style={infoHeading}>
           Viewing Details
         </Heading>
@@ -83,7 +84,7 @@ export default function ViewingConfirmation({
             </tr>
           </tbody>
         </table>
-      </Section>
+      </EmailBox>
 
       {/* Action Buttons */}
       <Section style={buttonSection}>
@@ -98,7 +99,7 @@ export default function ViewingConfirmation({
       <Hr style={hr} />
 
       {/* Viewing Tips */}
-      <Section style={tipsBox}>
+      <EmailBox variant="green-dark">
         <Heading as="h3" style={tipsHeading}>
           Viewing Tips
         </Heading>
@@ -118,7 +119,7 @@ export default function ViewingConfirmation({
           <EmailIcon name="check" color="#10b981" size={16} />
           Check all rooms and amenities
         </Text>
-      </Section>
+      </EmailBox>
 
       <Section style={dashboardSection}>
         <Button href={dashboardLink} style={dashboardButton}>
@@ -149,14 +150,6 @@ const subtitle = {
   margin: 0,
 };
 
-const propertyBox = {
-  backgroundColor: '#ffffff',
-  border: '2px solid #e5e7eb',
-  borderRadius: '0',
-  padding: '24px',
-  marginBottom: '24px',
-};
-
 const propertyImageStyle = {
   width: '100%',
   height: 'auto',
@@ -180,19 +173,11 @@ const propertyAddressStyle = {
   alignItems: 'center',
 };
 
-const infoBox = {
-  backgroundColor: '#ffffff',
-  border: '2px solid #e5e7eb',
-  borderRadius: '0',
-  padding: '24px',
-  marginBottom: '24px',
-};
-
 const infoHeading = {
   color: '#1f2937',
-  fontSize: '18px',
+  fontSize: '15px',
   fontWeight: '600',
-  margin: '0 0 16px 0',
+  margin: '0 0 10px 0',
 };
 
 const infoTable = {
@@ -204,28 +189,29 @@ const infoLabel = {
   color: '#6b7280',
   fontSize: '14px',
   fontWeight: '600',
-  padding: '8px 0',
+  padding: '4px 0',
   width: '100px',
 };
 
 const infoValue = {
   color: '#1f2937',
   fontSize: '14px',
-  padding: '8px 0',
+  padding: '4px 0',
 };
 
 const buttonSection = {
   textAlign: 'center',
-  margin: '32px 0',
+  margin: '20px 0',
 };
 
 const calendarButton = {
   backgroundColor: '#10b981',
   color: '#ffffff',
-  padding: '14px 32px',
+  padding: '12px 24px',
   borderRadius: '0',
   textDecoration: 'none',
-  fontWeight: 'bold',
+  fontSize: '14px',
+  fontWeight: '600',
   display: 'inline-block',
   margin: '0 8px 12px 8px',
 };
@@ -233,10 +219,11 @@ const calendarButton = {
 const directionsButton = {
   backgroundColor: '#1a1a2e',
   color: '#ffffff',
-  padding: '14px 32px',
+  padding: '12px 24px',
   borderRadius: '0',
   textDecoration: 'none',
-  fontWeight: 'bold',
+  fontSize: '14px',
+  fontWeight: '600',
   display: 'inline-block',
   margin: '0 8px 12px 8px',
 };
@@ -244,14 +231,6 @@ const directionsButton = {
 const hr = {
   borderColor: '#e5e7eb',
   margin: '32px 0',
-};
-
-const tipsBox = {
-  backgroundColor: '#f8f9fa',
-  borderLeft: '4px solid #10b981',
-  borderRadius: '0',
-  padding: '24px',
-  marginBottom: '24px',
 };
 
 const tipsHeading = {
@@ -272,15 +251,16 @@ const tipText = {
 
 const dashboardSection = {
   textAlign: 'center',
-  margin: '30px 0',
+  margin: '20px 0',
 };
 
 const dashboardButton = {
   backgroundColor: '#1a1a2e',
   color: '#ffffff',
-  padding: '14px 32px',
+  padding: '12px 24px',
   borderRadius: '0',
   textDecoration: 'none',
-  fontWeight: 'bold',
+  fontSize: '14px',
+  fontWeight: '600',
   display: 'inline-block',
 };

@@ -8,6 +8,7 @@ import {
 import * as React from 'react';
 import EmailLayout from '../components/email-layout';
 import EmailHeader from '../components/email-header';
+import EmailBox from '../components/email-box';
 
 export default function PropertyRejected({
   propertyTitle = 'Modern 2 Bedroom Apartment',
@@ -26,24 +27,24 @@ export default function PropertyRejected({
       />
 
       {/* Property Box - Blue Border */}
-      <Section style={propertyBox}>
+      <EmailBox variant="outline">
         <Heading as="h2" style={propertyTitle}>
           {propertyTitle}
         </Heading>
         <Text style={propertyAddress}>
           {propertyAddress}
         </Text>
-      </Section>
+      </EmailBox>
 
       {/* Rejection Reason - Orange Box */}
-      <Section style={warningBox}>
+      <EmailBox variant="orange">
         <Heading as="h3" style={warningHeading}>
           Updates Required
         </Heading>
         <Text style={warningText}>
           {rejectionReason}
         </Text>
-      </Section>
+      </EmailBox>
 
       {/* Action Button */}
       <Section style={buttonSection}>
@@ -58,7 +59,7 @@ export default function PropertyRejected({
       <Hr style={hr} />
 
       {/* Guidelines - Yellow Box */}
-      <Section style={guidelinesBox}>
+      <EmailBox variant="plain-white">
         <Heading as="h3" style={guidelinesHeading}>
           Property Listing Guidelines
         </Heading>
@@ -83,10 +84,10 @@ export default function PropertyRejected({
         <Text style={guidelineText}>
           Competitive rental pricing
         </Text>
-      </Section>
+      </EmailBox>
 
       {/* Help Box - Green */}
-      <Section style={helpBox}>
+      <EmailBox variant="green-dark">
         <Heading as="h3" style={helpHeading}>
           Need Help?
         </Heading>
@@ -99,7 +100,7 @@ export default function PropertyRejected({
         <Text style={helpText}>
           📞 Phone: +44 20 1234 5678
         </Text>
-      </Section>
+      </EmailBox>
 
       <Section style={dashboardSection}>
         <Button href={dashboardLink} style={dashboardButton}>
@@ -115,14 +116,6 @@ export default function PropertyRejected({
 }
 
 // Styles matching ACE Investment Properties brand
-const propertyBox = {
-  border: '2px solid #e5e7eb',
-  borderRadius: '0',
-  padding: '24px',
-  marginBottom: '24px',
-  backgroundColor: '#ffffff',
-};
-
 const propertyTitle = {
   color: '#1f2937',
   fontSize: '28px',
@@ -135,14 +128,6 @@ const propertyAddress = {
   color: '#6b7280',
   fontSize: '14px',
   margin: 0,
-};
-
-const warningBox = {
-  backgroundColor: '#f8f9fa',
-  borderLeft: '4px solid #f97316',
-  borderRadius: '0',
-  padding: '20px',
-  marginBottom: '24px',
 };
 
 const warningHeading = {
@@ -161,7 +146,7 @@ const warningText = {
 
 const buttonSection = {
   textAlign: 'center',
-  margin: '32px 0',
+  margin: '20px 0',
 };
 
 const instructionText = {
@@ -174,23 +159,17 @@ const instructionText = {
 const editButton = {
   backgroundColor: '#10b981',
   color: '#ffffff',
-  padding: '14px 32px',
+  padding: '12px 24px',
   borderRadius: '0',
   textDecoration: 'none',
-  fontWeight: 'bold',
+  fontSize: '14px',
+  fontWeight: '600',
   display: 'inline-block',
 };
 
 const hr = {
   borderColor: '#e5e7eb',
   margin: '32px 0',
-};
-
-const guidelinesBox = {
-  backgroundColor: '#ffffff',
-  borderRadius: '0',
-  padding: '20px',
-  marginBottom: '24px',
 };
 
 const guidelinesHeading = {
@@ -205,13 +184,6 @@ const guidelineText = {
   fontSize: '14px',
   margin: '8px 0',
   lineHeight: '22px',
-};
-
-const helpBox = {
-  backgroundColor: '#f8f9fa', borderLeft: '4px solid #10b981',
-  borderRadius: '0',
-  padding: '20px',
-  marginBottom: '24px',
 };
 
 const helpHeading = {
@@ -230,16 +202,17 @@ const helpText = {
 
 const dashboardSection = {
   textAlign: 'center',
-  margin: '30px 0',
+  margin: '20px 0',
 };
 
 const dashboardButton = {
   backgroundColor: '#1a1a2e',
   color: '#ffffff',
-  padding: '14px 32px',
+  padding: '12px 24px',
   borderRadius: '0',
   textDecoration: 'none',
-  fontWeight: 'bold',
+  fontSize: '14px',
+  fontWeight: '600',
   display: 'inline-block',
 };
 

@@ -11,6 +11,7 @@ import * as React from 'react';
 import EmailLayout from '../components/email-layout';
 import EmailHeader from '../components/email-header';
 import { EmailIcon } from '../components/email-icon';
+import EmailBox from '../components/email-box';
 
 export default function NewPropertyMatch({
   propertyType = 'Apartment',
@@ -130,7 +131,7 @@ export default function NewPropertyMatch({
       </Section>
 
       {/* Property Box - Responsive layout */}
-      <Section style={propertyBox}>
+      <EmailBox variant="outline" padding="16px">
         <div className="property-container" style={{ display: 'block', width: '100%' }}>
           {/* Image - stacks on top for mobile, left side for desktop */}
           <div className="property-image-cell" style={{ display: 'block', width: '100%' }}>
@@ -212,10 +213,10 @@ export default function NewPropertyMatch({
             )}
           </div>
         </div>
-      </Section>
+      </EmailBox>
 
       {/* Match Details Box */}
-      <Section style={matchBox}>
+      <EmailBox variant="plain-white">
         <Heading as="h3" style={matchHeading}>
           Why This Property Matches
         </Heading>
@@ -260,7 +261,7 @@ export default function NewPropertyMatch({
             <Text style={matchItem}>Bedroom requirements</Text>
           </>
         )}
-      </Section>
+      </EmailBox>
 
       {/* Action Button */}
       <Section style={buttonSection}>
@@ -272,7 +273,7 @@ export default function NewPropertyMatch({
       <Hr style={hr} />
 
       {/* Quick Actions - Green Box */}
-      <Section style={actionsBox}>
+      <EmailBox variant="green-dark">
         <Heading as="h3" style={actionsHeading}>
           Next Steps
         </Heading>
@@ -291,14 +292,14 @@ export default function NewPropertyMatch({
         <Text style={actionText}>
           • Contact the landlord with any questions
         </Text>
-      </Section>
+      </EmailBox>
 
       {/* Tip Box */}
-      <Section style={tipBox}>
+      <EmailBox variant="plain">
         <Text style={tipText}>
           <strong>Tip:</strong> Properties that match your criteria get snapped up quickly. Act fast to secure the best investment opportunities!
         </Text>
-      </Section>
+      </EmailBox>
 
       <Section style={dashboardSection}>
         <Button href={dashboardLink} style={dashboardButton}>
@@ -348,16 +349,8 @@ const matchBadge = {
   padding: '8px 20px',
   borderRadius: '0',
   fontSize: '16px',
-  fontWeight: 'bold',
+  fontWeight: '600',
   display: 'inline-block',
-};
-
-const propertyBox = {
-  border: '2px solid #e5e7eb',
-  borderRadius: '0',
-  padding: '16px',
-  marginBottom: '24px',
-  backgroundColor: '#ffffff',
 };
 
 const propertyImageStyle = {
@@ -419,13 +412,6 @@ const descriptionText = {
   lineHeight: '1.6',
 };
 
-const matchBox = {
-  backgroundColor: '#ffffff',
-  borderRadius: '0',
-  padding: '20px',
-  marginBottom: '24px',
-};
-
 const matchHeading = {
   color: '#1f2937',
   fontSize: '18px',
@@ -449,29 +435,23 @@ const matchItem = {
 
 const buttonSection = {
   textAlign: 'center',
-  margin: '32px 0',
+  margin: '20px 0',
 };
 
 const viewButton = {
   backgroundColor: '#10b981',
   color: '#ffffff',
-  padding: '14px 32px',
+  padding: '12px 24px',
   borderRadius: '0',
   textDecoration: 'none',
-  fontWeight: 'bold',
+  fontSize: '14px',
+  fontWeight: '600',
   display: 'inline-block',
 };
 
 const hr = {
   borderColor: '#e5e7eb',
   margin: '32px 0',
-};
-
-const actionsBox = {
-  backgroundColor: '#f8f9fa', borderLeft: '4px solid #10b981',
-  borderRadius: '0',
-  padding: '20px',
-  marginBottom: '24px',
 };
 
 const actionsHeading = {
@@ -489,13 +469,6 @@ const actionText = {
   paddingLeft: '5px',
 };
 
-const tipBox = {
-  backgroundColor: '#f8f9fa',
-  borderRadius: '0',
-  padding: '15px 20px',
-  marginBottom: '24px',
-};
-
 const tipText = {
   color: '#78350f',
   fontSize: '14px',
@@ -505,16 +478,17 @@ const tipText = {
 
 const dashboardSection = {
   textAlign: 'center',
-  margin: '30px 0',
+  margin: '20px 0',
 };
 
 const dashboardButton = {
   backgroundColor: '#1a1a2e',
   color: '#ffffff',
-  padding: '14px 32px',
+  padding: '12px 24px',
   borderRadius: '0',
   textDecoration: 'none',
-  fontWeight: 'bold',
+  fontSize: '14px',
+  fontWeight: '600',
   display: 'inline-block',
 };
 

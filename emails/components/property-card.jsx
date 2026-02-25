@@ -1,4 +1,4 @@
-import { Heading, Text, Section, Img, Head } from '@react-email/components';
+import { Text, Section, Img, Head } from '@react-email/components';
 import * as React from 'react';
 
 /**
@@ -100,13 +100,19 @@ export default function PropertyCard({
 
           {/* Right: details */}
           <div className="pc-details-cell" style={{ display: 'block', width: '100%' }}>
-            <Heading as="h2" style={addressHeading}>
+            <Text style={addressText}>
               {propertyAddress}
-            </Heading>
+            </Text>
 
-            <Text style={priceStyle}>£{propertyPrice} pcm</Text>
+            <Text style={priceText}>£{propertyPrice} pcm</Text>
 
-            <div style={{ marginTop: '12px', marginBottom: '16px' }}>
+            <Text style={detailsRow}>
+              <span style={detailItemType}>{propertyType}</span>
+              <span style={detailItem}>🛏️ {bedrooms} {bedrooms === 1 ? 'bed' : 'beds'}</span>
+              <span style={detailItem}>🛁 {bathrooms} {bathrooms === 1 ? 'bath' : 'baths'}</span>
+            </Text>
+
+            <div style={badgesRow}>
               <span style={{ ...badge, backgroundColor: getAvailabilityColor(availability), marginRight: '8px' }}>
                 {getAvailabilityLabel(availability)}
               </span>
@@ -118,17 +124,11 @@ export default function PropertyCard({
               )}
 
               {getConditionDisplay(condition) && (
-                <span style={{ ...badge, backgroundColor: '#6b7280' }}>
+                <span style={{ ...badge, backgroundColor: '#e5e7eb', color: '#374151' }}>
                   {getConditionDisplay(condition)}
                 </span>
               )}
             </div>
-
-            <Text style={detailsRow}>
-              <span style={detailItem}>{propertyType}</span>
-              <span style={detailItem}>🛏️ {bedrooms} bed</span>
-              <span style={detailItem}>🛁 {bathrooms} bath</span>
-            </Text>
           </div>
         </div>
       </Section>
@@ -141,7 +141,7 @@ const cardBox = {
   border: '2px solid #e5e7eb',
   borderRadius: '0',
   padding: '16px',
-  marginBottom: '24px',
+  marginBottom: '16px',
 };
 
 const imageStyle = {
@@ -150,19 +150,43 @@ const imageStyle = {
   display: 'block',
 };
 
-const addressHeading = {
+const addressText = {
   color: '#1f2937',
-  fontSize: '20px',
-  fontWeight: '600',
-  margin: '0 0 8px 0',
+  fontSize: '16px',
+  fontWeight: '500',
+  margin: '0 0 4px 0',
   lineHeight: '1.4',
 };
 
-const priceStyle = {
+const priceText = {
   color: '#10b981',
-  fontSize: '20px',
+  fontSize: '16px',
   fontWeight: '600',
-  margin: '0 0 12px 0',
+  margin: '0 0 4px 0',
+};
+
+const detailsRow = {
+  color: '#6b7280',
+  fontSize: '14px',
+  margin: '0 0 10px 0',
+  lineHeight: '1.6',
+};
+
+const detailItemType = {
+  display: 'inline-block',
+  marginRight: '16px',
+  whiteSpace: 'nowrap',
+  textTransform: 'capitalize',
+};
+
+const detailItem = {
+  display: 'inline-block',
+  marginRight: '16px',
+  whiteSpace: 'nowrap',
+};
+
+const badgesRow = {
+  margin: '0',
 };
 
 const badge = {
@@ -172,17 +196,4 @@ const badge = {
   fontSize: '12px',
   fontWeight: '600',
   display: 'inline-block',
-};
-
-const detailsRow = {
-  color: '#6b7280',
-  fontSize: '14px',
-  margin: '0',
-  lineHeight: '1.6',
-};
-
-const detailItem = {
-  display: 'inline-block',
-  marginRight: '16px',
-  whiteSpace: 'nowrap',
 };

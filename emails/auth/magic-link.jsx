@@ -8,6 +8,7 @@ import {
 import * as React from 'react';
 import EmailLayout from '../components/email-layout';
 import EmailHeader from '../components/email-header';
+import EmailBox from '../components/email-box';
 
 export default function MagicLink({
   email = 'user@example.com',
@@ -23,7 +24,7 @@ export default function MagicLink({
       />
 
       {/* Info Box */}
-      <Section style={infoBox}>
+      <EmailBox variant="plain-white">
         <table style={infoTable}>
           <tbody>
             <tr>
@@ -32,7 +33,7 @@ export default function MagicLink({
             </tr>
           </tbody>
         </table>
-      </Section>
+      </EmailBox>
 
       {/* Sign In Button */}
       <Section style={buttonSection}>
@@ -44,7 +45,7 @@ export default function MagicLink({
       <Hr style={hr} />
 
       {/* Security Info */}
-      <Section style={securityBox}>
+      <EmailBox variant="orange">
         <Heading as="h3" style={securityHeading}>
           🔒 Security Notice
         </Heading>
@@ -60,10 +61,10 @@ export default function MagicLink({
         <Text style={securityText}>
           • If you didn't request this login link, please ignore this email
         </Text>
-      </Section>
+      </EmailBox>
 
       {/* Alternative Link */}
-      <Section style={alternativeBox}>
+      <EmailBox variant="plain">
         <Heading as="h3" style={alternativeHeading}>
           Button not working?
         </Heading>
@@ -71,7 +72,7 @@ export default function MagicLink({
           Copy and paste this link into your browser:
         </Text>
         <Text style={linkText}>{magicLinkUrl}</Text>
-      </Section>
+      </EmailBox>
 
       <Text style={footerText}>
         For security reasons, this email was sent from a secure server. Do not reply to this email.
@@ -81,13 +82,6 @@ export default function MagicLink({
 }
 
 // Styles matching ACE Investment Properties brand
-const infoBox = {
-  backgroundColor: '#ffffff',
-  borderRadius: '0',
-  padding: '20px',
-  marginBottom: '24px',
-};
-
 const infoTable = {
   width: '100%',
   borderCollapse: 'collapse',
@@ -97,42 +91,35 @@ const infoLabel = {
   color: '#6b7280',
   fontSize: '14px',
   fontWeight: '600',
-  padding: '8px 0',
+  padding: '4px 0',
   width: '80px',
 };
 
 const infoValue = {
   color: '#1f2937',
   fontSize: '14px',
-  padding: '8px 0',
+  padding: '4px 0',
 };
 
 const buttonSection = {
   textAlign: 'center',
-  margin: '32px 0',
+  margin: '20px 0',
 };
 
 const signInButton = {
   backgroundColor: '#10b981',
   color: '#ffffff',
-  padding: '14px 32px',
+  padding: '12px 24px',
   borderRadius: '0',
   textDecoration: 'none',
-  fontWeight: 'bold',
+  fontSize: '14px',
+  fontWeight: '600',
   display: 'inline-block',
 };
 
 const hr = {
   borderColor: '#e5e7eb',
   margin: '32px 0',
-};
-
-const securityBox = {
-  backgroundColor: '#f8f9fa',
-  borderLeft: '4px solid #f97316',
-  borderRadius: '0',
-  padding: '20px',
-  marginBottom: '24px',
 };
 
 const securityHeading = {
@@ -148,13 +135,6 @@ const securityText = {
   margin: '6px 0',
   lineHeight: '22px',
   paddingLeft: '5px',
-};
-
-const alternativeBox = {
-  backgroundColor: '#f8f9fa',
-  borderRadius: '0',
-  padding: '20px',
-  marginBottom: '24px',
 };
 
 const alternativeHeading = {

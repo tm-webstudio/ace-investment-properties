@@ -8,6 +8,7 @@ import {
 import * as React from 'react';
 import EmailLayout from '../components/email-layout';
 import EmailHeader from '../components/email-header';
+import EmailBox from '../components/email-box';
 
 export default function ViewingRejected({
   propertyTitle = 'Modern 2 Bedroom Apartment',
@@ -26,17 +27,17 @@ export default function ViewingRejected({
       />
 
       {/* Property Box - Blue Border */}
-      <Section style={propertyBox}>
+      <EmailBox variant="outline">
         <Heading as="h2" style={propertyTitle}>
           {propertyTitle}
         </Heading>
         <Text style={propertyAddress}>
           {propertyAddress}
         </Text>
-      </Section>
+      </EmailBox>
 
       {/* Declined Message - Red Box */}
-      <Section style={declinedBox}>
+      <EmailBox variant="red">
         <Heading as="h3" style={declinedHeading}>
           Request Declined
         </Heading>
@@ -51,20 +52,20 @@ export default function ViewingRejected({
             <Text style={reasonText}>"{rejectionReason}"</Text>
           </>
         )}
-      </Section>
+      </EmailBox>
 
       {/* Encouraging Message - Green Box */}
-      <Section style={encouragingBox}>
+      <EmailBox variant="green-dark">
         <Heading as="h3" style={encouragingHeading}>
           Don't worry!
         </Heading>
         <Text style={encouragingText}>
           We have many other great properties available that match your preferences.
         </Text>
-      </Section>
+      </EmailBox>
 
       {/* Next Steps - Light Yellow Box */}
-      <Section style={nextStepsBox}>
+      <EmailBox variant="plain-white">
         <Heading as="h3" style={nextStepsHeading}>
           What's Next?
         </Heading>
@@ -72,7 +73,7 @@ export default function ViewingRejected({
         <Text style={stepText}>Save properties you're interested in</Text>
         <Text style={stepText}>Request viewings for other listings</Text>
         <Text style={stepText}>Set up property alerts to get notified of new matches</Text>
-      </Section>
+      </EmailBox>
 
       {/* Action Buttons */}
       <Section style={buttonSection}>
@@ -97,14 +98,6 @@ export default function ViewingRejected({
 }
 
 // Styles matching ACE Investment Properties brand
-const propertyBox = {
-  border: '2px solid #e5e7eb',
-  borderRadius: '0',
-  padding: '24px',
-  marginBottom: '24px',
-  backgroundColor: '#ffffff',
-};
-
 const propertyTitle = {
   color: '#1f2937',
   fontSize: '28px',
@@ -117,14 +110,6 @@ const propertyAddress = {
   color: '#6b7280',
   fontSize: '14px',
   margin: 0,
-};
-
-const declinedBox = {
-  backgroundColor: '#fef2f2',
-  borderLeft: '4px solid #ef4444',
-  borderRadius: '0',
-  padding: '20px',
-  marginBottom: '24px',
 };
 
 const declinedHeading = {
@@ -161,14 +146,6 @@ const reasonText = {
   lineHeight: '22px',
 };
 
-const encouragingBox = {
-  backgroundColor: '#f8f9fa', borderLeft: '4px solid #10b981',
-  borderRadius: '0',
-  padding: '20px',
-  marginBottom: '24px',
-  textAlign: 'center',
-};
-
 const encouragingHeading = {
   color: '#047857',
   fontSize: '20px',
@@ -181,13 +158,6 @@ const encouragingText = {
   fontSize: '16px',
   margin: '0',
   lineHeight: '24px',
-};
-
-const nextStepsBox = {
-  backgroundColor: '#ffffff',
-  borderRadius: '0',
-  padding: '20px',
-  marginBottom: '24px',
 };
 
 const nextStepsHeading = {
@@ -206,16 +176,17 @@ const stepText = {
 
 const buttonSection = {
   textAlign: 'center',
-  margin: '32px 0',
+  margin: '20px 0',
 };
 
 const browseButton = {
   backgroundColor: '#10b981',
   color: '#ffffff',
-  padding: '14px 32px',
+  padding: '12px 24px',
   borderRadius: '0',
   textDecoration: 'none',
-  fontWeight: 'bold',
+  fontSize: '14px',
+  fontWeight: '600',
   display: 'inline-block',
 };
 
@@ -235,7 +206,8 @@ const dashboardButton = {
   padding: '12px 24px',
   borderRadius: '0',
   textDecoration: 'none',
-  fontWeight: 'bold',
+  fontSize: '14px',
+  fontWeight: '600',
   display: 'inline-block',
 };
 

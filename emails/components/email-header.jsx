@@ -18,7 +18,7 @@ export default function EmailHeader({
       <div style={{ textAlign: 'center', marginBottom: '16px' }}>
         <EmailIcon name={iconName} color={iconColor} size={iconSize} />
       </div>
-      <Heading style={heading}>{title}</Heading>
+      <Heading style={heading} className="email-header-heading">{title}</Heading>
       <Text style={subtitleStyle}>{subtitle}</Text>
     </Section>
   );
@@ -39,6 +39,7 @@ const heading = {
 
 const subtitleStyle = {
   color: '#6b7280',
-  fontSize: '16px',
+  fontSize: '14px',
+  lineHeight: '1.4',
   margin: 0,
 };

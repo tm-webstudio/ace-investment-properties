@@ -8,6 +8,7 @@ import {
 import * as React from 'react';
 import EmailLayout from '../components/email-layout';
 import EmailHeader from '../components/email-header';
+import EmailBox from '../components/email-box';
 
 export default function EmailConfirmation({
   email = 'user@example.com',
@@ -27,7 +28,7 @@ export default function EmailConfirmation({
       />
 
       {/* Info Box */}
-      <Section style={infoBox}>
+      <EmailBox variant="plain-white">
         <Heading as="h3" style={infoHeading}>
           Verify Your Account
         </Heading>
@@ -42,7 +43,7 @@ export default function EmailConfirmation({
             </tr>
           </tbody>
         </table>
-      </Section>
+      </EmailBox>
 
       {/* Confirmation Button */}
       <Section style={buttonSection}>
@@ -57,14 +58,14 @@ export default function EmailConfirmation({
       <Hr style={hr} />
 
       {/* Security Info */}
-      <Section style={securityBox}>
+      <EmailBox variant="orange">
         <Heading as="h3" style={securityHeading}>
           🔒 Security Notice
         </Heading>
         <Text style={securityText}>
           This confirmation link will expire in 24 hours. If you didn't create an account with Ace Investment Properties, you can safely ignore this email.
         </Text>
-      </Section>
+      </EmailBox>
 
       {/* Alternative Link */}
       <Text style={footerText}>
@@ -99,18 +100,11 @@ const subtitle = {
   margin: 0,
 };
 
-const infoBox = {
-  backgroundColor: '#ffffff',
-  borderRadius: '0',
-  padding: '20px',
-  marginBottom: '24px',
-};
-
 const infoHeading = {
   color: '#1f2937',
-  fontSize: '18px',
+  fontSize: '15px',
   fontWeight: '500',
-  margin: '0 0 16px 0',
+  margin: '0 0 10px 0',
 };
 
 const infoText = {
@@ -129,19 +123,19 @@ const infoLabel = {
   color: '#6b7280',
   fontSize: '14px',
   fontWeight: '600',
-  padding: '8px 0',
+  padding: '4px 0',
   width: '80px',
 };
 
 const infoValue = {
   color: '#1f2937',
   fontSize: '14px',
-  padding: '8px 0',
+  padding: '4px 0',
 };
 
 const buttonSection = {
   textAlign: 'center',
-  margin: '32px 0',
+  margin: '20px 0',
 };
 
 const instructionText = {
@@ -154,24 +148,17 @@ const instructionText = {
 const confirmButton = {
   backgroundColor: '#10b981',
   color: '#ffffff',
-  padding: '14px 32px',
+  padding: '12px 24px',
   borderRadius: '0',
   textDecoration: 'none',
-  fontWeight: 'bold',
+  fontSize: '14px',
+  fontWeight: '600',
   display: 'inline-block',
 };
 
 const hr = {
   borderColor: '#e5e7eb',
   margin: '32px 0',
-};
-
-const securityBox = {
-  backgroundColor: '#f8f9fa',
-  borderLeft: '4px solid #f97316',
-  borderRadius: '0',
-  padding: '20px',
-  marginBottom: '24px',
 };
 
 const securityHeading = {
@@ -186,13 +173,6 @@ const securityText = {
   fontSize: '14px',
   margin: '0',
   lineHeight: '22px',
-};
-
-const alternativeBox = {
-  backgroundColor: '#f8f9fa',
-  borderRadius: '0',
-  padding: '20px',
-  marginBottom: '24px',
 };
 
 const alternativeHeading = {

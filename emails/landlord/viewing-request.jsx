@@ -10,6 +10,7 @@ import * as React from 'react';
 import EmailLayout from '../components/email-layout';
 import EmailHeader from '../components/email-header';
 import { EmailIcon } from '../components/email-icon';
+import EmailBox from '../components/email-box';
 
 export default function ViewingRequest({
   propertyTitle = 'Modern 2 Bedroom Apartment',
@@ -35,7 +36,7 @@ export default function ViewingRequest({
       />
 
       {/* Property Box - White with Border */}
-      <Section style={propertyBox}>
+      <EmailBox variant="outline">
         {propertyImage && (
           <Img
             src={propertyImage}
@@ -50,10 +51,10 @@ export default function ViewingRequest({
           <EmailIcon name="mapPin" color="#6b7280" size={16} />
           {propertyAddress}
         </Text>
-      </Section>
+      </EmailBox>
 
       {/* Requester Info - White Box with Border */}
-      <Section style={infoBox}>
+      <EmailBox variant="outline">
         <Heading as="h3" style={infoHeading}>
           Requester Information
         </Heading>
@@ -79,7 +80,7 @@ export default function ViewingRequest({
             </tr>
           </tbody>
         </table>
-      </Section>
+      </EmailBox>
 
       {/* Viewing Details */}
       <Section style={detailsSection}>
@@ -146,14 +147,6 @@ const subtitle = {
   margin: 0,
 };
 
-const propertyBox = {
-  backgroundColor: '#ffffff',
-  border: '2px solid #e5e7eb',
-  borderRadius: '0',
-  padding: '24px',
-  marginBottom: '24px',
-};
-
 const propertyImageStyle = {
   width: '100%',
   height: 'auto',
@@ -177,19 +170,11 @@ const propertyAddressStyle = {
   alignItems: 'center',
 };
 
-const infoBox = {
-  backgroundColor: '#ffffff',
-  border: '2px solid #e5e7eb',
-  borderRadius: '0',
-  padding: '24px',
-  marginBottom: '24px',
-};
-
 const infoHeading = {
   color: '#1f2937',
-  fontSize: '18px',
+  fontSize: '15px',
   fontWeight: '600',
-  margin: '0 0 16px 0',
+  margin: '0 0 10px 0',
 };
 
 const infoTable = {
@@ -201,14 +186,14 @@ const infoLabel = {
   color: '#6b7280',
   fontSize: '14px',
   fontWeight: '600',
-  padding: '8px 0',
+  padding: '4px 0',
   width: '100px',
 };
 
 const infoValue = {
   color: '#1f2937',
   fontSize: '14px',
-  padding: '8px 0',
+  padding: '4px 0',
 };
 
 const badge = {
@@ -217,7 +202,7 @@ const badge = {
   padding: '4px 12px',
   borderRadius: '0',
   fontSize: '12px',
-  fontWeight: 'bold',
+  fontWeight: '600',
 };
 
 const detailsSection = {
@@ -245,16 +230,17 @@ const messageText = {
 
 const buttonSection = {
   textAlign: 'center',
-  margin: '32px 0',
+  margin: '20px 0',
 };
 
 const approveButton = {
   backgroundColor: '#10b981',
   color: '#ffffff',
-  padding: '14px 32px',
+  padding: '12px 24px',
   borderRadius: '0',
   textDecoration: 'none',
-  fontWeight: 'bold',
+  fontSize: '14px',
+  fontWeight: '600',
   display: 'inline-block',
   margin: '0 8px 12px 8px',
 };
@@ -262,10 +248,11 @@ const approveButton = {
 const declineButton = {
   backgroundColor: '#ef4444',
   color: '#ffffff',
-  padding: '14px 32px',
+  padding: '12px 24px',
   borderRadius: '0',
   textDecoration: 'none',
-  fontWeight: 'bold',
+  fontSize: '14px',
+  fontWeight: '600',
   display: 'inline-block',
   margin: '0 8px 12px 8px',
 };

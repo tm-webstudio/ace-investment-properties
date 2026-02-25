@@ -8,6 +8,7 @@ import {
 import * as React from 'react';
 import EmailLayout from '../components/email-layout';
 import EmailHeader from '../components/email-header';
+import EmailBox from '../components/email-box';
 
 export default function PropertyApproved({
   propertyTitle = 'Modern 2 Bedroom Apartment',
@@ -25,24 +26,24 @@ export default function PropertyApproved({
       />
 
       {/* Property Box - Blue Border */}
-      <Section style={propertyBox}>
+      <EmailBox variant="outline">
         <Heading as="h2" style={propertyTitle}>
           {propertyTitle}
         </Heading>
         <Text style={propertyAddress}>
           {propertyAddress}
         </Text>
-      </Section>
+      </EmailBox>
 
       {/* Success Box - Green */}
-      <Section style={successBox}>
+      <EmailBox variant="green-dark">
         <Heading as="h3" style={successHeading}>
           Your Property is Live
         </Heading>
         <Text style={successText}>
           Your property listing has been reviewed and approved by our team. It's now visible to all investors on the Ace Investment Properties platform.
         </Text>
-      </Section>
+      </EmailBox>
 
       {/* Action Button */}
       <Section style={buttonSection}>
@@ -54,7 +55,7 @@ export default function PropertyApproved({
       <Hr style={hr} />
 
       {/* Next Steps - Yellow Box */}
-      <Section style={nextStepsBox}>
+      <EmailBox variant="plain-white">
         <Heading as="h3" style={nextStepsHeading}>
           What Happens Next?
         </Heading>
@@ -73,10 +74,10 @@ export default function PropertyApproved({
         <Text style={stepText}>
           Keep your property details and photos up to date
         </Text>
-      </Section>
+      </EmailBox>
 
       {/* Tips Box */}
-      <Section style={tipsBox}>
+      <EmailBox variant="orange">
         <Heading as="h3" style={tipsHeading}>
           Tips for Success
         </Heading>
@@ -95,7 +96,7 @@ export default function PropertyApproved({
         <Text style={tipText}>
           • Provide detailed, accurate property information
         </Text>
-      </Section>
+      </EmailBox>
 
       <Section style={dashboardSection}>
         <Button href={dashboardLink} style={dashboardButton}>
@@ -135,14 +136,6 @@ const subtitle = {
   margin: 0,
 };
 
-const propertyBox = {
-  border: '2px solid #e5e7eb',
-  borderRadius: '0',
-  padding: '24px',
-  marginBottom: '24px',
-  backgroundColor: '#ffffff',
-};
-
 const propertyTitle = {
   color: '#1f2937',
   fontSize: '28px',
@@ -155,14 +148,6 @@ const propertyAddress = {
   color: '#6b7280',
   fontSize: '14px',
   margin: 0,
-};
-
-const successBox = {
-  backgroundColor: '#f8f9fa', borderLeft: '4px solid #10b981',
-  borderLeft: '4px solid #10b981',
-  borderRadius: '0',
-  padding: '20px',
-  marginBottom: '24px',
 };
 
 const successHeading = {
@@ -181,29 +166,23 @@ const successText = {
 
 const buttonSection = {
   textAlign: 'center',
-  margin: '32px 0',
+  margin: '20px 0',
 };
 
 const viewButton = {
   backgroundColor: '#10b981',
   color: '#ffffff',
-  padding: '14px 32px',
+  padding: '12px 24px',
   borderRadius: '0',
   textDecoration: 'none',
-  fontWeight: 'bold',
+  fontSize: '14px',
+  fontWeight: '600',
   display: 'inline-block',
 };
 
 const hr = {
   borderColor: '#e5e7eb',
   margin: '32px 0',
-};
-
-const nextStepsBox = {
-  backgroundColor: '#ffffff',
-  borderRadius: '0',
-  padding: '20px',
-  marginBottom: '24px',
 };
 
 const nextStepsHeading = {
@@ -218,14 +197,6 @@ const stepText = {
   fontSize: '14px',
   margin: '8px 0',
   lineHeight: '22px',
-};
-
-const tipsBox = {
-  backgroundColor: '#f8f9fa',
-  borderLeft: '4px solid #f97316',
-  borderRadius: '0',
-  padding: '20px',
-  marginBottom: '24px',
 };
 
 const tipsHeading = {
@@ -245,16 +216,17 @@ const tipText = {
 
 const dashboardSection = {
   textAlign: 'center',
-  margin: '30px 0',
+  margin: '20px 0',
 };
 
 const dashboardButton = {
   backgroundColor: '#1a1a2e',
   color: '#ffffff',
-  padding: '14px 32px',
+  padding: '12px 24px',
   borderRadius: '0',
   textDecoration: 'none',
-  fontWeight: 'bold',
+  fontSize: '14px',
+  fontWeight: '600',
   display: 'inline-block',
 };
 

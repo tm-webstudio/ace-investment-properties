@@ -8,6 +8,7 @@ import {
 import * as React from 'react';
 import EmailLayout from '../components/email-layout';
 import EmailHeader from '../components/email-header';
+import EmailBox from '../components/email-box';
 
 export default function EmailChange({
   oldEmail = 'old@example.com',
@@ -24,7 +25,7 @@ export default function EmailChange({
       />
 
       {/* Email Change Details - Yellow Box */}
-      <Section style={infoBox}>
+      <EmailBox variant="plain-white">
         <Heading as="h3" style={infoHeading}>
           Email Change Request
         </Heading>
@@ -40,7 +41,7 @@ export default function EmailChange({
             </tr>
           </tbody>
         </table>
-      </Section>
+      </EmailBox>
 
       {/* Confirmation Button */}
       <Section style={buttonSection}>
@@ -55,7 +56,7 @@ export default function EmailChange({
       <Hr style={hr} />
 
       {/* Security Warning */}
-      <Section style={warningBox}>
+      <EmailBox variant="red">
         <Heading as="h3" style={warningHeading}>
           ⚠️ Important Security Notice
         </Heading>
@@ -65,10 +66,10 @@ export default function EmailChange({
         <Text style={warningText}>
           Your account security may be at risk if this was not authorized by you.
         </Text>
-      </Section>
+      </EmailBox>
 
       {/* Info Box */}
-      <Section style={securityBox}>
+      <EmailBox variant="green-dark">
         <Heading as="h3" style={securityHeading}>
           What happens next?
         </Heading>
@@ -84,10 +85,10 @@ export default function EmailChange({
         <Text style={securityText}>
           • Your account data and settings remain unchanged
         </Text>
-      </Section>
+      </EmailBox>
 
       {/* Alternative Link */}
-      <Section style={alternativeBox}>
+      <EmailBox variant="plain">
         <Heading as="h3" style={alternativeHeading}>
           Button not working?
         </Heading>
@@ -95,24 +96,17 @@ export default function EmailChange({
           Copy and paste this link into your browser:
         </Text>
         <Text style={linkText}>{confirmUrl}</Text>
-      </Section>
+      </EmailBox>
     </EmailLayout>
   );
 }
 
 // Styles matching ACE Investment Properties brand
-const infoBox = {
-  backgroundColor: '#ffffff',
-  borderRadius: '0',
-  padding: '20px',
-  marginBottom: '24px',
-};
-
 const infoHeading = {
   color: '#1f2937',
-  fontSize: '18px',
+  fontSize: '15px',
   fontWeight: '500',
-  margin: '0 0 16px 0',
+  margin: '0 0 10px 0',
 };
 
 const infoTable = {
@@ -124,19 +118,19 @@ const infoLabel = {
   color: '#6b7280',
   fontSize: '14px',
   fontWeight: '600',
-  padding: '8px 0',
+  padding: '4px 0',
   width: '120px',
 };
 
 const infoValue = {
   color: '#1f2937',
   fontSize: '14px',
-  padding: '8px 0',
+  padding: '4px 0',
 };
 
 const buttonSection = {
   textAlign: 'center',
-  margin: '32px 0',
+  margin: '20px 0',
 };
 
 const instructionText = {
@@ -149,24 +143,17 @@ const instructionText = {
 const confirmButton = {
   backgroundColor: '#10b981',
   color: '#ffffff',
-  padding: '14px 32px',
+  padding: '12px 24px',
   borderRadius: '0',
   textDecoration: 'none',
-  fontWeight: 'bold',
+  fontSize: '14px',
+  fontWeight: '600',
   display: 'inline-block',
 };
 
 const hr = {
   borderColor: '#e5e7eb',
   margin: '32px 0',
-};
-
-const warningBox = {
-  backgroundColor: '#fef2f2',
-  borderLeft: '4px solid #ef4444',
-  borderRadius: '0',
-  padding: '20px',
-  marginBottom: '24px',
 };
 
 const warningHeading = {
@@ -183,13 +170,6 @@ const warningText = {
   lineHeight: '22px',
 };
 
-const securityBox = {
-  backgroundColor: '#f8f9fa', borderLeft: '4px solid #10b981',
-  borderRadius: '0',
-  padding: '20px',
-  marginBottom: '24px',
-};
-
 const securityHeading = {
   color: '#047857',
   fontSize: '18px',
@@ -203,13 +183,6 @@ const securityText = {
   margin: '6px 0',
   lineHeight: '22px',
   paddingLeft: '5px',
-};
-
-const alternativeBox = {
-  backgroundColor: '#f8f9fa',
-  borderRadius: '0',
-  padding: '20px',
-  marginBottom: '24px',
 };
 
 const alternativeHeading = {

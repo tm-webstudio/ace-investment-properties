@@ -36,6 +36,13 @@ export default function EmailLayout({ children, preview }) {
           fontWeight={400}
           fontStyle="normal"
         />
+        <style>{`
+          @media only screen and (max-width: 480px) {
+            .email-header-heading {
+              font-size: 20px !important;
+            }
+          }
+        `}</style>
       </Head>
       {preview && <Preview>{preview}</Preview>}
       <Body style={main}>

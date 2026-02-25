@@ -9,6 +9,7 @@ import * as React from 'react';
 import EmailLayout from '../components/email-layout';
 import EmailHeader from '../components/email-header';
 import { EmailIcon } from '../components/email-icon';
+import EmailBox from '../components/email-box';
 
 export default function WelcomeInvestor({
   name = 'John Doe',
@@ -31,7 +32,7 @@ export default function WelcomeInvestor({
       </Section>
 
       {/* Investor Features - White Box with Border */}
-      <Section style={featuresBox}>
+      <EmailBox variant="outline">
         <Heading as="h3" style={featuresHeading}>
           As an Investor, you can:
         </Heading>
@@ -59,10 +60,10 @@ export default function WelcomeInvestor({
           <EmailIcon name="check" color="#10b981" size={16} />
           Get personalized property recommendations
         </Text>
-      </Section>
+      </EmailBox>
 
       {/* Next Steps - Light Gray Box with Green Border */}
-      <Section style={nextStepsBox}>
+      <EmailBox variant="green-dark">
         <Heading as="h3" style={nextStepsHeading}>
           Get Started:
         </Heading>
@@ -70,7 +71,7 @@ export default function WelcomeInvestor({
         <Text style={stepText}>2. Browse properties that match your investment criteria</Text>
         <Text style={stepText}>3. Request viewings for properties you're interested in</Text>
         <Text style={stepText}>4. Start building your property portfolio</Text>
-      </Section>
+      </EmailBox>
 
       {/* Action Buttons */}
       <Section style={buttonSection}>
@@ -128,16 +129,8 @@ const badge = {
   padding: '6px 16px',
   borderRadius: '0',
   fontSize: '14px',
-  fontWeight: 'bold',
+  fontWeight: '600',
   display: 'inline-block',
-};
-
-const featuresBox = {
-  backgroundColor: '#ffffff',
-  border: '2px solid #e5e7eb',
-  borderRadius: '0',
-  padding: '24px',
-  marginBottom: '24px',
 };
 
 const featuresHeading = {
@@ -154,14 +147,6 @@ const featureText = {
   lineHeight: '22px',
   display: 'flex',
   alignItems: 'center',
-};
-
-const nextStepsBox = {
-  backgroundColor: '#f8f9fa',
-  borderLeft: '4px solid #10b981',
-  borderRadius: '0',
-  padding: '24px',
-  marginBottom: '24px',
 };
 
 const nextStepsHeading = {
@@ -181,16 +166,17 @@ const stepText = {
 
 const buttonSection = {
   textAlign: 'center',
-  margin: '32px 0',
+  margin: '20px 0',
 };
 
 const primaryButton = {
   backgroundColor: '#10b981',
   color: '#ffffff',
-  padding: '14px 32px',
+  padding: '12px 24px',
   borderRadius: '0',
   textDecoration: 'none',
-  fontWeight: 'bold',
+  fontSize: '14px',
+  fontWeight: '600',
   display: 'inline-block',
   margin: '0 8px 12px 8px',
 };
@@ -198,10 +184,11 @@ const primaryButton = {
 const secondaryButton = {
   backgroundColor: '#1a1a2e',
   color: '#ffffff',
-  padding: '14px 32px',
+  padding: '12px 24px',
   borderRadius: '0',
   textDecoration: 'none',
-  fontWeight: 'bold',
+  fontSize: '14px',
+  fontWeight: '600',
   display: 'inline-block',
   margin: '0 8px 12px 8px',
 };
