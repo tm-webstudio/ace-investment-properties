@@ -7,7 +7,7 @@ import {
 } from '@react-email/components';
 import * as React from 'react';
 import EmailLayout from '../components/email-layout';
-import { EmailIcon } from '../components/email-icon';
+import EmailHeader from '../components/email-header';
 
 export default function PropertyRejected({
   propertyTitle = 'Modern 2 Bedroom Apartment',
@@ -18,14 +18,12 @@ export default function PropertyRejected({
 }) {
   return (
     <EmailLayout preview="Property listing update - Action required">
-      {/* Icon + Title */}
-      <Section style={titleSection}>
-        <Text style={icon}>📝</Text>
-        <Heading style={heading}>Property Needs Updates</Heading>
-        <Text style={subtitle}>
-          Your property submission requires some updates before it can go live.
-        </Text>
-      </Section>
+      <EmailHeader
+        iconName="pencil"
+        iconColor="#f97316"
+        title="Property Needs Updates"
+        subtitle="Your property submission requires some updates before it can go live."
+      />
 
       {/* Property Box - Blue Border */}
       <Section style={propertyBox}>
@@ -117,30 +115,6 @@ export default function PropertyRejected({
 }
 
 // Styles matching ACE Investment Properties brand
-const titleSection = {
-  textAlign: 'center',
-  marginBottom: '24px',
-};
-
-const icon = {
-  fontSize: '48px',
-  margin: '0 0 16px 0',
-};
-
-const heading = {
-  color: '#1f2937',
-  fontSize: '28px',
-  fontFamily: '"Playfair Display", Georgia, serif',
-  fontWeight: '500',
-  margin: '0 0 8px 0',
-};
-
-const subtitle = {
-  color: '#6b7280',
-  fontSize: '16px',
-  margin: 0,
-};
-
 const propertyBox = {
   border: '2px solid #e5e7eb',
   borderRadius: '0',

@@ -7,7 +7,7 @@ import {
 } from '@react-email/components';
 import * as React from 'react';
 import EmailLayout from '../components/email-layout';
-import { EmailIcon } from '../components/email-icon';
+import EmailHeader from '../components/email-header';
 
 export default function EmailChange({
   oldEmail = 'old@example.com',
@@ -16,14 +16,12 @@ export default function EmailChange({
 }) {
   return (
     <EmailLayout preview="Confirm your new email address">
-      {/* Icon + Title */}
-      <Section style={titleSection}>
-        <Text style={icon}>✉️</Text>
-        <Heading style={heading}>Confirm Email Change</Heading>
-        <Text style={subtitle}>
-          We received a request to change your email address.
-        </Text>
-      </Section>
+      <EmailHeader
+        iconName="envelope"
+        iconColor="#10b981"
+        title="Confirm Email Change"
+        subtitle="We received a request to change your email address."
+      />
 
       {/* Email Change Details - Yellow Box */}
       <Section style={infoBox}>
@@ -103,30 +101,6 @@ export default function EmailChange({
 }
 
 // Styles matching ACE Investment Properties brand
-const titleSection = {
-  textAlign: 'center',
-  marginBottom: '24px',
-};
-
-const icon = {
-  fontSize: '48px',
-  margin: '0 0 16px 0',
-};
-
-const heading = {
-  color: '#1f2937',
-  fontSize: '28px',
-  fontFamily: '"Playfair Display", Georgia, serif',
-  fontWeight: '500',
-  margin: '0 0 8px 0',
-};
-
-const subtitle = {
-  color: '#6b7280',
-  fontSize: '16px',
-  margin: 0,
-};
-
 const infoBox = {
   backgroundColor: '#ffffff',
   borderRadius: '0',

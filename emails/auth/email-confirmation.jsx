@@ -7,7 +7,7 @@ import {
 } from '@react-email/components';
 import * as React from 'react';
 import EmailLayout from '../components/email-layout';
-import { EmailIcon } from '../components/email-icon';
+import EmailHeader from '../components/email-header';
 
 export default function EmailConfirmation({
   email = 'user@example.com',
@@ -19,16 +19,12 @@ export default function EmailConfirmation({
 
   return (
     <EmailLayout preview="Please confirm your email to get started">
-      {/* Icon + Title */}
-      <Section style={titleSection}>
-        <div style={{ textAlign: 'center', marginBottom: '16px' }}>
-          <EmailIcon name="mail" color="#10b981" size={48} />
-        </div>
-        <Heading style={heading}>Confirm Your Email</Heading>
-        <Text style={subtitle}>
-          Thank you for signing up for Ace Investment Properties!
-        </Text>
-      </Section>
+      <EmailHeader
+        iconName="mail"
+        iconColor="#10b981"
+        title="Confirm Your Email"
+        subtitle="Thank you for signing up for Ace Investment Properties!"
+      />
 
       {/* Info Box */}
       <Section style={infoBox}>

@@ -7,7 +7,7 @@ import {
 } from '@react-email/components';
 import * as React from 'react';
 import EmailLayout from '../components/email-layout';
-import { EmailIcon } from '../components/email-icon';
+import EmailHeader from '../components/email-header';
 
 export default function ReservationRequest({
   propertyTitle = 'Modern 2 Bedroom Apartment',
@@ -21,29 +21,22 @@ export default function ReservationRequest({
 }) {
   return (
     <EmailLayout preview="New Property Reservation Request">
-      {/* Icon + Title */}
-      <Section style={titleSection}>
-        <div style={{ textAlign: 'center', marginBottom: '16px' }}>
-          <EmailIcon name="home" color="#dc2626" size={48} />
-        </div>
-        <Heading style={heading}>New Reservation Request</Heading>
-        <Text style={subtitle}>
-          Someone wants to reserve a property. Review the details below.
-        </Text>
-      </Section>
+      <EmailHeader
+        iconName="home"
+        iconColor="#dc2626"
+        title="New Reservation Request"
+        subtitle="Someone wants to reserve a property. Review the details below."
+      />
 
       {/* Property Box */}
       <Section style={propertyBox}>
         <Heading as="h2" style={propertyTitleStyle}>
           {propertyTitle}
         </Heading>
-        <Text style={propertyAddressStyle}>
-          <EmailIcon name="mapPin" color="#6b7280" size={16} />
-          {propertyAddress}
-        </Text>
-        <Text style={propertyPriceStyle}>
-          £{propertyPrice}/month
-        </Text>
+        <Text style={propertyAddressStyle}>{propertyAddress}</Text>
+        {propertyPrice && (
+          <Text style={propertyPriceStyle}>£{propertyPrice}/month</Text>
+        )}
       </Section>
 
       {/* Requester Info */}
@@ -72,52 +65,39 @@ export default function ReservationRequest({
       {/* Message */}
       {message && (
         <Section style={messageSection}>
-          <Text style={detailsText}>
-            <strong>Message from requester:</strong>
-          </Text>
+          <Text style={messageLabel}><strong>Message from requester:</strong></Text>
           <Text style={messageText}>"{message}"</Text>
         </Section>
       )}
 
-      {/* Action Button */}
+      {/* Action Buttons */}
       <Section style={buttonSection}>
-        <Button href={`mailto:${requesterEmail}?subject=Re: Property Reservation - ${propertyTitle}`} style={contactButton}>
+        <Button
+          href={`mailto:${requesterEmail}?subject=Re: Property Reservation - ${propertyTitle}`}
+          style={replyButton}
+        >
           Reply to Requester
         </Button>
-        <Button href={`tel:${requesterPhone.replace(/\s/g, '')}`} style={callButton}>
+        <Button
+          href={`tel:${requesterPhone.replace(/\s/g, '')}`}
+          style={callButton}
+        >
           Call Requester
         </Button>
       </Section>
 
       <Hr style={hr} />
 
-      <Text style={tipText}>
-        <strong>Priority Request:</strong> Reservation requests indicate high intent. Contact this person promptly to secure the booking!
-      </Text>
+      <Section style={tipBox}>
+        <Text style={tipText}>
+          <strong>Priority Request:</strong> Reservation requests indicate high intent. Contact this person promptly to secure the booking!
+        </Text>
+      </Section>
     </EmailLayout>
   );
 }
 
 // Styles
-const titleSection = {
-  textAlign: 'center',
-  marginBottom: '24px',
-};
-
-const heading = {
-  color: '#1f2937',
-  fontSize: '28px',
-  fontFamily: '"Playfair Display", Georgia, serif',
-  fontWeight: '500',
-  margin: '0 0 8px 0',
-};
-
-const subtitle = {
-  color: '#6b7280',
-  fontSize: '16px',
-  margin: 0,
-};
-
 const propertyBox = {
   backgroundColor: '#fef2f2',
   border: '2px solid #fecaca',
@@ -128,9 +108,8 @@ const propertyBox = {
 
 const propertyTitleStyle = {
   color: '#991b1b',
-  fontSize: '28px',
-  fontFamily: '"Playfair Display", Georgia, serif',
-  fontWeight: '500',
+  fontSize: '20px',
+  fontWeight: '600',
   margin: '0 0 8px 0',
 };
 
@@ -138,8 +117,6 @@ const propertyAddressStyle = {
   color: '#6b7280',
   fontSize: '14px',
   margin: '0 0 8px 0',
-  display: 'flex',
-  alignItems: 'center',
 };
 
 const propertyPriceStyle = {
@@ -187,7 +164,7 @@ const messageSection = {
   marginBottom: '24px',
 };
 
-const detailsText = {
+const messageLabel = {
   color: '#1f2937',
   fontSize: '14px',
   margin: '8px 0',
@@ -209,7 +186,7 @@ const buttonSection = {
   margin: '32px 0',
 };
 
-const contactButton = {
+const replyButton = {
   backgroundColor: '#dc2626',
   color: '#ffffff',
   padding: '14px 32px',
@@ -236,13 +213,17 @@ const hr = {
   margin: '32px 0',
 };
 
+const tipBox = {
+  backgroundColor: '#fef2f2',
+  borderLeft: '4px solid #dc2626',
+  borderRadius: '0',
+  padding: '16px 20px',
+  marginBottom: '24px',
+};
+
 const tipText = {
   color: '#6b7280',
   fontSize: '14px',
   lineHeight: '22px',
-  margin: '20px 0',
-  padding: '16px',
-  backgroundColor: '#fef2f2',
-  borderLeft: '4px solid #dc2626',
-  borderRadius: '0',
+  margin: 0,
 };

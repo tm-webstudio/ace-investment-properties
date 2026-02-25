@@ -7,7 +7,7 @@ import {
 } from '@react-email/components';
 import * as React from 'react';
 import EmailLayout from '../components/email-layout';
-import { EmailIcon } from '../components/email-icon';
+import EmailHeader from '../components/email-header';
 
 export default function PropertyApproved({
   propertyTitle = 'Modern 2 Bedroom Apartment',
@@ -17,16 +17,12 @@ export default function PropertyApproved({
 }) {
   return (
     <EmailLayout preview="Property approved! Your listing is now live">
-      {/* Icon + Title */}
-      <Section style={titleSection}>
-        <div style={{ textAlign: 'center', marginBottom: '16px' }}>
-          <EmailIcon name="sparkles" color="#10b981" size={48} />
-        </div>
-        <Heading style={heading}>Property is Now Live!</Heading>
-        <Text style={subtitle}>
-          Congratulations! Your property has been approved and is now visible to investors.
-        </Text>
-      </Section>
+      <EmailHeader
+        iconName="sparkles"
+        iconColor="#10b981"
+        title="Property is Now Live!"
+        subtitle="Congratulations! Your property has been approved and is now visible to investors."
+      />
 
       {/* Property Box - Blue Border */}
       <Section style={propertyBox}>

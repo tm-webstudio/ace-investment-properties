@@ -7,6 +7,7 @@ import {
 } from '@react-email/components';
 import * as React from 'react';
 import EmailLayout from '../components/email-layout';
+import EmailHeader from '../components/email-header';
 import { EmailIcon } from '../components/email-icon';
 
 export default function WelcomeInvestor({
@@ -17,16 +18,12 @@ export default function WelcomeInvestor({
 }) {
   return (
     <EmailLayout preview="Welcome! Start finding your next investment property">
-      {/* Icon + Title */}
-      <Section style={titleSection}>
-        <div style={{ textAlign: 'center', marginBottom: '16px' }}>
-          <EmailIcon name="sparkles" color="#10b981" size={48} />
-        </div>
-        <Heading style={heading}>Welcome to Ace Investment Properties!</Heading>
-        <Text style={subtitle}>
-          We're excited to have you join our platform, {name}.
-        </Text>
-      </Section>
+      <EmailHeader
+        iconName="sparkles"
+        iconColor="#10b981"
+        title="Welcome to Ace Investment Properties!"
+        subtitle={`We're excited to have you join our platform, ${name}.`}
+      />
 
       {/* User Type Badge */}
       <Section style={badgeSection}>

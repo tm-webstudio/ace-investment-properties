@@ -67,6 +67,21 @@ export const EmailIcon = ({ name, color = '#10b981', size = 32 }) => {
     fileText: (
       <span style={baseStyle}>📄</span>
     ),
+    user: (
+      <span style={baseStyle}>👤</span>
+    ),
+    alarmClock: (
+      <span style={baseStyle}>⏰</span>
+    ),
+    mailbox: (
+      <span style={baseStyle}>📬</span>
+    ),
+    pencil: (
+      <span style={baseStyle}>📝</span>
+    ),
+    envelope: (
+      <span style={baseStyle}>✉️</span>
+    ),
   };
 
   return icons[name] || null;

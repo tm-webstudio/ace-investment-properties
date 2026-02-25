@@ -7,7 +7,7 @@ import {
 } from '@react-email/components';
 import * as React from 'react';
 import EmailLayout from '../components/email-layout';
-import { EmailIcon } from '../components/email-icon';
+import EmailHeader from '../components/email-header';
 
 export default function PasswordReset({
   name = 'User',
@@ -16,16 +16,12 @@ export default function PasswordReset({
 }) {
   return (
     <EmailLayout preview="Reset your password - Link expires in 60 minutes">
-      {/* Icon + Title */}
-      <Section style={titleSection}>
-        <div style={{ textAlign: 'center', marginBottom: '16px' }}>
-          <EmailIcon name="lock" color="#10b981" size={48} />
-        </div>
-        <Heading style={heading}>Password Reset Request</Heading>
-        <Text style={subtitle}>
-          Hi {name}, we received a request to reset the password for your Ace Properties account.
-        </Text>
-      </Section>
+      <EmailHeader
+        iconName="lock"
+        iconColor="#10b981"
+        title="Password Reset Request"
+        subtitle={`Hi ${name}, we received a request to reset the password for your Ace Properties account.`}
+      />
 
       {/* Security Notice - Orange Box */}
       <Section style={securityBox}>

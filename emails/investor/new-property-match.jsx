@@ -9,6 +9,7 @@ import {
 } from '@react-email/components';
 import * as React from 'react';
 import EmailLayout from '../components/email-layout';
+import EmailHeader from '../components/email-header';
 import { EmailIcon } from '../components/email-icon';
 
 export default function NewPropertyMatch({
@@ -111,16 +112,12 @@ export default function NewPropertyMatch({
         `}</style>
       </Head>
 
-      {/* Icon + Title */}
-      <Section style={titleSection}>
-        <div style={{ textAlign: 'center', marginBottom: '16px' }}>
-          <EmailIcon name="target" color="#10b981" size={48} />
-        </div>
-        <Heading style={heading}>New Property Match!</Heading>
-        <Text style={subtitle}>
-          We found a property that matches your investment preferences.
-        </Text>
-      </Section>
+      <EmailHeader
+        iconName="target"
+        iconColor="#10b981"
+        title="New Property Match!"
+        subtitle="We found a property that matches your investment preferences."
+      />
 
       {/* Match Score Badge */}
       <Section style={badgeSection}>

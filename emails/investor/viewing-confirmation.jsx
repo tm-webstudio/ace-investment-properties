@@ -8,6 +8,7 @@ import {
 } from '@react-email/components';
 import * as React from 'react';
 import EmailLayout from '../components/email-layout';
+import EmailHeader from '../components/email-header';
 import { EmailIcon } from '../components/email-icon';
 
 export default function ViewingConfirmation({
@@ -25,16 +26,12 @@ export default function ViewingConfirmation({
 
   return (
     <EmailLayout preview="Viewing confirmed! Here are your details and directions">
-      {/* Icon + Title */}
-      <Section style={titleSection}>
-        <div style={{ textAlign: 'center', marginBottom: '16px' }}>
-          <EmailIcon name="checkCircle" color="#10b981" size={48} />
-        </div>
-        <Heading style={heading}>Viewing Confirmed!</Heading>
-        <Text style={subtitle}>
-          Great news! Your viewing request has been approved by the landlord.
-        </Text>
-      </Section>
+      <EmailHeader
+        iconName="checkCircle"
+        iconColor="#10b981"
+        title="Viewing Confirmed!"
+        subtitle="Great news! Your viewing request has been approved by the landlord."
+      />
 
       {/* Property Box - White with Border */}
       <Section style={propertyBox}>

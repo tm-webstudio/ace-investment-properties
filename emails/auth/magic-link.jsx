@@ -7,7 +7,7 @@ import {
 } from '@react-email/components';
 import * as React from 'react';
 import EmailLayout from '../components/email-layout';
-import { EmailIcon } from '../components/email-icon';
+import EmailHeader from '../components/email-header';
 
 export default function MagicLink({
   email = 'user@example.com',
@@ -15,14 +15,12 @@ export default function MagicLink({
 }) {
   return (
     <EmailLayout preview="Click to sign in - No password needed">
-      {/* Icon + Title */}
-      <Section style={titleSection}>
-        <Text style={icon}>🔑</Text>
-        <Heading style={heading}>Your Login Link</Heading>
-        <Text style={subtitle}>
-          Click the button below to sign in to your Ace Investment Properties account.
-        </Text>
-      </Section>
+      <EmailHeader
+        iconName="key"
+        iconColor="#10b981"
+        title="Your Login Link"
+        subtitle="Click the button below to sign in to your Ace Investment Properties account."
+      />
 
       {/* Info Box */}
       <Section style={infoBox}>
@@ -83,30 +81,6 @@ export default function MagicLink({
 }
 
 // Styles matching ACE Investment Properties brand
-const titleSection = {
-  textAlign: 'center',
-  marginBottom: '24px',
-};
-
-const icon = {
-  fontSize: '48px',
-  margin: '0 0 16px 0',
-};
-
-const heading = {
-  color: '#1f2937',
-  fontSize: '28px',
-  fontFamily: '"Playfair Display", Georgia, serif',
-  fontWeight: '500',
-  margin: '0 0 8px 0',
-};
-
-const subtitle = {
-  color: '#6b7280',
-  fontSize: '16px',
-  margin: 0,
-};
-
 const infoBox = {
   backgroundColor: '#ffffff',
   borderRadius: '0',

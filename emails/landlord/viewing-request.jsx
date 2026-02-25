@@ -8,6 +8,7 @@ import {
 } from '@react-email/components';
 import * as React from 'react';
 import EmailLayout from '../components/email-layout';
+import EmailHeader from '../components/email-header';
 import { EmailIcon } from '../components/email-icon';
 
 export default function ViewingRequest({
@@ -26,16 +27,12 @@ export default function ViewingRequest({
 }) {
   return (
     <EmailLayout preview="New viewing request - Respond now">
-      {/* Icon + Title */}
-      <Section style={titleSection}>
-        <div style={{ textAlign: 'center', marginBottom: '16px' }}>
-          <EmailIcon name="home" color="#10b981" size={48} />
-        </div>
-        <Heading style={heading}>New Viewing Request</Heading>
-        <Text style={subtitle}>
-          You have received a new viewing request for your property.
-        </Text>
-      </Section>
+      <EmailHeader
+        iconName="home"
+        iconColor="#10b981"
+        title="New Viewing Request"
+        subtitle="You have received a new viewing request for your property."
+      />
 
       {/* Property Box - White with Border */}
       <Section style={propertyBox}>

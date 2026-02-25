@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { sendEmail } from '@/lib/email'
+import NewInvestor from '@/emails/admin/new-investor'
 
 // Create admin client for database operations (only if env vars are available)
 const supabaseAdmin = process.env.SUPABASE_SERVICE_ROLE_KEY 
@@ -157,21 +159,30 @@ export async function POST(request: NextRequest) {
     // Get user profile and verify they are an investor
     const { data: userProfile, error: profileError } = await supabaseAdmin
       .from('user_profiles')
-      .select('user_type')
+      .select('user_type, full_name, first_name, last_name, phone')
       .eq('id', user.id)
       .single()
 
     if (profileError || !userProfile) {
-      return NextResponse.json({ 
-        error: 'User profile not found' 
+      return NextResponse.json({
+        error: 'User profile not found'
       }, { status: 404 })
     }
 
     if (userProfile.user_type !== 'investor') {
-      return NextResponse.json({ 
-        error: 'This feature is for investors only' 
+      return NextResponse.json({
+        error: 'This feature is for investors only'
       }, { status: 403 })
     }
+
+    // Check if this is first-time preferences (to avoid emailing on every update)
+    const { data: existingPrefs } = await supabaseAdmin
+      .from('investor_preferences')
+      .select('investor_id')
+      .eq('investor_id', user.id)
+      .maybeSingle()
+
+    const isNewInvestor = !existingPrefs
 
     // Parse request body
     const body = await request.json()
@@ -262,6 +273,43 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ 
         error: 'Failed to save preferences' 
       }, { status: 500 })
+    }
+
+    // Send admin notification on first signup (non-blocking)
+    if (isNewInvestor) {
+      try {
+        const investorName = userProfile.full_name ||
+          [userProfile.first_name, userProfile.last_name].filter(Boolean).join(' ') ||
+          user.email
+
+        const pref = preference_data || {}
+        const locationNames = (pref.locations || [])
+          .map((loc: any) => loc.city || '')
+          .filter(Boolean)
+
+        await sendEmail({
+          to: process.env.ADMIN_EMAIL || 'tmwebstudio1@gmail.com',
+          subject: 'New Investor Registered',
+          react: NewInvestor({
+            investorName,
+            investorEmail: user.email,
+            investorPhone: userProfile.phone || '—',
+            operatorType: operator_type,
+            budgetMin: pref.budgetMin || 0,
+            budgetMax: pref.budgetMax || 0,
+            budgetType: pref.budgetType || 'monthly',
+            bedroomsMin: pref.bedroomsMin || 0,
+            bedroomsMax: pref.bedroomsMax || 0,
+            propertyTypes: pref.propertyTypes || [],
+            propertyLicences: pref.propertyLicences || [],
+            locations: locationNames,
+            propertiesManaging: properties_managing || 0,
+            dashboardLink: `${process.env.NEXT_PUBLIC_SITE_URL}/admin`
+          })
+        })
+      } catch (emailError) {
+        console.error('Admin investor notification failed:', emailError)
+      }
     }
 
     return NextResponse.json({

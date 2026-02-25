@@ -7,6 +7,8 @@ import ViewingRejected from '@/emails/investor/viewing-rejected';
 import WelcomeInvestor from '@/emails/investor/welcome-investor';
 import WelcomeLandlord from '@/emails/landlord/welcome-landlord';
 import NewPropertyMatch from '@/emails/investor/new-property-match';
+import NewInvestor from '@/emails/admin/new-investor';
+import NewProperty from '@/emails/admin/new-property';
 
 /**
  * Test Email Endpoint
@@ -151,6 +153,73 @@ export async function GET(request) {
         subject = 'New Property Match!';
         break;
 
+      case 'new-investor':
+        emailComponent = NewInvestor({
+          investorName: 'James Okafor',
+          investorEmail: 'james.okafor@example.com',
+          investorPhone: '+44 7700 900123',
+          operatorType: 'hands-off',
+          budgetMin: 1200,
+          budgetMax: 2500,
+          budgetType: 'monthly',
+          bedroomsMin: 2,
+          bedroomsMax: 4,
+          propertyTypes: ['HMO', 'Apartment'],
+          propertyLicences: ['HMO Licence'],
+          locations: ['East London', 'North London'],
+          propertiesManaging: 0,
+          dashboardLink: `${process.env.NEXT_PUBLIC_SITE_URL}/admin`
+        });
+        subject = 'New Investor Registered';
+        break;
+
+      case 'new-property': {
+        const { data: landlordProperty } = await supabase
+          .from('properties')
+          .select('id, address, city, postcode, monthly_rent, bedrooms, bathrooms, property_type, availability, property_licence, property_condition, photos')
+          .not('photos', 'is', null)
+          .filter('photos', 'neq', '{}')
+          .eq('status', 'active')
+          .limit(1)
+          .maybeSingle();
+
+        const lp = landlordProperty || {
+          address: 'Mathias Walk',
+          city: 'Basingstoke',
+          postcode: 'RG22 4BZ',
+          monthly_rent: 155000,
+          bedrooms: 3,
+          bathrooms: 1,
+          property_type: 'House',
+          availability: 'vacant',
+          property_licence: 'none',
+          property_condition: 'good',
+          photos: []
+        };
+
+        const lpAddressWithoutNumber = lp.address.replace(/^\d+\s*/, '');
+        const lpOutwardPostcode = (lp.postcode?.split(' ')[0] || lp.postcode).toUpperCase();
+        const lpCity = lp.city.charAt(0).toUpperCase() + lp.city.slice(1).toLowerCase();
+
+        emailComponent = NewProperty({
+          submittedByName: 'Sarah Mitchell',
+          submittedByEmail: 'sarah.mitchell@example.com',
+          submittedByPhone: '+44 7700 900456',
+          dashboardLink: `${process.env.NEXT_PUBLIC_SITE_URL}/admin`,
+          propertyAddress: `${lpAddressWithoutNumber}, ${lpCity}, ${lpOutwardPostcode}`,
+          propertyType: lp.property_type,
+          propertyPrice: (lp.monthly_rent / 100).toLocaleString(),
+          bedrooms: lp.bedrooms,
+          bathrooms: lp.bathrooms,
+          availability: lp.availability,
+          propertyLicence: lp.property_licence,
+          condition: lp.property_condition,
+          propertyImage: lp.photos?.[0] || ''
+        });
+        subject = 'New Landlord Registered';
+        break;
+      }
+
       default:
         return NextResponse.json(
           {
@@ -161,7 +230,9 @@ export async function GET(request) {
               'viewing-rejected',
               'welcome-investor',
               'welcome-landlord',
-              'new-property-match'
+              'new-property-match',
+              'new-investor',
+              'new-property'
             ]
           },
           { status: 400 }

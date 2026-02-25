@@ -8,7 +8,7 @@ import {
 } from '@react-email/components';
 import * as React from 'react';
 import EmailLayout from '../components/email-layout';
-import { EmailIcon } from '../components/email-icon';
+import EmailHeader from '../components/email-header';
 
 export default function ViewingReminder({
   propertyTitle = 'Modern 2 Bedroom Apartment',
@@ -32,14 +32,12 @@ export default function ViewingReminder({
 
   return (
     <EmailLayout preview="Reminder: Your property viewing is tomorrow">
-      {/* Icon + Title */}
-      <Section style={titleSection}>
-        <Text style={icon}>⏰</Text>
-        <Heading style={heading}>Viewing Tomorrow!</Heading>
-        <Text style={subtitle}>
-          This is a friendly reminder about your upcoming property viewing.
-        </Text>
-      </Section>
+      <EmailHeader
+        iconName="alarmClock"
+        iconColor="#10b981"
+        title="Viewing Tomorrow!"
+        subtitle="This is a friendly reminder about your upcoming property viewing."
+      />
 
       {/* Property Box - Blue Border */}
       <Section style={propertyBox}>
@@ -121,30 +119,6 @@ export default function ViewingReminder({
 }
 
 // Styles matching ACE Investment Properties brand
-const titleSection = {
-  textAlign: 'center',
-  marginBottom: '24px',
-};
-
-const icon = {
-  fontSize: '48px',
-  margin: '0 0 16px 0',
-};
-
-const heading = {
-  color: '#1f2937',
-  fontSize: '28px',
-  fontFamily: '"Playfair Display", Georgia, serif',
-  fontWeight: '500',
-  margin: '0 0 8px 0',
-};
-
-const subtitle = {
-  color: '#6b7280',
-  fontSize: '16px',
-  margin: 0,
-};
-
 const propertyBox = {
   border: '2px solid #e5e7eb',
   borderRadius: '0',

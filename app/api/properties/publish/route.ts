@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { geocodeAddress } from '@/lib/geocoding'
 import { sendPropertyToGHL } from '@/lib/ghl'
+import { sendEmail } from '@/lib/email'
+import NewProperty from '@/emails/admin/new-property'
 
 // Create admin client for database operations (only if env vars are available)
 const supabaseAdmin = process.env.SUPABASE_SERVICE_ROLE_KEY 
@@ -241,6 +243,42 @@ export async function POST(request: NextRequest) {
       )
     } catch (ghlError) {
       console.error('GHL sync failed but property saved:', ghlError)
+    }
+
+    // Send admin notification email (non-blocking)
+    try {
+      const landlordName = userProfile?.full_name ||
+        [userProfile?.first_name, userProfile?.last_name].filter(Boolean).join(' ') ||
+        newProperty.contact_name ||
+        user.email
+
+      const addressWithoutNumber = (newProperty.address || '').replace(/^\d+\s*/, '')
+      const outwardPostcode = (newProperty.postcode?.split(' ')[0] || newProperty.postcode || '').toUpperCase()
+      const city = newProperty.city
+        ? newProperty.city.charAt(0).toUpperCase() + newProperty.city.slice(1).toLowerCase()
+        : ''
+
+      await sendEmail({
+        to: process.env.ADMIN_EMAIL || 'tmwebstudio1@gmail.com',
+        subject: 'New Property Submitted',
+        react: NewProperty({
+          submittedByName: landlordName,
+          submittedByEmail: user.email,
+          submittedByPhone: userProfile?.phone || newProperty.contact_phone || '—',
+          dashboardLink: `${process.env.NEXT_PUBLIC_SITE_URL}/admin`,
+          propertyAddress: [addressWithoutNumber, city, outwardPostcode].filter(Boolean).join(', '),
+          propertyType: newProperty.property_type,
+          propertyPrice: (newProperty.monthly_rent / 100).toLocaleString(),
+          bedrooms: newProperty.bedrooms,
+          bathrooms: newProperty.bathrooms,
+          availability: newProperty.availability,
+          propertyLicence: newProperty.property_licence,
+          condition: newProperty.property_condition,
+          propertyImage: newProperty.photos?.[0] || ''
+        })
+      })
+    } catch (emailError) {
+      console.error('Admin property notification failed:', emailError)
     }
 
     // Update pending property status to claimed
