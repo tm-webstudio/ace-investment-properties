@@ -4,14 +4,12 @@ import {
   Section,
   Button,
   Hr,
-  Img,
-  Head,
 } from '@react-email/components';
 import * as React from 'react';
 import EmailLayout from '../components/email-layout';
 import EmailHeader from '../components/email-header';
-import { EmailIcon } from '../components/email-icon';
 import EmailBox from '../components/email-box';
+import PropertyCard from '../components/property-card';
 
 export default function NewPropertyMatch({
   propertyType = 'Apartment',
@@ -23,8 +21,6 @@ export default function NewPropertyMatch({
   availability = 'vacant',
   propertyLicence = 'hmo',
   condition = 'excellent',
-  amenities = [],
-  description = '',
   matchScore = 95,
   matchBreakdown = null,
   propertyUrl = `${process.env.NEXT_PUBLIC_SITE_URL}/properties/123`,
@@ -44,75 +40,8 @@ export default function NewPropertyMatch({
     return 'Potential Match';
   };
 
-  const getLicenceDisplay = (licence) => {
-    switch (licence) {
-      case 'hmo': return 'HMO Licence';
-      case 'c2': return 'C2 Licence';
-      case 'selective': return 'Selective Licence';
-      case 'additional': return 'Additional Licence';
-      case 'other': return 'Licensed';
-      case 'none': return null;
-      default: return null;
-    }
-  };
-
-  const getConditionDisplay = (cond) => {
-    switch (cond) {
-      case 'excellent': return 'Excellent';
-      case 'newly-renovated': return 'Newly Renovated';
-      case 'good': return 'Good';
-      case 'fair': return 'Fair';
-      case 'needs-work': return 'Needs Work';
-      default: return null;
-    }
-  };
-
-  const getAvailabilityLabel = (avail) => {
-    switch (avail) {
-      case 'vacant': return 'Vacant';
-      case 'tenanted': return 'Tenanted';
-      case 'upcoming': return 'Upcoming';
-      default: return 'Available';
-    }
-  };
-
-  const getAvailabilityColor = (avail) => {
-    switch (avail) {
-      case 'vacant': return '#10b981'; // green
-      case 'tenanted': return '#dc2626'; // red
-      case 'upcoming': return '#f97316'; // orange
-      default: return '#6b7280'; // gray
-    }
-  };
-
   return (
     <EmailLayout preview="New property match! Check out this investment opportunity">
-      <Head>
-        <style>{`
-          /* Responsive styles for desktop */
-          @media screen and (min-width: 600px) {
-            .property-container {
-              display: table !important;
-              width: 100% !important;
-            }
-            .property-image-cell {
-              display: table-cell !important;
-              width: 45% !important;
-              vertical-align: top !important;
-              padding-right: 16px !important;
-            }
-            .property-details-cell {
-              display: table-cell !important;
-              width: 55% !important;
-              vertical-align: top !important;
-            }
-            .property-image-mobile {
-              margin-bottom: 0 !important;
-            }
-          }
-        `}</style>
-      </Head>
-
       <EmailHeader
         iconName="target"
         iconColor="#10b981"
@@ -130,90 +59,18 @@ export default function NewPropertyMatch({
         </span>
       </Section>
 
-      {/* Property Box - Responsive layout */}
-      <EmailBox variant="outline" padding="16px">
-        <div className="property-container" style={{ display: 'block', width: '100%' }}>
-          {/* Image - stacks on top for mobile, left side for desktop */}
-          <div className="property-image-cell" style={{ display: 'block', width: '100%' }}>
-            {propertyImage && (
-              <Img
-                src={propertyImage}
-                alt={propertyAddress}
-                className="property-image-mobile"
-                style={propertyImageStyle}
-              />
-            )}
-          </div>
-
-          {/* Details - below image for mobile, right side for desktop */}
-          <div className="property-details-cell" style={{ display: 'block', width: '100%' }}>
-            {/* Address */}
-            <Heading as="h2" style={propertyAddressHeading}>
-              {propertyAddress}
-            </Heading>
-
-            {/* Price */}
-            <Text style={propertyPriceStyle}>
-              £{propertyPrice} pcm
-            </Text>
-
-            {/* Badges */}
-            <div style={{ marginTop: '12px', marginBottom: '16px' }}>
-              <span style={{
-                ...badge,
-                backgroundColor: getAvailabilityColor(availability),
-                marginRight: '8px',
-                marginBottom: '8px',
-              }}>
-                {getAvailabilityLabel(availability)}
-              </span>
-
-              {getLicenceDisplay(propertyLicence) && (
-                <span style={{
-                  ...badge,
-                  backgroundColor: '#1a1a2e',
-                  marginRight: '8px',
-                  marginBottom: '8px',
-                }}>
-                  {getLicenceDisplay(propertyLicence)}
-                </span>
-              )}
-
-              {getConditionDisplay(condition) && (
-                <span style={{
-                  ...badge,
-                  backgroundColor: '#6b7280',
-                  marginBottom: '8px',
-                }}>
-                  {getConditionDisplay(condition)}
-                </span>
-              )}
-            </div>
-
-            {/* Property details with icons */}
-            <Text style={propertyDetailsRow}>
-              <span style={propertyDetailItem}>{propertyType}</span>
-              <span style={propertyDetailItem}>🛏️ {bedrooms} bed</span>
-              <span style={propertyDetailItem}>🛁 {bathrooms} bath</span>
-            </Text>
-
-            {/* Features */}
-            {amenities && amenities.length > 0 && (
-              <Text style={featuresText}>
-                <strong>Features:</strong> {amenities.join(', ')}
-              </Text>
-            )}
-
-            {/* Description */}
-            {description && (
-              <Text style={descriptionText}>
-                <strong>Description:</strong><br />
-                {description}
-              </Text>
-            )}
-          </div>
-        </div>
-      </EmailBox>
+      {/* Property Card */}
+      <PropertyCard
+        propertyType={propertyType}
+        bedrooms={bedrooms}
+        bathrooms={bathrooms}
+        propertyAddress={propertyAddress}
+        propertyPrice={propertyPrice}
+        availability={availability}
+        propertyLicence={propertyLicence}
+        condition={condition}
+        propertyImage={propertyImage}
+      />
 
       {/* Match Details Box */}
       <EmailBox variant="plain-white">
@@ -228,10 +85,10 @@ export default function NewPropertyMatch({
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <tbody>
                 {[
-                  { label: 'Location', score: matchBreakdown.location, weight: '50%' },
-                  { label: 'Price', score: matchBreakdown.price, weight: '30%' },
-                  { label: 'Bedrooms', score: matchBreakdown.bedrooms, weight: '15%' },
-                  { label: 'Property Type', score: matchBreakdown.type, weight: '5%' },
+                  { label: 'Location', score: matchBreakdown.location },
+                  { label: 'Price', score: matchBreakdown.price },
+                  { label: 'Bedrooms', score: matchBreakdown.bedrooms },
+                  { label: 'Property Type', score: matchBreakdown.type },
                 ].map((item) => (
                   <tr key={item.label}>
                     <td style={breakdownLabel}>{item.label}</td>
@@ -272,7 +129,7 @@ export default function NewPropertyMatch({
 
       <Hr style={hr} />
 
-      {/* Quick Actions - Green Box */}
+      {/* Next Steps */}
       <EmailBox variant="green-dark">
         <Heading as="h3" style={actionsHeading}>
           Next Steps
@@ -314,31 +171,7 @@ export default function NewPropertyMatch({
   );
 }
 
-// Styles matching ACE Investment Properties brand
-const titleSection = {
-  textAlign: 'center',
-  marginBottom: '24px',
-};
-
-const icon = {
-  fontSize: '48px',
-  margin: '0 0 16px 0',
-};
-
-const heading = {
-  color: '#1f2937',
-  fontSize: '28px',
-  fontFamily: '"Playfair Display", Georgia, serif',
-  fontWeight: '500',
-  margin: '0 0 8px 0',
-};
-
-const subtitle = {
-  color: '#6b7280',
-  fontSize: '16px',
-  margin: 0,
-};
-
+// Styles
 const badgeSection = {
   textAlign: 'center',
   marginBottom: '24px',
@@ -346,70 +179,11 @@ const badgeSection = {
 
 const matchBadge = {
   color: '#ffffff',
-  padding: '8px 20px',
+  padding: '6px 16px',
   borderRadius: '0',
-  fontSize: '16px',
+  fontSize: '13px',
   fontWeight: '600',
   display: 'inline-block',
-};
-
-const propertyImageStyle = {
-  width: '100%',
-  height: 'auto',
-  borderRadius: '8px',
-  display: 'block',
-  marginBottom: '16px',
-};
-
-const propertyAddressHeading = {
-  color: '#1f2937',
-  fontSize: '20px',
-  fontWeight: '600',
-  margin: '0 0 8px 0',
-  lineHeight: '1.4',
-};
-
-const propertyPriceStyle = {
-  color: '#10b981',
-  fontSize: '20px',
-  fontWeight: '600',
-  margin: '0 0 12px 0',
-};
-
-const badge = {
-  color: '#ffffff',
-  padding: '4px 12px',
-  borderRadius: '0',
-  fontSize: '12px',
-  fontWeight: '600',
-  display: 'inline-block',
-};
-
-const propertyDetailsRow = {
-  color: '#6b7280',
-  fontSize: '14px',
-  margin: '0 0 12px 0',
-  lineHeight: '1.6',
-};
-
-const propertyDetailItem = {
-  display: 'inline-block',
-  marginRight: '16px',
-  whiteSpace: 'nowrap',
-};
-
-const featuresText = {
-  color: '#6b7280',
-  fontSize: '14px',
-  margin: '12px 0 8px 0',
-  lineHeight: '1.6',
-};
-
-const descriptionText = {
-  color: '#6b7280',
-  fontSize: '14px',
-  margin: '12px 0 0 0',
-  lineHeight: '1.6',
 };
 
 const matchHeading = {

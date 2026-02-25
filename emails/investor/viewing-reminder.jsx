@@ -4,16 +4,23 @@ import {
   Section,
   Button,
   Hr,
-  Img,
 } from '@react-email/components';
 import * as React from 'react';
 import EmailLayout from '../components/email-layout';
 import EmailHeader from '../components/email-header';
 import EmailBox from '../components/email-box';
+import PropertyCard from '../components/property-card';
 
 export default function ViewingReminder({
   propertyTitle = 'Modern 2 Bedroom Apartment',
   propertyAddress = '123 Nash Road, London, E1 1AA',
+  propertyType = 'apartment',
+  bedrooms = 2,
+  bathrooms = 1,
+  propertyPrice = '0',
+  availability = 'vacant',
+  propertyLicence = 'none',
+  condition = 'good',
   propertyImage = '',
   viewingDate = '2026-01-15',
   viewingTime = '14:00',
@@ -40,22 +47,18 @@ export default function ViewingReminder({
         subtitle="This is a friendly reminder about your upcoming property viewing."
       />
 
-      {/* Property Box - Blue Border */}
-      <EmailBox variant="outline">
-        {propertyImage && (
-          <Img
-            src={propertyImage}
-            alt={propertyTitle}
-            style={propertyImageStyle}
-          />
-        )}
-        <Heading as="h2" style={propertyTitle}>
-          {propertyTitle}
-        </Heading>
-        <Text style={propertyAddress}>
-          {propertyAddress}
-        </Text>
-      </EmailBox>
+      {/* Property Card */}
+      <PropertyCard
+        propertyAddress={propertyTitle}
+        propertyType={propertyType}
+        bedrooms={bedrooms}
+        bathrooms={bathrooms}
+        propertyPrice={propertyPrice}
+        availability={availability}
+        propertyLicence={propertyLicence}
+        condition={condition}
+        propertyImage={propertyImage}
+      />
 
       {/* Viewing Details - Yellow Box */}
       <EmailBox variant="plain-white">
@@ -120,26 +123,6 @@ export default function ViewingReminder({
 }
 
 // Styles matching ACE Investment Properties brand
-const propertyImageStyle = {
-  width: '100%',
-  height: 'auto',
-  borderRadius: '0',
-  marginBottom: '16px',
-};
-
-const propertyTitle = {
-  color: '#1f2937',
-  fontSize: '28px',
-  fontFamily: '"Playfair Display", Georgia, serif',
-  fontWeight: '500',
-  margin: '0 0 8px 0',
-};
-
-const propertyAddress = {
-  color: '#6b7280',
-  fontSize: '14px',
-  margin: 0,
-};
 
 const infoHeading = {
   color: '#1f2937',

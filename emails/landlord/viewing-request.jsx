@@ -4,17 +4,24 @@ import {
   Section,
   Button,
   Hr,
-  Img,
 } from '@react-email/components';
 import * as React from 'react';
 import EmailLayout from '../components/email-layout';
 import EmailHeader from '../components/email-header';
 import { EmailIcon } from '../components/email-icon';
 import EmailBox from '../components/email-box';
+import PropertyCard from '../components/property-card';
 
 export default function ViewingRequest({
   propertyTitle = 'Modern 2 Bedroom Apartment',
   propertyAddress = '123 Nash Road, London, E1 1AA',
+  propertyType = 'apartment',
+  bedrooms = 2,
+  bathrooms = 1,
+  propertyPrice = '0',
+  availability = 'vacant',
+  propertyLicence = 'none',
+  condition = 'good',
   propertyImage = '',
   viewerName = 'Jane Doe',
   viewerEmail = 'jane@example.com',
@@ -35,23 +42,18 @@ export default function ViewingRequest({
         subtitle="You have received a new viewing request for your property."
       />
 
-      {/* Property Box - White with Border */}
-      <EmailBox variant="outline">
-        {propertyImage && (
-          <Img
-            src={propertyImage}
-            alt={propertyTitle}
-            style={propertyImageStyle}
-          />
-        )}
-        <Heading as="h2" style={propertyTitleStyle}>
-          {propertyTitle}
-        </Heading>
-        <Text style={propertyAddressStyle}>
-          <EmailIcon name="mapPin" color="#6b7280" size={16} />
-          {propertyAddress}
-        </Text>
-      </EmailBox>
+      {/* Property Card */}
+      <PropertyCard
+        propertyAddress={propertyTitle}
+        propertyType={propertyType}
+        bedrooms={bedrooms}
+        bathrooms={bathrooms}
+        propertyPrice={propertyPrice}
+        availability={availability}
+        propertyLicence={propertyLicence}
+        condition={condition}
+        propertyImage={propertyImage}
+      />
 
       {/* Requester Info - White Box with Border */}
       <EmailBox variant="outline">
@@ -147,28 +149,6 @@ const subtitle = {
   margin: 0,
 };
 
-const propertyImageStyle = {
-  width: '100%',
-  height: 'auto',
-  borderRadius: '0',
-  marginBottom: '16px',
-};
-
-const propertyTitleStyle = {
-  color: '#1f2937',
-  fontSize: '28px',
-  fontFamily: '"Playfair Display", Georgia, serif',
-  fontWeight: '500',
-  margin: '0 0 8px 0',
-};
-
-const propertyAddressStyle = {
-  color: '#6b7280',
-  fontSize: '14px',
-  margin: 0,
-  display: 'flex',
-  alignItems: 'center',
-};
 
 const infoHeading = {
   color: '#1f2937',

@@ -3,7 +3,7 @@ import { createClient } from '@supabase/supabase-js'
 import { extractPreferences, calculateMatchScore } from '@/lib/propertyMatching'
 import { formatPropertyForCard, formatPropertyTitle } from '@/lib/property-utils'
 import { sendEmail } from '@/lib/email'
-import NewPropertyMatch from '@/emails/investor/new-property-match'
+import PropertyMatches from '@/emails/investor/property-matches'
 import React from 'react'
 
 const supabase = createClient(
@@ -84,29 +84,41 @@ export async function GET(request: NextRequest) {
 
       if (matches.length === 0) continue
 
-      // Send email for the best match (or first if multiple)
-      const best = matches[0]
-      const formatted = formatPropertyForCard(best.property)
-      const title = formatPropertyTitle(best.property)
       const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://aceinvestmentproperties.co.uk'
+      const topMatches = matches.slice(0, 5)
+
+      const propertyItems = topMatches.map(m => {
+        const formatted = formatPropertyForCard(m.property)
+        const title = formatPropertyTitle(m.property)
+        return {
+          propertyType: m.property.property_type || 'Property',
+          bedrooms: parseInt(m.property.bedrooms) || 0,
+          bathrooms: parseInt(m.property.bathrooms) || 0,
+          propertyAddress: title,
+          propertyImage: m.property.photos?.[0] || '',
+          propertyPrice: formatted.price?.toLocaleString() || '0',
+          availability: m.property.availability || 'vacant',
+          propertyLicence: m.property.property_licence || 'none',
+          condition: m.property.property_condition || 'good',
+          matchScore: m.matchScore,
+          propertyUrl: `${siteUrl}/properties/${m.property.id}`,
+        }
+      })
+
+      const count = propertyItems.length
+      const subject = count === 1
+        ? '1 New Property Match'
+        : `${count} New Property Matches`
 
       await sendEmail({
         to: profile.email,
-        subject: `New ${best.matchScore}% Match: ${title}`,
-        react: React.createElement(NewPropertyMatch, {
-          propertyType: best.property.property_type || 'Property',
-          bedrooms: parseInt(best.property.bedrooms) || 0,
-          bathrooms: parseInt(best.property.bathrooms) || 0,
-          propertyAddress: title,
-          propertyImage: best.property.photos?.[0] || '',
-          propertyPrice: formatted.price?.toLocaleString() || '0',
-          availability: best.property.availability || 'vacant',
-          propertyLicence: best.property.property_licence || 'none',
-          condition: best.property.property_condition || 'good',
-          matchScore: best.matchScore,
-          matchBreakdown: best.matchBreakdown,
-          propertyUrl: `${siteUrl}/properties/${best.property.id}`,
+        subject,
+        react: React.createElement(PropertyMatches, {
+          investorName: profile.full_name || profile.email,
+          context: 'new-matches',
+          properties: propertyItems,
           dashboardLink: `${siteUrl}/investor/dashboard`,
+          totalMatches: count,
         })
       })
 

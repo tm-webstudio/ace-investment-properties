@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { sendEmail } from '@/lib/email'
 import NewInvestor from '@/emails/admin/new-investor'
+import PropertyMatches from '@/emails/investor/property-matches'
+import { getMatchedProperties } from '@/lib/propertyMatching'
 
 // Create admin client for database operations (only if env vars are available)
 const supabaseAdmin = process.env.SUPABASE_SERVICE_ROLE_KEY 
@@ -309,6 +311,50 @@ export async function POST(request: NextRequest) {
         })
       } catch (emailError) {
         console.error('Admin investor notification failed:', emailError)
+      }
+
+      // Send initial matches email to the new investor (non-blocking)
+      try {
+        const investorEmail = user.email
+        const investorName = userProfile.full_name ||
+          [userProfile.first_name, userProfile.last_name].filter(Boolean).join(' ') ||
+          investorEmail
+
+        const { properties: matches } = await getMatchedProperties(user.id, { minScore: 75, limit: 5 })
+
+        if (matches.length > 0) {
+          const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://aceinvestmentproperties.co.uk'
+          const propertyItems = matches.map((item: any) => ({
+            propertyType: item.property_type || 'Property',
+            bedrooms: parseInt(item.bedrooms) || 0,
+            bathrooms: parseInt(item.bathrooms) || 0,
+            propertyAddress: item.title,
+            propertyImage: item.photos?.[0] || '',
+            propertyPrice: item.price?.toLocaleString() || '0',
+            availability: item.availability || 'vacant',
+            propertyLicence: item.property_licence || 'none',
+            condition: item.property_condition || 'good',
+            matchScore: item.matchScore,
+            propertyUrl: `${siteUrl}/properties/${item.id}`,
+          }))
+
+          const count = propertyItems.length
+          const propertyWord = count === 1 ? 'property' : 'properties'
+
+          await sendEmail({
+            to: investorEmail,
+            subject: `We found ${count} ${propertyWord} matching your criteria`,
+            react: PropertyMatches({
+              investorName,
+              context: 'welcome',
+              properties: propertyItems,
+              dashboardLink: `${siteUrl}/investor/dashboard`,
+              totalMatches: count,
+            }),
+          })
+        }
+      } catch (matchEmailError) {
+        console.error('Initial matches email failed:', matchEmailError)
       }
     }
 
