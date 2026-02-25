@@ -1,5 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import React from 'react'
+import { getInvestorMatches } from '@/lib/propertyMatching'
+import { formatPropertyForCard, formatPropertyTitle } from '@/lib/property-utils'
+import { sendEmail } from '@/lib/email'
+import NewPropertyMatch from '@/emails/investor/new-property-match'
 
 // Create admin client for database operations
 const supabaseAdmin = process.env.SUPABASE_SERVICE_ROLE_KEY 
@@ -107,6 +112,47 @@ export async function POST(request: NextRequest) {
         { error: 'Failed to update property status', details: updateError?.message || 'No property found' },
         { status: 500 }
       )
+    }
+
+    // Send match emails to investors when a property is approved (non-blocking)
+    if (action === 'approve') {
+      try {
+        const matches = await getInvestorMatches(propertyId, { minScore: 60 })
+        if (matches.length > 0) {
+          const formatted = formatPropertyForCard(updatedProperty)
+          const title = formatPropertyTitle(updatedProperty)
+          const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://aceinvestmentproperties.co.uk'
+
+          for (const investor of matches) {
+            if (!investor.email) continue
+            try {
+              await sendEmail({
+                to: investor.email,
+                subject: `New ${investor.match_score}% Match: ${title}`,
+                react: React.createElement(NewPropertyMatch, {
+                  propertyType: updatedProperty.property_type || 'Property',
+                  bedrooms: parseInt(updatedProperty.bedrooms) || 0,
+                  bathrooms: parseInt(updatedProperty.bathrooms) || 0,
+                  propertyAddress: title,
+                  propertyImage: updatedProperty.photos?.[0] || '',
+                  propertyPrice: formatted.price?.toLocaleString() || '0',
+                  availability: updatedProperty.availability || 'vacant',
+                  propertyLicence: updatedProperty.property_licence || 'none',
+                  condition: updatedProperty.property_condition || 'good',
+                  matchScore: investor.match_score,
+                  matchBreakdown: investor.match_breakdown,
+                  propertyUrl: `${siteUrl}/properties/${updatedProperty.id}`,
+                  dashboardLink: `${siteUrl}/investor/dashboard`,
+                })
+              })
+            } catch (emailError) {
+              console.error(`Match email failed for investor ${investor.id}:`, emailError)
+            }
+          }
+        }
+      } catch (matchError) {
+        console.error('Match notifications failed:', matchError)
+      }
     }
 
     return NextResponse.json({
