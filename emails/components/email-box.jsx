@@ -5,6 +5,8 @@ const variantStyles = {
   outline:       { backgroundColor: '#ffffff', border: '2px solid #e5e7eb' },
   'outline-red': { backgroundColor: '#fef2f2', border: '2px solid #fecaca' },
   green:         { backgroundColor: '#f0fdf4', borderLeft: '4px solid #10b981' },
+  'green-plain':   { backgroundColor: '#f0fdf4' },
+  'green-outline': { backgroundColor: '#f0fdf4', border: '2px solid #4ade80' },
   'green-dark':  { backgroundColor: '#f8f9fa', borderLeft: '4px solid #10b981' },
   orange:        { backgroundColor: '#f8f9fa', borderLeft: '4px solid #f97316' },
   red:           { backgroundColor: '#fef2f2', borderLeft: '4px solid #ef4444' },

@@ -74,12 +74,24 @@ export default function NewInvestor({
       </EmailBox>
 
       {/* Investment Preferences Box */}
-      <EmailBox variant="green">
+      <EmailBox variant="green-outline">
         <Heading as="h3" style={preferencesHeading}>
           Investment Preferences
         </Heading>
         <table style={infoTable}>
           <tbody>
+            {propertiesManaging !== undefined && propertiesManaging !== null && (
+              <tr>
+                <td style={prefLabel}>Currently Managing:</td>
+                <td style={prefValue}>{propertiesManaging} properties</td>
+              </tr>
+            )}
+            <tr>
+              <td style={prefLabel}>Operator Type:</td>
+              <td style={{ ...prefValue, textTransform: 'capitalize' }}>
+                {operatorType}
+              </td>
+            </tr>
             <tr>
               <td style={prefLabel}>Budget:</td>
               <td style={prefValue}>{formatBudget()}</td>
@@ -112,18 +124,6 @@ export default function NewInvestor({
                   : '—'}
               </td>
             </tr>
-            <tr>
-              <td style={prefLabel}>Operator Type:</td>
-              <td style={{ ...prefValue, textTransform: 'capitalize' }}>
-                {operatorType}
-              </td>
-            </tr>
-            {propertiesManaging !== undefined && propertiesManaging !== null && (
-              <tr>
-                <td style={prefLabel}>Currently Managing:</td>
-                <td style={prefValue}>{propertiesManaging} properties</td>
-              </tr>
-            )}
           </tbody>
         </table>
       </EmailBox>
@@ -175,14 +175,14 @@ const infoValue = {
 };
 
 const preferencesHeading = {
-  color: '#065f46',
+  color: '#1a4a38',
   fontSize: '15px',
   fontWeight: '600',
   margin: '0 0 10px 0',
 };
 
 const prefLabel = {
-  color: '#047857',
+  color: '#4b7a6a',
   fontSize: '14px',
   fontWeight: '600',
   padding: '4px 0',
@@ -191,7 +191,7 @@ const prefLabel = {
 };
 
 const prefValue = {
-  color: '#065f46',
+  color: '#1a3530',
   fontSize: '14px',
   padding: '4px 0',
 };

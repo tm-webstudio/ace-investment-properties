@@ -115,7 +115,7 @@ const headerText = {
   fontSize: '16px',
   fontWeight: '900',
   margin: '0',
-  letterSpacing: '0.05em',
+  letterSpacing: '0',
   textAlign: 'center',
   fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
 };
