@@ -218,7 +218,7 @@ export function PreferencesModal({ onPreferencesUpdate }: PreferencesModalProps)
           Edit Preferences
         </Button>
       </DialogTrigger>
-      <DialogContent className="w-[calc(100%-1.5rem)] sm:w-full max-w-4xl max-h-[90vh] flex flex-col p-0 gap-0">
+      <DialogContent className="w-[calc(100%-1.5rem)] sm:w-full max-w-4xl max-h-[85dvh] flex flex-col overflow-hidden p-0 gap-0">
         <DialogHeader className="px-6 pt-6 pb-4 shrink-0">
           <DialogTitle>Edit Preferences</DialogTitle>
         </DialogHeader>
