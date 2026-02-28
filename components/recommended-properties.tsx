@@ -200,11 +200,15 @@ export function RecommendedProperties({ className, preferences }: RecommendedPro
             <CardTitle>
               Recommended For You
             </CardTitle>
-            <Link href="/investor/dashboard?tab=preferences">
-              <Button variant="outline" size="sm" className="bg-transparent">
-                View All
+            <div className="flex items-center gap-2">
+              <Button variant="ghost" size="sm" disabled>
+                <RefreshCw className="h-4 w-4" />
               </Button>
-            </Link>
+              <PreferencesModal onPreferencesUpdate={() => {
+                fetchRecommendedProperties()
+                fetchSavedProperties()
+              }} />
+            </div>
           </div>
 
           {/* Your Preferences Section */}
@@ -439,11 +443,20 @@ export function RecommendedProperties({ className, preferences }: RecommendedPro
           <CardTitle>
             Recommended For You
           </CardTitle>
-          <Link href="/investor/dashboard?tab=preferences">
-            <Button variant="outline" size="sm" className="bg-transparent">
-              View All
+          <div className="flex items-center gap-2">
+            <Button variant="ghost" size="sm" onClick={handleRefresh}>
+              <RefreshCw className="h-4 w-4" />
             </Button>
-          </Link>
+            <PreferencesModal onPreferencesUpdate={() => {
+              fetchRecommendedProperties()
+              fetchSavedProperties()
+            }} />
+            <Link href="/investor/dashboard?tab=preferences">
+              <Button variant="outline" size="sm" className="bg-transparent">
+                View All
+              </Button>
+            </Link>
+          </div>
         </div>
 
         {/* Your Preferences Section */}
