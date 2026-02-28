@@ -161,7 +161,7 @@ export async function POST(request: NextRequest) {
     // Get user profile and verify they are an investor
     const { data: userProfile, error: profileError } = await supabaseAdmin
       .from('user_profiles')
-      .select('user_type, full_name, first_name, last_name, phone')
+      .select('user_type, full_name, phone')
       .eq('id', user.id)
       .single()
 
@@ -280,9 +280,7 @@ export async function POST(request: NextRequest) {
     // Send admin notification on first signup (non-blocking)
     if (isNewInvestor) {
       try {
-        const investorName = userProfile.full_name ||
-          [userProfile.first_name, userProfile.last_name].filter(Boolean).join(' ') ||
-          user.email
+        const investorName = userProfile.full_name || user.email
 
         const pref = preference_data || {}
         const locationNames = (pref.locations || [])
