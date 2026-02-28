@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -60,11 +60,19 @@ export function PreferencesModal({ onPreferencesUpdate }: PreferencesModalProps)
     immediateAvailability: false
   })
 
+  const statusRef = useRef<HTMLDivElement>(null)
+
   useEffect(() => {
     if (open) {
       fetchPreferences()
     }
   }, [open])
+
+  useEffect(() => {
+    if ((error || success) && statusRef.current) {
+      statusRef.current.scrollIntoView({ behavior: "smooth", block: "nearest" })
+    }
+  }, [error, success])
 
 
   const fetchPreferences = async () => {
@@ -181,17 +189,10 @@ export function PreferencesModal({ onPreferencesUpdate }: PreferencesModalProps)
 
       if (result.success) {
         setSuccess("Preferences updated successfully!")
-        
-        // Call callback to refresh parent component
         if (onPreferencesUpdate) {
           onPreferencesUpdate()
         }
-        
-        // Close modal after a short delay
-        setTimeout(() => {
-          setOpen(false)
-          setSuccess("")
-        }, 1500)
+        setTimeout(() => setSuccess(""), 3000)
       } else {
         setError(result.error || 'Failed to update preferences')
       }
@@ -217,46 +218,22 @@ export function PreferencesModal({ onPreferencesUpdate }: PreferencesModalProps)
           Edit Preferences
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
+      <DialogContent className="w-[calc(100%-1.5rem)] sm:w-full max-w-4xl max-h-[90vh] flex flex-col p-0 gap-0">
+        <DialogHeader className="px-6 pt-6 pb-4 shrink-0">
           <DialogTitle>Edit Preferences</DialogTitle>
         </DialogHeader>
 
-        {isLoading ? (
-          <div className="flex items-center justify-center py-8">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-              <p className="text-gray-600">Loading preferences...</p>
+        {/* Scrollable form area */}
+        <div className="flex-1 overflow-y-auto px-6 pb-2">
+          {isLoading ? (
+            <div className="flex items-center justify-center py-8">
+              <div className="text-center">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+                <p className="text-gray-600">Loading preferences...</p>
+              </div>
             </div>
-          </div>
-        ) : (
-          <div className="space-y-6">
-            {/* Error/Success Messages */}
-            {error && (
-              <Card className="border-red-200 bg-red-50">
-                <CardContent className="p-4">
-                  <div className="flex items-center gap-3 text-red-700">
-                    <AlertTriangle className="h-5 w-5" />
-                    <span>{error}</span>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
-            {success && (
-              <Card className="border-green-200 bg-green-50">
-                <CardContent className="p-4">
-                  <div className="flex items-center gap-3 text-green-700">
-                    <Save className="h-5 w-5" />
-                    <span>{success}</span>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Form Sections */}
-            <div className="space-y-6">
-              {/* Property Preferences */}
+          ) : (
+            <div className="space-y-6 pb-2">
               <Card>
                 <CardHeader>
                   <CardTitle>Property Preferences</CardTitle>
@@ -269,7 +246,6 @@ export function PreferencesModal({ onPreferencesUpdate }: PreferencesModalProps)
                 </CardContent>
               </Card>
 
-              {/* Location & Availability */}
               <Card>
                 <CardHeader>
                   <CardTitle>Location & Availability</CardTitle>
@@ -282,48 +258,67 @@ export function PreferencesModal({ onPreferencesUpdate }: PreferencesModalProps)
                 </CardContent>
               </Card>
             </div>
+          )}
+        </div>
 
-            {/* Action Buttons */}
-            <div className="flex flex-col sm:flex-row gap-4 justify-between pt-6 border-t">
+        {/* Sticky footer — always visible */}
+        <div className="shrink-0 border-t bg-white px-6 py-4 space-y-3">
+          {/* Status messages */}
+          <div ref={statusRef}>
+            {error && (
+              <div className="flex items-center gap-2 text-red-700 bg-red-50 border border-red-200 rounded-md px-3 py-2 text-sm">
+                <AlertTriangle className="h-4 w-4 shrink-0" />
+                <span>{error}</span>
+              </div>
+            )}
+            {success && (
+              <div className="flex items-center gap-2 text-green-700 bg-green-50 border border-green-200 rounded-md px-3 py-2 text-sm">
+                <Save className="h-4 w-4 shrink-0" />
+                <span>{success}</span>
+              </div>
+            )}
+          </div>
+
+          {/* Action buttons */}
+          <div className="flex flex-col sm:flex-row gap-3 justify-between">
+            <Button
+              variant="outline"
+              onClick={handleReset}
+              disabled={isSaving}
+              className="flex items-center gap-2"
+            >
+              <RotateCcw className="h-4 w-4" />
+              Reset to Saved
+            </Button>
+
+            <div className="flex gap-3 self-end">
               <Button
-                variant="outline"
-                onClick={handleReset}
+                variant="ghost"
+                disabled={isSaving}
+                onClick={() => setOpen(false)}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleSave}
                 disabled={isSaving}
                 className="flex items-center gap-2"
               >
-                <RotateCcw className="h-4 w-4" />
-                Reset to Saved
+                {isSaving ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <Save className="h-4 w-4" />
+                    Update Preferences
+                  </>
+                )}
               </Button>
-
-              <div className="flex gap-3">
-                <Button 
-                  variant="ghost" 
-                  disabled={isSaving}
-                  onClick={() => setOpen(false)}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  onClick={handleSave}
-                  disabled={isSaving}
-                  className="flex items-center gap-2"
-                >
-                  {isSaving ? (
-                    <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                      Saving...
-                    </>
-                  ) : (
-                    <>
-                      <Save className="h-4 w-4" />
-                      Update Preferences
-                    </>
-                  )}
-                </Button>
-              </div>
             </div>
           </div>
-        )}
+        </div>
       </DialogContent>
     </Dialog>
   )
