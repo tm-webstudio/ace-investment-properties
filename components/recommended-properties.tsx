@@ -451,7 +451,7 @@ export function RecommendedProperties({ className, preferences }: RecommendedPro
               fetchRecommendedProperties()
               fetchSavedProperties()
             }} />
-            <Link href="/investor/dashboard?tab=preferences">
+            <Link href="/investor/dashboard?tab=preferences" className="hidden sm:block">
               <Button variant="outline" size="sm" className="bg-transparent">
                 View All
               </Button>
