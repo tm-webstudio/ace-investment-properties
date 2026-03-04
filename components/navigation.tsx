@@ -260,8 +260,7 @@ export function Navigation() {
       {/* Mobile full-page overlay — fixed, starts below the 64px navbar */}
       <div
         className={`fixed inset-x-0 top-16 bottom-0 z-40 md:hidden overflow-hidden
-                    transition-transform duration-300 ease-in-out
-                    ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}
+                    ${isOpen ? 'block' : 'hidden'}`}
       >
         {/* ── Main panel ── */}
         <div
