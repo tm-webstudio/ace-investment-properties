@@ -51,7 +51,7 @@ export async function GET(
 
     // Parse query parameters
     const { searchParams } = new URL(request.url)
-    const limit = Math.min(parseInt(searchParams.get('limit') || '10'), 50)
+    const limit = Math.min(parseInt(searchParams.get('limit') || '50'), 100)
     const offset = parseInt(searchParams.get('offset') || '0')
     const minScore = parseInt(searchParams.get('minScore') || '60')
 
