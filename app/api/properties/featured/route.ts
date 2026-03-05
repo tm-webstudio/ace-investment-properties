@@ -73,11 +73,13 @@ export async function GET(request: Request) {
       query = query.eq('city', city)
     }
 
-    // Order by published_at first (newest approvals), then created_at as fallback
+    // Only return properties that have photos, ordered by newest published
     const { data: properties, error } = await query
+      .not('photos', 'eq', '{}')
+      .not('photos', 'is', null)
       .order('published_at', { ascending: false, nullsFirst: false })
       .order('created_at', { ascending: false })
-      .limit(20) // Get latest 20 approved properties
+      .limit(20)
 
     if (error) {
       console.error('Error fetching featured properties:', error)
@@ -87,9 +89,8 @@ export async function GET(request: Request) {
       )
     }
 
-    // Filter out properties without images and format for frontend
+    // Format for frontend
     const formattedProperties = properties
-      .filter(property => property.photos && property.photos.length > 0)
       .map(property => ({
         ...formatPropertyForCard(property),
         featured: true // Mark all as featured for now

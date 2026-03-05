@@ -161,7 +161,7 @@ export async function POST(request: NextRequest) {
     // Get user profile and verify they are an investor
     const { data: userProfile, error: profileError } = await supabaseAdmin
       .from('user_profiles')
-      .select('user_type, full_name, phone')
+      .select('user_type, full_name, phone, ref_number')
       .eq('id', user.id)
       .single()
 
@@ -289,7 +289,7 @@ export async function POST(request: NextRequest) {
 
         await sendEmail({
           to: process.env.ADMIN_EMAIL || 'tmwebstudio1@gmail.com',
-          subject: 'New Investor Registered',
+          subject: `New Investor Registered – Investor #${userProfile.ref_number || '?'}`,
           react: NewInvestor({
             investorName,
             investorEmail: user.email,

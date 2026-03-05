@@ -1,9 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import * as React from 'react'
 import { supabase } from '@/lib/supabase'
 import { rateLimit } from '@/lib/middleware'
 import { signUpWithEmail } from '@/lib/authHelpers'
 import { sendLandlordSignupToGHL, sendInvestorSignupToGHL } from '@/lib/ghl'
+import { sendEmail } from '@/lib/email'
+import NewInvestor from '@/emails/admin/new-investor'
 
 // Create admin client for database operations
 const supabaseAdmin = process.env.SUPABASE_SERVICE_ROLE_KEY
@@ -82,7 +85,7 @@ export async function POST(request: NextRequest) {
     // Create user profile in database
     const full_name = `${first_name} ${last_name}`.trim()
 
-    const { error: profileError } = await supabase
+    const { data: profileData, error: profileError } = await supabase
       .from('user_profiles')
       .insert({
         id: authData.user.id,
@@ -92,6 +95,8 @@ export async function POST(request: NextRequest) {
         phone: phone_number,
         user_type: user_type
       })
+      .select('ref_number')
+      .single()
 
     if (profileError) {
       console.error('Profile creation error:', profileError)
@@ -135,6 +140,39 @@ export async function POST(request: NextRequest) {
         })
       } catch (ghlError) {
         console.error('GHL investor signup sync failed:', ghlError)
+      }
+    }
+
+    // Send admin notification for new investor (non-blocking)
+    if (user_type === 'investor') {
+      try {
+        const pref = preferences?.preference_data || {}
+        const locationNames = (pref.locations || [])
+          .map((loc: any) => loc.city || '')
+          .filter(Boolean)
+
+        await sendEmail({
+          to: process.env.ADMIN_EMAIL || 'tmwebstudio1@gmail.com',
+          subject: `New Investor Registered – Investor #${profileData?.ref_number || '?'}`,
+          react: React.createElement(NewInvestor, {
+            investorName: full_name,
+            investorEmail: email,
+            investorPhone: phone_number || '—',
+            operatorType: preferences?.operator_type || '—',
+            budgetMin: pref.budgetMin || 0,
+            budgetMax: pref.budgetMax || 0,
+            budgetType: pref.budgetType || 'monthly',
+            bedroomsMin: pref.bedroomsMin || 0,
+            bedroomsMax: pref.bedroomsMax || 0,
+            propertyTypes: pref.propertyTypes || [],
+            propertyLicences: pref.propertyLicences || [],
+            locations: locationNames,
+            propertiesManaging: preferences?.properties_managing || 0,
+            dashboardLink: `${process.env.NEXT_PUBLIC_SITE_URL}/admin`
+          })
+        })
+      } catch (adminEmailError) {
+        console.error('Failed to send admin new investor email:', adminEmailError)
       }
     }
 

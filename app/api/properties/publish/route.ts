@@ -238,7 +238,8 @@ export async function POST(request: NextRequest) {
           condition: newProperty?.property_condition,
           licence: newProperty?.property_licence,
           contactPhone: newProperty?.contact_phone,
-          contactEmail: newProperty?.contact_email
+          contactEmail: newProperty?.contact_email,
+          description: newProperty?.description
         }
       )
     } catch (ghlError) {
@@ -260,7 +261,7 @@ export async function POST(request: NextRequest) {
 
       await sendEmail({
         to: process.env.ADMIN_EMAIL || 'tmwebstudio1@gmail.com',
-        subject: 'New Property Submitted',
+        subject: `New Property Submitted – Property #${newProperty.ref_number || '?'}`,
         react: NewProperty({
           submittedByName: landlordName,
           submittedByEmail: user.email,

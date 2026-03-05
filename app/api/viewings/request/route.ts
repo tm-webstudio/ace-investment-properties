@@ -3,7 +3,9 @@ import { supabase } from '@/lib/supabase'
 import { requireAuth } from '@/lib/middleware'
 import { sendEmail } from '@/lib/email'
 import ViewingRequest from '@/emails/landlord/viewing-request'
+import NewViewing from '@/emails/admin/new-viewing'
 import { formatDate, formatTime, getUserDisplayName, formatPropertyAddress } from '@/lib/emailHelpers'
+import * as React from 'react'
 
 // Validate environment variables
 if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
@@ -201,8 +203,14 @@ export async function POST(request: NextRequest) {
       // Fetch property details and landlord info
       const { data: propertyDetails } = await supabase
         .from('properties')
-        .select('title, address, street_address, city, postcode')
+        .select('title, address, street_address, city, postcode, property_type, bedrooms, bathrooms, monthly_rent, availability, property_licence, condition, images, ref_number')
         .eq('id', body.propertyId)
+        .single()
+
+      const { data: investorProfile } = await supabase
+        .from('user_profiles')
+        .select('ref_number')
+        .eq('id', req.user.id)
         .single()
 
       const { data: landlordProfile } = await supabase
@@ -234,6 +242,40 @@ export async function POST(request: NextRequest) {
             approveLink: `${process.env.NEXT_PUBLIC_SITE_URL}/landlord/viewings/${viewing.id}/approve`,
             declineLink: `${process.env.NEXT_PUBLIC_SITE_URL}/landlord/viewings/${viewing.id}/decline`,
             dashboardLink: `${process.env.NEXT_PUBLIC_SITE_URL}/landlord/viewing-requests`
+          })
+        })
+      }
+
+      // Send admin notification email
+      if (propertyDetails) {
+        const monthlyRentPounds = propertyDetails.monthly_rent
+          ? Math.round(propertyDetails.monthly_rent / 100).toLocaleString()
+          : '0'
+        const propertyImage = Array.isArray(propertyDetails.images) && propertyDetails.images.length > 0
+          ? propertyDetails.images[0]
+          : ''
+
+        await sendEmail({
+          to: process.env.ADMIN_EMAIL || 'tmwebstudio1@gmail.com',
+          subject: `New Viewing Request – Property #${propertyDetails.ref_number || '?'} by Investor #${investorProfile?.ref_number || '?'}`,
+          react: React.createElement(NewViewing, {
+            investorName: body.userName,
+            investorEmail: body.userEmail,
+            investorPhone: body.userPhone,
+            propertyTitle: propertyDetails.title || 'Property',
+            propertyAddress: formatPropertyAddress(propertyDetails),
+            propertyType: propertyDetails.property_type || 'property',
+            bedrooms: propertyDetails.bedrooms || 0,
+            bathrooms: propertyDetails.bathrooms || 0,
+            propertyPrice: monthlyRentPounds,
+            availability: propertyDetails.availability || 'unknown',
+            propertyLicence: propertyDetails.property_licence || 'none',
+            condition: propertyDetails.condition || 'good',
+            propertyImage,
+            viewingDate: body.viewingDate,
+            viewingTime: body.viewingTime,
+            message: body.message || '',
+            dashboardLink: `${process.env.NEXT_PUBLIC_SITE_URL}/admin/viewings`
           })
         })
       }
