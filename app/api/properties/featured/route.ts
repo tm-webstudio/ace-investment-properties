@@ -11,16 +11,16 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url)
     const city = searchParams.get('city') || 'London'
 
-    // Define Midlands cities
-    const midlandsCities = [
-      'Birmingham',
-      'Coventry',
-      'Nottingham',
-      'Leicester',
-      'Derby',
-      'Wolverhampton',
-      'Stoke-on-Trent',
-      'Northampton'
+    // Define Midlands local authorities (more reliable than city name matching)
+    const midlandsAuthorities = [
+      'Birmingham', 'Coventry', 'Wolverhampton', 'Walsall', 'Sandwell', 'Dudley', 'Solihull',
+      'Nottingham', 'Nottinghamshire', 'Derby', 'Derbyshire',
+      'Leicester', 'Leicestershire', 'Rutland',
+      'Stoke-on-Trent', 'Staffordshire', 'Lichfield', 'Tamworth', 'Cannock Chase',
+      'Northampton', 'Northamptonshire', 'North Northamptonshire', 'West Northamptonshire',
+      'Herefordshire', 'Shropshire', 'Telford and Wrekin', 'Worcestershire',
+      'Warwickshire', 'Stratford-on-Avon', 'Nuneaton and Bedworth', 'Rugby',
+      'Lincolnshire', 'North East Lincolnshire', 'North Lincolnshire'
     ]
 
     // Define Greater London boroughs (for local_authority matching)
@@ -63,8 +63,8 @@ export async function GET(request: Request) {
 
     // Filter by city or region
     if (city === 'Midlands') {
-      // For Midlands, fetch from multiple cities
-      query = query.in('city', midlandsCities)
+      // For Midlands, match on local_authority (avoids city name casing issues)
+      query = query.in('local_authority', midlandsAuthorities)
     } else if (city === 'London') {
       // For London, include both city='London' AND Greater London boroughs
       query = query.or(`city.eq.London,local_authority.in.(${greaterLondonBoroughs.map(b => `"${b}"`).join(',')})`)
