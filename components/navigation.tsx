@@ -310,16 +310,6 @@ export function Navigation() {
                     Dashboard
                   </Button>
                 </Link>
-                {user.user_metadata?.user_type !== 'investor' && (
-                  <Link href="/investor/signup">
-                    <Button
-                      className="w-full bg-accent hover:bg-accent/80 border-accent border text-accent-foreground text-sm py-3 rounded-none transition-all duration-300 ease-in-out"
-                      onClick={() => setIsOpen(false)}
-                    >
-                      Join as Investor
-                    </Button>
-                  </Link>
-                )}
                 <Button
                   className="w-full bg-destructive hover:bg-destructive/90 text-destructive-foreground text-sm justify-center py-3 rounded-none transition-all duration-300 ease-in-out"
                   onClick={() => { signOut(); setIsOpen(false) }}

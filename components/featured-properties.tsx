@@ -195,8 +195,8 @@ export function FeaturedProperties({
               <ChevronLeft className="h-6 w-6" />
             </button>
           )}
-          
-          {!loading && canScrollRight && (
+
+          {!loading && (
             <button
               onClick={scrollRight}
               className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 bg-white shadow-lg p-2 hover:bg-gray-50 transition-colors z-10"

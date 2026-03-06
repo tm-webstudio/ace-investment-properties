@@ -1,6 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { createClient } from '@supabase/supabase-js'
 import { supabase } from '@/lib/supabase'
 import { geocodeAddress } from '@/lib/geocoding'
+
+const supabaseAdmin = process.env.SUPABASE_SERVICE_ROLE_KEY
+  ? createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      { auth: { autoRefreshToken: false, persistSession: false } }
+    )
+  : null
 
 /**
  * API endpoint to geocode properties that don't have coordinates yet
@@ -8,7 +17,27 @@ import { geocodeAddress } from '@/lib/geocoding'
  */
 export async function POST(request: NextRequest) {
   try {
-    // Optional: Add authentication check here for admin-only access
+    // Admin-only access
+    if (!supabaseAdmin) {
+      return NextResponse.json({ error: 'Service unavailable' }, { status: 503 })
+    }
+    const authHeader = request.headers.get('authorization')
+    if (!authHeader?.startsWith('Bearer ')) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+    const token = authHeader.replace('Bearer ', '')
+    const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token)
+    if (authError || !user) {
+      return NextResponse.json({ error: 'Invalid token' }, { status: 401 })
+    }
+    const { data: profile } = await supabaseAdmin
+      .from('profiles')
+      .select('role')
+      .eq('id', user.id)
+      .single()
+    if (profile?.role !== 'admin') {
+      return NextResponse.json({ error: 'Admin access required' }, { status: 403 })
+    }
 
     // Get properties without coordinates
     const { data: properties, error } = await supabase
