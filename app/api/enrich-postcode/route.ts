@@ -70,11 +70,19 @@ const EMPTY = { city: '', local_authority: '', postcode_clean: '', title: '', ad
 
 export async function POST(request: NextRequest) {
   const body = await request.json().catch(() => null)
-  if (!body?.postcode) {
-    return NextResponse.json({ error: 'postcode is required', ...EMPTY }, { status: 400 })
+  console.log('[enrich-postcode] received body:', JSON.stringify(body))
+
+  const postcode: string | undefined =
+    body?.postcode ??
+    body?.custom_data?.postcode ??
+    body?.customData?.postcode ??
+    body?.data?.postcode
+
+  if (!postcode) {
+    return NextResponse.json({ error: 'postcode is required', ...EMPTY, received: body }, { status: 400 })
   }
 
-  const postcode_clean = (body.postcode as string).replace(/\s+/g, '').toUpperCase()
+  const postcode_clean = postcode.replace(/\s+/g, '').toUpperCase()
 
   const [pcRes, street] = await Promise.all([
     fetch(`https://api.postcodes.io/postcodes/${postcode_clean}`),
