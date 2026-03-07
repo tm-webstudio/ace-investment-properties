@@ -9,13 +9,27 @@ export default function PropertyCard({
   propertyType = 'Apartment',
   bedrooms = 2,
   bathrooms = 1,
-  propertyAddress = '123 Nash Road, London, E1 1AA',
+  propertyAddress = 'Nash Road, London, E1',
   propertyPrice = '1,200',
   availability = 'vacant',
   propertyLicence = 'hmo',
   condition = 'excellent',
   propertyImage = '',
+  matchScore = null,
 }) {
+  const getMatchColor = (score) => {
+    if (score >= 90) return '#10b981';
+    if (score >= 75) return '#10b981';
+    if (score >= 60) return '#f97316';
+    return '#6b7280';
+  };
+
+  const getMatchLabel = (score) => {
+    if (score >= 90) return 'Excellent Match';
+    if (score >= 75) return 'Great Match';
+    if (score >= 60) return 'Good Match';
+    return 'Potential Match';
+  };
   const getLicenceDisplay = (licence) => {
     switch (licence) {
       case 'hmo': return 'HMO Licence';
@@ -100,6 +114,13 @@ export default function PropertyCard({
 
           {/* Right: details */}
           <div className="pc-details-cell" style={{ display: 'block', width: '100%' }}>
+            {matchScore !== null && (
+              <div style={scoreBadgeRow}>
+                <span style={{ ...scoreBadge, backgroundColor: getMatchColor(matchScore) }}>
+                  {matchScore}% {getMatchLabel(matchScore)}
+                </span>
+              </div>
+            )}
             <Text style={addressText}>
               {propertyAddress}
             </Text>
@@ -194,6 +215,19 @@ const badge = {
   padding: '4px 12px',
   borderRadius: '0',
   fontSize: '12px',
+  fontWeight: '600',
+  display: 'inline-block',
+};
+
+const scoreBadgeRow = {
+  marginBottom: '10px',
+};
+
+const scoreBadge = {
+  color: '#ffffff',
+  padding: '3px 10px',
+  borderRadius: '0',
+  fontSize: '11px',
   fontWeight: '600',
   display: 'inline-block',
 };

@@ -16,7 +16,7 @@ const defaultProperties = [
     propertyType: 'Apartment',
     bedrooms: 2,
     bathrooms: 1,
-    propertyAddress: '123 Nash Road, London, E1 1AA',
+    propertyAddress: 'Nash Road, London, E1',
     propertyImage: '',
     propertyPrice: '1,200',
     availability: 'vacant',
@@ -29,7 +29,7 @@ const defaultProperties = [
     propertyType: 'House',
     bedrooms: 3,
     bathrooms: 2,
-    propertyAddress: 'Oak Street, Manchester, M1 2AB',
+    propertyAddress: 'Oak Street, Manchester, M1',
     propertyImage: '',
     propertyPrice: '1,500',
     availability: 'tenanted',
@@ -47,27 +47,13 @@ export default function PropertyMatches({
   dashboardLink = `${process.env.NEXT_PUBLIC_SITE_URL}/investor/dashboard`,
   totalMatches = 0,
 }) {
-  const getMatchColor = (score) => {
-    if (score >= 90) return '#10b981';
-    if (score >= 75) return '#10b981';
-    if (score >= 60) return '#f97316';
-    return '#6b7280';
-  };
-
-  const getMatchLabel = (score) => {
-    if (score >= 90) return 'Excellent Match';
-    if (score >= 75) return 'Great Match';
-    if (score >= 60) return 'Good Match';
-    return 'Potential Match';
-  };
-
   const isWelcome = context === 'welcome';
   const count = properties.length;
   const propertyWord = count === 1 ? 'property' : 'properties';
 
   const title = isWelcome
-    ? 'Your Initial Property Matches'
-    : 'New Property Matches!';
+    ? 'Properties Matching Your Criteria'
+    : 'Properties Matching Your Criteria';
 
   const subtitle = isWelcome
     ? 'Based on your preferences, here are properties we found for you.'
@@ -94,17 +80,7 @@ export default function PropertyMatches({
       {/* Property list */}
       {properties.map((property, index) => (
         <React.Fragment key={index}>
-          {/* Match score badge */}
-          <Section style={badgeSection}>
-            <span style={{
-              ...matchBadge,
-              backgroundColor: getMatchColor(property.matchScore),
-            }}>
-              {property.matchScore}% {getMatchLabel(property.matchScore)}
-            </span>
-          </Section>
-
-          {/* Property Card */}
+          {/* Property Card (match score badge rendered inside) */}
           <PropertyCard
             propertyType={property.propertyType}
             bedrooms={property.bedrooms}
@@ -115,6 +91,7 @@ export default function PropertyMatches({
             propertyLicence={property.propertyLicence}
             condition={property.condition}
             propertyImage={property.propertyImage}
+            matchScore={property.matchScore}
           />
 
           {/* View Property button */}
@@ -135,19 +112,13 @@ export default function PropertyMatches({
           Next Steps
         </Heading>
         <Text style={actionText}>
-          • Review the full property listings and photos
-        </Text>
-        <Text style={actionText}>
-          • Check the yield calculator and investment returns
+          • Review the full property listings
         </Text>
         <Text style={actionText}>
           • Request a viewing if you're interested
         </Text>
         <Text style={actionText}>
           • Save to your favorites for later review
-        </Text>
-        <Text style={actionText}>
-          • Contact the landlord with any questions
         </Text>
       </EmailBox>
 
@@ -172,20 +143,6 @@ const introText = {
   margin: '0 0 24px 0',
   lineHeight: '1.6',
   textAlign: 'center',
-};
-
-const badgeSection = {
-  textAlign: 'center',
-  marginBottom: '12px',
-};
-
-const matchBadge = {
-  color: '#ffffff',
-  padding: '6px 16px',
-  borderRadius: '0',
-  fontSize: '13px',
-  fontWeight: '600',
-  display: 'inline-block',
 };
 
 const propertyButtonSection = {
