@@ -1,6 +1,6 @@
 "use client"
 
-import { createContext, useContext, useEffect, useState } from "react"
+import { createContext, useContext, useEffect, useMemo, useRef, useState } from "react"
 import { User } from "@supabase/supabase-js"
 import { supabase } from "@/lib/supabase"
 
@@ -15,6 +15,17 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined)
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
+  const userIdRef = useRef<string | null>(null)
+
+  // Only update user state when the user ID actually changes,
+  // preventing cascading re-renders from TOKEN_REFRESHED events
+  const setUserIfChanged = (newUser: User | null) => {
+    const newId = newUser?.id ?? null
+    if (newId !== userIdRef.current) {
+      userIdRef.current = newId
+      setUser(newUser)
+    }
+  }
 
   useEffect(() => {
     // Get initial session
@@ -31,7 +42,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
           if (user && !error) {
             console.log('Auth context: Token is valid, user authenticated:', user.id)
-            setUser(user)
+            setUserIfChanged(user)
             setLoading(false)
             return
           } else {
@@ -50,12 +61,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           localStorage.removeItem('accessToken')
           localStorage.removeItem('refreshToken')
           await supabase.auth.signOut()
-          setUser(null)
+          setUserIfChanged(null)
           setLoading(false)
           return
         }
 
-        setUser(session?.user ?? null)
+        setUserIfChanged(session?.user ?? null)
         setLoading(false)
       } catch (error) {
         console.error('Auth context: Error getting session:', error)
@@ -63,7 +74,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         localStorage.removeItem('accessToken')
         localStorage.removeItem('refreshToken')
         await supabase.auth.signOut()
-        setUser(null)
+        setUserIfChanged(null)
         setLoading(false)
       }
     }
@@ -81,7 +92,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           }
         }
 
-        setUser(session?.user ?? null)
+        setUserIfChanged(session?.user ?? null)
         setLoading(false)
       }
     )
@@ -98,11 +109,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await supabase.auth.signOut()
     
     // Update local state
+    userIdRef.current = null
     setUser(null)
   }
 
+  const value = useMemo(() => ({ user, loading, signOut }), [user, loading])
+
   return (
-    <AuthContext.Provider value={{ user, loading, signOut }}>
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   )
