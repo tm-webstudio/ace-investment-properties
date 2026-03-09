@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { sendEmail } from '@/lib/email'
+import { formatPropertyTitle, formatPropertyAddress } from '@/lib/format-address'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -351,6 +352,8 @@ export async function POST(request: NextRequest) {
       || body['Property Available Date'] || body.available_date || ''
     const description = cd.description || body['Tell us a bit about the property']
       || body['Property Description'] || body.description || body.notes || ''
+    const streetAddress = cd.address || body['Property Address'] || body['Street Address']
+      || body.address || body.street_address || ''
 
     console.log('[facebook-lead] Extracted — email:', email, '| postcode:', postcode, '| name:', name, '| phone:', phone)
 
@@ -373,9 +376,9 @@ export async function POST(request: NextRequest) {
       : { city: '', local_authority: '', region: '', postcode_clean: '' }
     console.log('[facebook-lead] Enriched postcode:', enriched)
 
-    // Step 2: Build property title and address
-    const propertyTitle = `${enriched.city || 'Unknown'}, ${enriched.postcode_clean}`
-    const propertyAddress = `${enriched.postcode_clean}, ${enriched.city}, ${enriched.region}`.replace(/, ,/g, ',').replace(/,$/, '')
+    // Step 2: Build property title and address (same format as website)
+    const propertyTitle = formatPropertyTitle(streetAddress, enriched.city, enriched.postcode_clean)
+    const propertyAddress = formatPropertyAddress(streetAddress, enriched.city, enriched.postcode_clean)
 
     // Step 3: Update GHL contact (non-critical)
     if (contactId) {
