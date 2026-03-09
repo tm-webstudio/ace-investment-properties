@@ -2,9 +2,6 @@ import { NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase'
 import { formatPropertyForCard } from '@/lib/property-utils'
 
-// Disable caching to always return fresh data
-export const dynamic = 'force-dynamic'
-export const revalidate = 0
 
 export async function GET(request: Request) {
   try {
@@ -99,6 +96,10 @@ export async function GET(request: Request) {
     return NextResponse.json({
       success: true,
       properties: formattedProperties
+    }, {
+      headers: {
+        'Cache-Control': 'public, s-maxage=120, stale-while-revalidate=300',
+      },
     })
 
   } catch (error: any) {

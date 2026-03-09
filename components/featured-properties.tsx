@@ -72,13 +72,6 @@ export function FeaturedProperties({
     }
 
     fetchProperties()
-
-    // Auto-refresh every 60 seconds to pick up newly approved properties
-    const intervalId = setInterval(() => {
-      fetchProperties()
-    }, 60000) // 60 seconds
-
-    return () => clearInterval(intervalId)
   }, [city])
 
   const scrollLeft = () => {
