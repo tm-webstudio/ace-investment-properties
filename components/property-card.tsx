@@ -144,7 +144,7 @@ export function PropertyCard({ property, variant = 'default', onPropertyDeleted,
   // Shared card structure for both variants
   const CardLayout = ({ children, topRightAction }: { children: React.ReactNode, topRightAction: React.ReactNode }) => (
     <Card
-      className="overflow-hidden hover:shadow-lg transition-all duration-300 group border-border/50 hover:border-accent/20 cursor-pointer p-0 gap-3.5 rounded-none"
+      className="overflow-hidden hover:shadow-lg transition-all duration-300 group border-border/50 hover:border-accent/20 cursor-pointer p-0 gap-0 rounded-none"
     >
       <Link href={propertyHref} prefetch={false} className="block">
       <div className="relative overflow-hidden cursor-pointer">
@@ -227,7 +227,7 @@ export function PropertyCard({ property, variant = 'default', onPropertyDeleted,
         <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
       </div>
 
-      <CardContent className="px-4 md:px-4 pb-4">
+      <CardContent className="px-4 md:px-4 pt-2 pb-4">
         <div className="space-y-2.5">
           <div className="mb-1.5">
             <h3 className="font-sans text-base font-medium text-card-foreground mb-1 line-clamp-1">
