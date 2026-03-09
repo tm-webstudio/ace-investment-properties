@@ -1,0 +1,433 @@
+import { NextRequest, NextResponse } from 'next/server'
+import { createClient } from '@supabase/supabase-js'
+import { sendEmail } from '@/lib/email'
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
+
+const districtToCityMap: Record<string, string> = {
+  'barking and dagenham': 'London', 'barnet': 'London', 'bexley': 'London',
+  'brent': 'London', 'bromley': 'London', 'camden': 'London', 'croydon': 'London',
+  'ealing': 'London', 'enfield': 'London', 'greenwich': 'London', 'hackney': 'London',
+  'hammersmith and fulham': 'London', 'haringey': 'London', 'harrow': 'London',
+  'havering': 'London', 'hillingdon': 'London', 'hounslow': 'London',
+  'islington': 'London', 'kensington and chelsea': 'London',
+  'kingston upon thames': 'London', 'lambeth': 'London', 'lewisham': 'London',
+  'merton': 'London', 'newham': 'London', 'redbridge': 'London',
+  'richmond upon thames': 'London', 'southwark': 'London', 'sutton': 'London',
+  'tower hamlets': 'London', 'waltham forest': 'London', 'wandsworth': 'London',
+  'westminster': 'London', 'city of london': 'London',
+  'manchester': 'Manchester', 'salford': 'Manchester', 'bolton': 'Manchester',
+  'bury': 'Manchester', 'oldham': 'Manchester', 'rochdale': 'Manchester',
+  'stockport': 'Manchester', 'tameside': 'Manchester', 'trafford': 'Manchester',
+  'wigan': 'Manchester',
+  'birmingham': 'Birmingham', 'coventry': 'Coventry', 'dudley': 'Birmingham',
+  'sandwell': 'Birmingham', 'solihull': 'Birmingham', 'walsall': 'Birmingham',
+  'wolverhampton': 'Birmingham',
+  'liverpool': 'Liverpool', 'sefton': 'Liverpool', 'knowsley': 'Liverpool',
+  'st helens': 'Liverpool', 'wirral': 'Liverpool',
+  'leeds': 'Leeds', 'bradford': 'Leeds', 'calderdale': 'Leeds',
+  'kirklees': 'Leeds', 'wakefield': 'Leeds',
+  'newcastle upon tyne': 'Newcastle', 'gateshead': 'Newcastle',
+  'north tyneside': 'Newcastle', 'south tyneside': 'Newcastle', 'sunderland': 'Newcastle',
+  'brighton and hove': 'Brighton',
+  'bristol, city of': 'Bristol', 'bristol': 'Bristol',
+  'nottingham': 'Nottingham', 'leicester': 'Leicester',
+}
+
+// --- Helper functions ---
+
+async function enrichPostcode(postcode: string) {
+  const clean = postcode.replace(/\s+/g, '').toUpperCase()
+  try {
+    const res = await fetch(`https://api.postcodes.io/postcodes/${clean}`)
+    if (!res.ok) {
+      console.log(`[facebook-lead] Postcode lookup failed for ${clean}: ${res.status}`)
+      return { city: '', local_authority: '', region: '', postcode_clean: clean }
+    }
+    const json = await res.json()
+    const result = json.result
+    const adminDistrict: string = result.admin_district ?? ''
+    const city = adminDistrict
+      ? (districtToCityMap[adminDistrict.toLowerCase()] ?? adminDistrict)
+      : ''
+    return {
+      city,
+      local_authority: adminDistrict,
+      region: result.region ?? '',
+      postcode_clean: result.postcode ?? clean,
+    }
+  } catch (err) {
+    console.error('[facebook-lead] Postcode enrichment error:', err)
+    return { city: '', local_authority: '', region: '', postcode_clean: clean }
+  }
+}
+
+async function updateGHLContact(contactId: string, fields: Record<string, string>) {
+  const apiKey = process.env.GHL_API_KEY
+  if (!apiKey) {
+    console.log('[facebook-lead] GHL API key not configured, skipping contact update')
+    return
+  }
+
+  try {
+    const res = await fetch(`https://rest.gohighlevel.com/v1/contacts/${contactId}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({ customField: fields }),
+    })
+    if (!res.ok) {
+      const text = await res.text()
+      console.error(`[facebook-lead] GHL update failed (${res.status}):`, text)
+    } else {
+      console.log('[facebook-lead] GHL contact updated successfully')
+    }
+  } catch (err) {
+    console.error('[facebook-lead] GHL update error:', err)
+  }
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function createOrFindLandlord(
+  supabase: any,
+  data: { email: string; name: string; phone: string; ghl_contact_id: string }
+) {
+  const { data: existing } = await supabase
+    .from('landlords')
+    .select('*')
+    .eq('email', data.email)
+    .single()
+
+  if (existing) {
+    // Update with latest info
+    const { data: updated, error } = await supabase
+      .from('landlords')
+      .update({
+        name: data.name || existing.name,
+        phone: data.phone || existing.phone,
+        ghl_contact_id: data.ghl_contact_id || existing.ghl_contact_id,
+      })
+      .eq('id', existing.id)
+      .select()
+      .single()
+
+    if (error) {
+      console.error('[facebook-lead] Landlord update error:', error)
+      return existing
+    }
+    return updated
+  }
+
+  const { data: created, error } = await supabase
+    .from('landlords')
+    .insert({
+      email: data.email,
+      name: data.name,
+      phone: data.phone,
+      ghl_contact_id: data.ghl_contact_id,
+      source: 'facebook',
+    })
+    .select()
+    .single()
+
+  if (error) {
+    console.error('[facebook-lead] Landlord creation error:', error)
+    throw new Error(`Failed to create landlord: ${error.message}`)
+  }
+  return created
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function createPropertyListing(
+  supabase: any,
+  data: {
+    address: string
+    city: string
+    local_authority: string
+    postcode: string
+    bedrooms: string
+    bathrooms: string
+    monthly_rent: number
+    property_type: string
+    available_date: string | null
+    description: string
+    contact_name: string
+    contact_email: string
+    contact_phone: string
+  }
+) {
+  const { data: property, error } = await supabase
+    .from('properties')
+    .insert({
+      landlord_id: null,
+      address: data.address,
+      city: data.city,
+      local_authority: data.local_authority,
+      postcode: data.postcode,
+      bedrooms: data.bedrooms,
+      bathrooms: data.bathrooms,
+      monthly_rent: data.monthly_rent,
+      property_type: data.property_type,
+      available_date: data.available_date,
+      description: data.description,
+      contact_name: data.contact_name,
+      contact_email: data.contact_email,
+      contact_phone: data.contact_phone,
+      status: 'draft',
+      source: 'facebook',
+      address_complete: false,
+    })
+    .select()
+    .single()
+
+  if (error) {
+    console.error('[facebook-lead] Property creation error:', error)
+    throw new Error(`Failed to create property: ${error.message}`)
+  }
+  return property
+}
+
+function parseAvailability(available: string | undefined): string | null {
+  if (!available) return null
+  const lower = available.toLowerCase().trim()
+  if (lower === 'immediately' || lower === 'now') {
+    return new Date().toISOString().split('T')[0]
+  }
+  // Try to parse as a date
+  const parsed = new Date(available)
+  if (!isNaN(parsed.getTime())) {
+    return parsed.toISOString().split('T')[0]
+  }
+  // Common patterns like "1 month", "2 weeks"
+  const monthMatch = lower.match(/(\d+)\s*month/)
+  if (monthMatch) {
+    const d = new Date()
+    d.setMonth(d.getMonth() + parseInt(monthMatch[1]))
+    return d.toISOString().split('T')[0]
+  }
+  const weekMatch = lower.match(/(\d+)\s*week/)
+  if (weekMatch) {
+    const d = new Date()
+    d.setDate(d.getDate() + parseInt(weekMatch[1]) * 7)
+    return d.toISOString().split('T')[0]
+  }
+  return null
+}
+
+async function sendVerificationEmail(
+  email: string,
+  name: string,
+  propertyTitle: string,
+  token: string
+) {
+  const verifyUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL ? 'https://www.aceinvestmentproperties.co.uk' : 'http://localhost:3000'}/api/verify-email?token=${token}`
+
+  const html = `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+      <h2 style="color: #1a365d;">Verify Your Property Listing</h2>
+      <p>Hi ${name || 'there'},</p>
+      <p>Thank you for submitting your property <strong>${propertyTitle}</strong> to Ace Investment Properties.</p>
+      <p>Please verify your email address to activate your listing:</p>
+      <p style="text-align: center; margin: 30px 0;">
+        <a href="${verifyUrl}" style="background-color: #2563eb; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; font-weight: bold;">
+          Verify Email
+        </a>
+      </p>
+      <p style="color: #666; font-size: 14px;">This link expires in 24 hours.</p>
+      <p style="color: #666; font-size: 14px;">If you didn't submit this listing, please ignore this email.</p>
+      <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;" />
+      <p style="color: #999; font-size: 12px;">Ace Investment Properties</p>
+    </div>
+  `
+
+  const result = await sendEmail({
+    to: email,
+    subject: `Verify your property listing - ${propertyTitle}`,
+    html,
+    from: 'Ace Properties <noreply@aceinvestmentproperties.co.uk>',
+  })
+
+  if (!result.success) {
+    console.error('[facebook-lead] Verification email failed:', result.error)
+  } else {
+    console.log('[facebook-lead] Verification email sent to', email)
+  }
+}
+
+async function sendAdminNotification(
+  landlord: { name: string; email: string; phone: string },
+  property: { id: string; address: string; monthly_rent: number; bedrooms: string; property_type: string },
+  enriched: { city: string; local_authority: string; postcode_clean: string }
+) {
+  const html = `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+      <h2 style="color: #1a365d;">New Facebook Landlord Lead</h2>
+      <h3>Landlord Details</h3>
+      <ul>
+        <li><strong>Name:</strong> ${landlord.name || 'N/A'}</li>
+        <li><strong>Email:</strong> ${landlord.email}</li>
+        <li><strong>Phone:</strong> ${landlord.phone || 'N/A'}</li>
+      </ul>
+      <h3>Property Details</h3>
+      <ul>
+        <li><strong>Address:</strong> ${property.address}</li>
+        <li><strong>Rent:</strong> £${property.monthly_rent / 100}/month</li>
+        <li><strong>Bedrooms:</strong> ${property.bedrooms}</li>
+        <li><strong>Type:</strong> ${property.property_type || 'N/A'}</li>
+        <li><strong>City:</strong> ${enriched.city || 'N/A'}</li>
+        <li><strong>Local Authority:</strong> ${enriched.local_authority || 'N/A'}</li>
+        <li><strong>Postcode:</strong> ${enriched.postcode_clean}</li>
+      </ul>
+      <p>
+        <a href="https://www.aceinvestmentproperties.co.uk/admin/properties/${property.id}" style="background-color: #2563eb; color: white; padding: 10px 20px; text-decoration: none; border-radius: 6px;">
+          View in Admin
+        </a>
+      </p>
+      <p style="color: #666; font-size: 14px;">Status: Draft (awaiting email verification)</p>
+    </div>
+  `
+
+  const result = await sendEmail({
+    to: 'admin@aceinvestmentproperties.co.uk',
+    subject: `New Facebook Lead: ${property.address}`,
+    html,
+    from: 'Ace Properties <notifications@aceinvestmentproperties.co.uk>',
+  })
+
+  if (!result.success) {
+    console.error('[facebook-lead] Admin email failed:', result.error)
+  } else {
+    console.log('[facebook-lead] Admin notification sent')
+  }
+}
+
+// --- Main POST handler ---
+
+export async function POST(request: NextRequest) {
+  console.log('========== FACEBOOK LEAD WEBHOOK ==========')
+
+  try {
+    const body = await request.json()
+    console.log('[facebook-lead] Received payload:', JSON.stringify(body))
+
+    // Extract fields from GHL webhook payload
+    const contactId = body.contact_id || body.contactId || ''
+    const name = body.full_name || body.name || body.first_name || ''
+    const email = body.email || ''
+    const phone = body.phone || ''
+    const postcode = body.postcode || body.postal_code || ''
+    const bedrooms = body.bedrooms || '1'
+    const bathrooms = body.bathrooms || '1'
+    const rent = body.rent || body.monthly_rent || '0'
+    const propertyType = body.property_type || ''
+    const available = body.available || body.availability || ''
+    const description = body.description || body.notes || ''
+
+    if (!email) {
+      console.error('[facebook-lead] No email provided')
+      return NextResponse.json({ error: 'Email is required' }, { status: 400 })
+    }
+
+    if (!postcode) {
+      console.error('[facebook-lead] No postcode provided')
+      return NextResponse.json({ error: 'Postcode is required' }, { status: 400 })
+    }
+
+    // Step 1: Enrich postcode
+    const enriched = await enrichPostcode(postcode)
+    console.log('[facebook-lead] Enriched postcode:', enriched)
+
+    // Step 2: Build property title and address
+    const propertyTitle = `${enriched.city || 'Unknown'}, ${enriched.postcode_clean}`
+    const propertyAddress = `${enriched.postcode_clean}, ${enriched.city}, ${enriched.region}`.replace(/, ,/g, ',').replace(/,$/, '')
+
+    // Step 3: Update GHL contact (non-critical)
+    if (contactId) {
+      try {
+        await updateGHLContact(contactId, {
+          property_title: propertyTitle,
+          property_address: propertyAddress,
+          property_city: enriched.city,
+          property_local_authority: enriched.local_authority,
+        })
+      } catch (err) {
+        console.error('[facebook-lead] GHL update failed (continuing):', err)
+      }
+    }
+
+    // Step 4: Create Supabase client and create/find landlord
+    const supabase = createClient(supabaseUrl, supabaseServiceKey)
+
+    const landlord = await createOrFindLandlord(supabase, {
+      email,
+      name,
+      phone,
+      ghl_contact_id: contactId,
+    })
+    console.log('[facebook-lead] Landlord:', landlord.id)
+
+    // Step 5: Create property listing
+    const property = await createPropertyListing(supabase, {
+      address: propertyAddress,
+      city: enriched.city,
+      local_authority: enriched.local_authority,
+      postcode: enriched.postcode_clean,
+      bedrooms,
+      bathrooms,
+      monthly_rent: parseInt(rent) * 100, // pounds → pence
+      property_type: propertyType,
+      available_date: parseAvailability(available),
+      description,
+      contact_name: name,
+      contact_email: email,
+      contact_phone: phone,
+    })
+    console.log('[facebook-lead] Property created:', property.id)
+
+    // Step 6: Create verification token (expires 24h)
+    const { data: verificationToken, error: tokenError } = await supabase
+      .from('verification_tokens')
+      .insert({
+        email,
+        property_id: property.id,
+        expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+      })
+      .select()
+      .single()
+
+    if (tokenError) {
+      console.error('[facebook-lead] Token creation error:', tokenError)
+    }
+
+    // Step 7: Send emails (non-critical)
+    try {
+      if (verificationToken) {
+        await sendVerificationEmail(email, name, propertyTitle, verificationToken.token)
+      }
+    } catch (err) {
+      console.error('[facebook-lead] Verification email error:', err)
+    }
+
+    try {
+      await sendAdminNotification(
+        { name, email, phone },
+        property,
+        enriched
+      )
+    } catch (err) {
+      console.error('[facebook-lead] Admin email error:', err)
+    }
+
+    console.log('[facebook-lead] Webhook processed successfully')
+    return NextResponse.json({ success: true, propertyId: property.id, landlordId: landlord.id })
+  } catch (err) {
+    console.error('[facebook-lead] Webhook error:', err)
+    return NextResponse.json(
+      { error: 'Internal server error', message: err instanceof Error ? err.message : 'Unknown error' },
+      { status: 500 }
+    )
+  }
+}
