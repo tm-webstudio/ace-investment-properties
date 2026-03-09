@@ -1,11 +1,10 @@
 "use client"
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { Heart } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { useAuth } from '@/contexts/auth-context'
-import { supabase } from '@/lib/supabase'
 // Simple toast implementation - replace with your preferred toast library
 const toast = {
   success: (message: string) => {
@@ -81,7 +80,8 @@ export function SavePropertyButton({
   const [isLoading, setIsLoading] = useState(false)
   const [isCheckingInitialState, setIsCheckingInitialState] = useState(false)
   const [cachedToken, setCachedToken] = useState<string | null>(null)
-  const { user } = useAuth()
+  const hasCheckedRef = useRef(false)
+  const { user, loading } = useAuth()
 
   // Size configurations
   const sizeConfig = {
@@ -109,12 +109,13 @@ export function SavePropertyButton({
 
   const config = sizeConfig[size]
 
-  // Check initial saved state when component mounts (if user is authenticated)
+  // Check initial saved state once when user is authenticated
   useEffect(() => {
-    if (user && !initialSaved) {
+    if (!loading && user?.id && !initialSaved && !hasCheckedRef.current) {
+      hasCheckedRef.current = true
       checkSavedState()
     }
-  }, [user?.id, propertyId, initialSaved])
+  }, [loading, user?.id, propertyId, initialSaved])
 
   const checkSavedState = async () => {
     if (!user) return
@@ -142,9 +143,8 @@ export function SavePropertyButton({
         setIsSaved(data.isSaved)
         onSaveChange?.(data.isSaved)
       } else if (response && response.status === 401) {
-        // Clear stale token so subsequent calls don't repeat with the same bad token
+        // Only clear in-memory token; don't touch localStorage to avoid triggering auth state changes
         setCachedToken(null)
-        localStorage.removeItem('accessToken')
       }
     } catch (error) {
       // Silently handle errors - the button will default to unsaved state
@@ -155,36 +155,14 @@ export function SavePropertyButton({
   }
 
   const getAccessToken = async () => {
-    // Try cached token first (but validate it's still good)
-    if (cachedToken) {
-      // Quick validation - if the user object exists, the cached token should be good
-      if (user) return cachedToken
-      // If no user but we have cached token, it's probably expired
-      setCachedToken(null)
-    }
-    
-    // Try localStorage
+    if (cachedToken) return cachedToken
+
     const localToken = localStorage.getItem('accessToken')
-    if (localToken && user) {
+    if (localToken) {
       setCachedToken(localToken)
       return localToken
     }
-    
-    // Try session as last resort
-    if (user) {
-      const { data: { session } } = await supabase.auth.getSession()
-      const sessionToken = session?.access_token
-      if (sessionToken) {
-        setCachedToken(sessionToken)
-        // Also update localStorage for next time
-        localStorage.setItem('accessToken', sessionToken)
-        return sessionToken
-      }
-    }
-    
-    // Clear any stale tokens
-    setCachedToken(null)
-    localStorage.removeItem('accessToken')
+
     return null
   }
 
