@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, Suspense } from "react"
+import { useState, useEffect, useMemo, useRef, Suspense } from "react"
 import { useSearchParams, useRouter } from "next/navigation"
 import { Navigation } from "@/components/navigation"
 import { Footer } from "@/components/footer"
@@ -58,8 +58,15 @@ function PropertiesContent() {
 
   const locationData = location ? getLocationBySlug(location) : null
   const displayName = locationData?.displayName || location || "All Locations"
-  const availableLocalAuthorities = locationData?.localAuthorities || []
+  const availableLocalAuthorities = useMemo(
+    () => locationData?.localAuthorities || [],
+    [locationData]
+  )
   const postcodePrefix = locationData?.postcodePrefix
+
+  // Use a ref for investorPrefs so the fetch effect doesn't re-trigger when prefs load
+  const investorPrefsRef = useRef(investorPrefs)
+  investorPrefsRef.current = investorPrefs
 
   // Fetch investor preferences if logged in
   useEffect(() => {
@@ -172,10 +179,11 @@ function PropertiesContent() {
           setPagination(data.pagination)
 
           // Calculate match scores if investor prefs available
-          if (investorPrefs) {
+          const prefs = investorPrefsRef.current
+          if (prefs) {
             const scores: Record<string, { matchScore: number, matchBreakdown: any }> = {}
             for (const p of data.properties) {
-              const result = calculateMatchScore(investorPrefs, p)
+              const result = calculateMatchScore(prefs, p)
               scores[p.id] = result
             }
             setMatchScores(scores)
@@ -190,7 +198,19 @@ function PropertiesContent() {
     }
 
     fetchProperties()
-  }, [currentPage, location, availableLocalAuthorities, localAuthorityFilter, sortBy, sortOrder, bedroomFilter, propertyTypeFilter, investorPrefs])
+  }, [currentPage, location, availableLocalAuthorities, localAuthorityFilter, sortBy, sortOrder, bedroomFilter, propertyTypeFilter, postcodePrefix])
+
+  // Recalculate match scores when investor prefs load (without re-fetching properties)
+  useEffect(() => {
+    if (investorPrefs && properties.length > 0) {
+      const scores: Record<string, { matchScore: number, matchBreakdown: any }> = {}
+      for (const p of properties) {
+        const result = calculateMatchScore(investorPrefs, p as any)
+        scores[p.id] = result
+      }
+      setMatchScores(scores)
+    }
+  }, [investorPrefs]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Reset to page 1 when filters change
   useEffect(() => {
