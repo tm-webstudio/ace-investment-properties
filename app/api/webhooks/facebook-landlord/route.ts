@@ -291,7 +291,7 @@ async function sendAdminNotification(
   `
 
   const result = await sendEmail({
-    to: 'admin@aceinvestmentproperties.co.uk',
+    to: 'tmwebstudio1@gmail.com', // TODO: revert to admin@aceinvestmentproperties.co.uk after testing
     subject: `New Facebook Lead: ${property.address}`,
     html,
     from: 'Ace Properties <notifications@aceinvestmentproperties.co.uk>',
@@ -436,13 +436,15 @@ export async function POST(request: NextRequest) {
     }
 
     // Step 7: Send emails (non-critical)
-    try {
-      if (verificationToken) {
-        await sendVerificationEmail(email, name, propertyTitle, verificationToken.token)
-      }
-    } catch (err) {
-      console.error('[facebook-lead] Verification email error:', err)
-    }
+    // TODO: Re-enable verification email once testing is complete
+    // try {
+    //   if (verificationToken) {
+    //     await sendVerificationEmail(email, name, propertyTitle, verificationToken.token)
+    //   }
+    // } catch (err) {
+    //   console.error('[facebook-lead] Verification email error:', err)
+    // }
+    console.log('[facebook-lead] Verification email SKIPPED (paused for testing)')
 
     try {
       await sendAdminNotification(
