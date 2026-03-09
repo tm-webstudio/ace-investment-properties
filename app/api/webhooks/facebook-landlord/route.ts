@@ -311,33 +311,43 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json()
-    console.log('[facebook-lead] Received payload:', JSON.stringify(body))
+    console.log('[facebook-lead] Full payload:', JSON.stringify(body, null, 2))
+    console.log('[facebook-lead] Top-level keys:', Object.keys(body))
 
-    // Extract fields from GHL webhook payload
-    const contactId = body.contact_id || body.contactId || ''
-    const name = body.full_name || body.name || body.first_name || ''
-    const email = body.email || ''
-    const phone = body.phone || ''
-    const postcode = body.postcode || body.postal_code || ''
-    const bedrooms = body.bedrooms || '1'
-    const bathrooms = body.bathrooms || '1'
-    const rent = body.rent || body.monthly_rent || '0'
-    const propertyType = body.property_type || ''
-    const available = body.available || body.availability || ''
-    const description = body.description || body.notes || ''
+    // Extract fields from GHL webhook payload (broad fallback chains)
+    const contactId = body.contact_id || body.contactId || body.id || ''
+    const name = body.full_name || body.name || body.fullName || body.first_name || body.contact_name || ''
+    const email = body.email || body.contact_email || ''
+    const phone = body.phone || body.contact_phone || ''
+    const postcode = body.postcode || body.postal_code || body.property_postcode
+      || body.custom_fields?.property_postcode || body.customFields?.property_postcode
+      || body.customField?.property_postcode || ''
+    const bedrooms = body.bedrooms || body.property_bedrooms || '1'
+    const bathrooms = body.bathrooms || body.property_bathrooms || '1'
+    const rent = body.rent || body.monthly_rent || body.property_monthly_rent || '0'
+    const propertyType = body.property_type || body.propertyType || ''
+    const available = body.available || body.availability || body.available_date || body.property_available_date || ''
+    const description = body.description || body.notes || body.property_description || ''
+
+    console.log('[facebook-lead] Extracted — email:', email, '| postcode:', postcode, '| name:', name, '| phone:', phone)
 
     if (!email) {
-      console.error('[facebook-lead] No email provided')
-      return NextResponse.json({ error: 'Email is required' }, { status: 400 })
+      console.error('[facebook-lead] No email provided. Received fields:', Object.keys(body))
+      return NextResponse.json(
+        { error: 'Email is required', received_fields: Object.keys(body), hint: 'Send email in the payload' },
+        { status: 400 }
+      )
     }
 
     if (!postcode) {
-      console.error('[facebook-lead] No postcode provided')
-      return NextResponse.json({ error: 'Postcode is required' }, { status: 400 })
+      console.warn('[facebook-lead] No postcode found. Received fields:', Object.keys(body))
+      console.warn('[facebook-lead] Continuing without postcode — enrichment will be skipped')
     }
 
-    // Step 1: Enrich postcode
-    const enriched = await enrichPostcode(postcode)
+    // Step 1: Enrich postcode (skip if empty)
+    const enriched = postcode
+      ? await enrichPostcode(postcode)
+      : { city: '', local_authority: '', region: '', postcode_clean: '' }
     console.log('[facebook-lead] Enriched postcode:', enriched)
 
     // Step 2: Build property title and address
