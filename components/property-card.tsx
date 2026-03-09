@@ -3,7 +3,6 @@
 import { useState } from "react"
 import Image from "next/image"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -40,7 +39,6 @@ interface PropertyCardProps {
 export function PropertyCard({ property, variant = 'default', onPropertyDeleted, onApprove, onReject, onGovernmentApprove, onGovernmentReject, showGovernmentActions = false, currentTab, matchScore, matchBreakdown }: PropertyCardProps) {
   const [isDeleting, setIsDeleting] = useState(false)
   const [deleteModalOpen, setDeleteModalOpen] = useState(false)
-  const router = useRouter()
 
   // Filter out invalid blob URLs (they don't work cross-origin)
   const validImages = (property.images || property.photos || []).filter((url: string) => {
@@ -88,16 +86,7 @@ export function PropertyCard({ property, variant = 'default', onPropertyDeleted,
     }
   }
 
-  const handleCardClick = (e: React.MouseEvent) => {
-    // Prevent navigation if clicking on interactive elements
-    const target = e.target as HTMLElement
-    if (target.closest('button') || target.closest('[data-dropdown-trigger]') || target.closest('a')) {
-      return
-    }
-    
-    // Navigate to property detail page
-    router.push(`/properties/${property.id}`)
-  }
+  const propertyHref = `/properties/${property.id}`
 
   const handleDeleteProperty = () => {
     setDeleteModalOpen(true)
@@ -156,7 +145,8 @@ export function PropertyCard({ property, variant = 'default', onPropertyDeleted,
     <Card
       className="overflow-hidden hover:shadow-lg transition-all duration-300 group border-border/50 hover:border-accent/20 cursor-pointer p-0 gap-3.5 rounded-none"
     >
-      <div className="relative overflow-hidden cursor-pointer" onClick={handleCardClick}>
+      <Link href={propertyHref} prefetch={false} className="block">
+      <div className="relative overflow-hidden cursor-pointer">
         {(isAwaitingApproval || isRejected) && (
           <div className="absolute inset-0 bg-black/25 z-[4] pointer-events-none backdrop-blur-[1px]" />
         )}
@@ -215,7 +205,7 @@ export function PropertyCard({ property, variant = 'default', onPropertyDeleted,
           </Badge>
         </div>
 
-        <div className="absolute top-4 right-4 z-[10]">
+        <div className="absolute top-4 right-4 z-[10]" onClick={(e) => e.preventDefault()}>
           {topRightAction}
         </div>
         {matchScore !== undefined && (
@@ -236,7 +226,7 @@ export function PropertyCard({ property, variant = 'default', onPropertyDeleted,
         <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
       </div>
 
-      <CardContent className="px-4 md:px-4 pb-4" onClick={handleCardClick}>
+      <CardContent className="px-4 md:px-4 pb-4">
         <div className="space-y-2.5">
           <div className="mb-1.5">
             <h3 className="font-sans text-base font-medium text-card-foreground mb-1 line-clamp-1">
@@ -296,6 +286,7 @@ export function PropertyCard({ property, variant = 'default', onPropertyDeleted,
           </div>
         </div>
       </CardContent>
+      </Link>
     </Card>
   )
 

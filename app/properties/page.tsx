@@ -57,9 +57,6 @@ function PropertiesContent() {
   const investorPrefsRef = useRef(investorPrefs)
   investorPrefsRef.current = investorPrefs
 
-  // Guard against concurrent/rapid-fire fetches
-  const fetchInProgress = useRef(false)
-
   // Fetch investor preferences if logged in
   useEffect(() => {
     async function fetchPrefs() {
@@ -85,9 +82,9 @@ function PropertiesContent() {
   }, [])
 
   useEffect(() => {
+    const controller = new AbortController()
+
     const fetchProperties = async () => {
-      if (fetchInProgress.current) return
-      fetchInProgress.current = true
       setLoading(true)
       try {
         // Derive location data inside the effect to avoid array/object deps
@@ -130,7 +127,9 @@ function PropertiesContent() {
           params.set("propertyType", propertyTypeFilter)
         }
 
-        const response = await fetch(`/api/properties?${params.toString()}`)
+        const response = await fetch(`/api/properties?${params.toString()}`, {
+          signal: controller.signal,
+        })
         const data = await response.json()
 
         if (data.success) {
@@ -178,16 +177,20 @@ function PropertiesContent() {
             setMatchScores(scores)
           }
         }
-      } catch (error) {
+      } catch (error: any) {
+        if (error.name === 'AbortError') return
         console.error("Error fetching properties:", error)
         setProperties([])
       } finally {
-        fetchInProgress.current = false
-        setLoading(false)
+        if (!controller.signal.aborted) {
+          setLoading(false)
+        }
       }
     }
 
     fetchProperties()
+
+    return () => controller.abort()
   }, [currentPage, location, localAuthorityFilter, sortBy, sortOrder, bedroomFilter, propertyTypeFilter])
 
   // Recalculate match scores when investor prefs load (without re-fetching properties)
