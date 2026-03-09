@@ -304,6 +304,21 @@ async function sendAdminNotification(
   }
 }
 
+function parseBedrooms(raw: string): string {
+  if (!raw) return '1'
+  const match = raw.match(/(\d+)/)
+  if (match) return match[1]
+  if (raw.toLowerCase().includes('studio')) return '0'
+  return '1'
+}
+
+function parseRent(raw: string): string {
+  if (!raw) return '0'
+  const cleaned = raw.replace(/[£$,\s]/g, '').replace(/\/(month|mo|pcm|pw).*$/i, '')
+  const match = cleaned.match(/(\d+)/)
+  return match ? match[1] : '0'
+}
+
 // --- Main POST handler ---
 
 export async function POST(request: NextRequest) {
@@ -314,20 +329,28 @@ export async function POST(request: NextRequest) {
     console.log('[facebook-lead] Full payload:', JSON.stringify(body, null, 2))
     console.log('[facebook-lead] Top-level keys:', Object.keys(body))
 
-    // Extract fields from GHL webhook payload (broad fallback chains)
-    const contactId = body.contact_id || body.contactId || body.id || ''
-    const name = body.full_name || body.name || body.fullName || body.first_name || body.contact_name || ''
-    const email = body.email || body.contact_email || ''
-    const phone = body.phone || body.contact_phone || ''
-    const postcode = body.postcode || body.postal_code || body.property_postcode
-      || body.custom_fields?.property_postcode || body.customFields?.property_postcode
-      || body.customField?.property_postcode || ''
-    const bedrooms = body.bedrooms || body.property_bedrooms || '1'
-    const bathrooms = body.bathrooms || body.property_bathrooms || '1'
-    const rent = body.rent || body.monthly_rent || body.property_monthly_rent || '0'
-    const propertyType = body.property_type || body.propertyType || ''
-    const available = body.available || body.availability || body.available_date || body.property_available_date || ''
-    const description = body.description || body.notes || body.property_description || ''
+    // Extract from customData (programmatic keys) or human-readable GHL field names
+    const cd = body.customData || {}
+
+    const contactId = body.contact_id || body.contactId || cd.contact_id || body.id || ''
+    const name = body.full_name || body.name || body.fullName || cd.name || body.first_name || body.contact_name || ''
+    const email = body.email || cd.email || body.contact_email || ''
+    const phone = body.phone || body.pone || cd.phone || body.contact_phone || body['Property Contact Phone'] || ''
+    const postcode = cd.postcode || body['Property Postcode'] || body['Post Code']
+      || body.postcode || body.postal_code || ''
+    const rawBedrooms = cd.bedrooms || body['How Many Bedrooms Does The Property Have?']
+      || body['Property Bedrooms'] || body.bedrooms || ''
+    const bedrooms = parseBedrooms(rawBedrooms)
+    const bathrooms = cd.bathrooms || body['Property Bathrooms'] || body.bathrooms || '1'
+    const rawRent = cd.rent || body['Rental Price'] || body['Property Monthly Rent']
+      || body.rent || body.monthly_rent || ''
+    const rent = parseRent(rawRent)
+    const propertyType = cd.property_type || body['Property Type'] || body.property_type || ''
+    const available = cd.available || body['Property Availability?'] || body.available || body.availability || ''
+    const availableDate = body['What date do you expect the property to be available for vacant possession or ready for occupation? (Please provide the exact date or your best estimate E.G. DAY/MONTH/YEAR)']
+      || body['Property Available Date'] || body.available_date || ''
+    const description = cd.description || body['Tell us a bit about the property']
+      || body['Property Description'] || body.description || body.notes || ''
 
     console.log('[facebook-lead] Extracted — email:', email, '| postcode:', postcode, '| name:', name, '| phone:', phone)
 
@@ -387,9 +410,9 @@ export async function POST(request: NextRequest) {
       postcode: enriched.postcode_clean,
       bedrooms,
       bathrooms,
-      monthly_rent: parseInt(rent) * 100, // pounds → pence
+      monthly_rent: parseInt(rent || '0') * 100, // pounds → pence
       property_type: propertyType,
-      available_date: parseAvailability(available),
+      available_date: parseAvailability(availableDate || available),
       description,
       contact_name: name,
       contact_email: email,
