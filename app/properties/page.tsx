@@ -92,20 +92,15 @@ function PropertiesContent() {
     fetchPrefs()
   }, [])
 
-  // Debug logging
-  useEffect(() => {
-    if (location) {
-      console.log('Properties Page - Location:', location)
-      console.log('Properties Page - Display Name:', displayName)
-      console.log('Properties Page - Local Authorities:', availableLocalAuthorities)
-      console.log('Properties Page - Postcode Prefix:', postcodePrefix)
-    }
-  }, [location, displayName, availableLocalAuthorities, postcodePrefix])
-
   useEffect(() => {
     const fetchProperties = async () => {
       setLoading(true)
       try {
+        // Derive location data inside the effect to avoid array/object deps
+        const locData = location ? getLocationBySlug(location) : null
+        const locAuthorities = locData?.localAuthorities || []
+        const locPostcodePrefix = locData?.postcodePrefix
+
         const params = new URLSearchParams()
         params.set("page", currentPage.toString())
         params.set("limit", "12")
@@ -115,8 +110,8 @@ function PropertiesContent() {
         // If location is selected, filter by postcode prefix (for London) or local authorities
         if (location) {
           // For London areas, use postcode prefix filtering
-          if (postcodePrefix) {
-            params.set("postcodePrefix", postcodePrefix)
+          if (locPostcodePrefix) {
+            params.set("postcodePrefix", locPostcodePrefix)
             params.set("city", "London")
 
             // If specific local authority is selected, add it as additional filter
@@ -127,8 +122,8 @@ function PropertiesContent() {
             // For non-London areas, use local authority filtering
             if (localAuthorityFilter && localAuthorityFilter !== "any") {
               params.set("localAuthority", localAuthorityFilter)
-            } else if (availableLocalAuthorities.length > 0) {
-              params.set("localAuthority", availableLocalAuthorities.join(","))
+            } else if (locAuthorities.length > 0) {
+              params.set("localAuthority", locAuthorities.join(","))
             }
           }
         }
@@ -198,7 +193,7 @@ function PropertiesContent() {
     }
 
     fetchProperties()
-  }, [currentPage, location, availableLocalAuthorities, localAuthorityFilter, sortBy, sortOrder, bedroomFilter, propertyTypeFilter, postcodePrefix])
+  }, [currentPage, location, localAuthorityFilter, sortBy, sortOrder, bedroomFilter, propertyTypeFilter])
 
   // Recalculate match scores when investor prefs load (without re-fetching properties)
   useEffect(() => {
