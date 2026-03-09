@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, useMemo, useRef, Suspense } from "react"
-import { useSearchParams, useRouter } from "next/navigation"
+import { useSearchParams } from "next/navigation"
 import { Navigation } from "@/components/navigation"
 import { Footer } from "@/components/footer"
 import { PropertyCard } from "@/components/property-card"
@@ -16,16 +16,6 @@ import { PageHeader } from "@/components/page-header"
 import { supabase } from "@/lib/supabase"
 import { extractPreferences, calculateMatchScore } from "@/lib/propertyMatching"
 
-// Build location display names and search config from navigation locations
-const locationDisplayNames: Record<string, string> = Object.fromEntries(
-  allNavigationLocations.map(loc => [loc.slug, loc.displayName])
-)
-
-// Map location slugs to their local authorities
-const locationLocalAuthorities: Record<string, string[]> = Object.fromEntries(
-  allNavigationLocations.map(loc => [loc.slug, loc.localAuthorities])
-)
-
 interface PaginationInfo {
   page: number
   limit: number
@@ -37,7 +27,6 @@ interface PaginationInfo {
 
 function PropertiesContent() {
   const searchParams = useSearchParams()
-  const router = useRouter()
   const location = searchParams.get("location")
 
   const [properties, setProperties] = useState<Property[]>([])
@@ -68,6 +57,9 @@ function PropertiesContent() {
   const investorPrefsRef = useRef(investorPrefs)
   investorPrefsRef.current = investorPrefs
 
+  // Guard against concurrent/rapid-fire fetches
+  const fetchInProgress = useRef(false)
+
   // Fetch investor preferences if logged in
   useEffect(() => {
     async function fetchPrefs() {
@@ -94,6 +86,8 @@ function PropertiesContent() {
 
   useEffect(() => {
     const fetchProperties = async () => {
+      if (fetchInProgress.current) return
+      fetchInProgress.current = true
       setLoading(true)
       try {
         // Derive location data inside the effect to avoid array/object deps
@@ -188,6 +182,7 @@ function PropertiesContent() {
         console.error("Error fetching properties:", error)
         setProperties([])
       } finally {
+        fetchInProgress.current = false
         setLoading(false)
       }
     }
