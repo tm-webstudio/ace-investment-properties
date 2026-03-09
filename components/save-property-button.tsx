@@ -5,7 +5,6 @@ import { Heart } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { useAuth } from '@/contexts/auth-context'
-import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 // Simple toast implementation - replace with your preferred toast library
 const toast = {
@@ -83,7 +82,6 @@ export function SavePropertyButton({
   const [isCheckingInitialState, setIsCheckingInitialState] = useState(false)
   const [cachedToken, setCachedToken] = useState<string | null>(null)
   const { user } = useAuth()
-  const router = useRouter()
 
   // Size configurations
   const sizeConfig = {
@@ -116,7 +114,7 @@ export function SavePropertyButton({
     if (user && !initialSaved) {
       checkSavedState()
     }
-  }, [user, propertyId, initialSaved])
+  }, [user?.id, propertyId, initialSaved])
 
   const checkSavedState = async () => {
     if (!user) return
@@ -143,6 +141,10 @@ export function SavePropertyButton({
         const data = await response.json()
         setIsSaved(data.isSaved)
         onSaveChange?.(data.isSaved)
+      } else if (response && response.status === 401) {
+        // Clear stale token so subsequent calls don't repeat with the same bad token
+        setCachedToken(null)
+        localStorage.removeItem('accessToken')
       }
     } catch (error) {
       // Silently handle errors - the button will default to unsaved state
@@ -197,7 +199,7 @@ export function SavePropertyButton({
     // Check authentication
     if (!user) {
       toast.error('Please sign in to save properties')
-      router.push('/auth/signin')
+      window.location.href = '/auth/signin'
       return
     }
 
@@ -217,7 +219,7 @@ export function SavePropertyButton({
       onSaveChange?.(!newSavedState)
       setIsLoading(false)
       toast.error('Please sign in to save properties')
-      router.push('/auth/signin')
+      window.location.href = '/auth/signin'
       return
     }
 
@@ -303,7 +305,7 @@ export function SavePropertyButton({
         setCachedToken(null)
         localStorage.removeItem('accessToken')
         toast.error('Please sign in again')
-        router.push('/auth/signin')
+        window.location.href = '/auth/signin'
       } else if (error.message.includes('investors only')) {
         toast.error('This feature is for investors only')
       } else {

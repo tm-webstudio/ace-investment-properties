@@ -14,6 +14,9 @@ export function SimilarProperties({ currentPropertyId, propertyType }: SimilarPr
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    const controller = new AbortController()
+    const signal = controller.signal
+
     async function fetchSimilarProperties() {
       try {
         setLoading(true)
@@ -49,7 +52,7 @@ export function SimilarProperties({ currentPropertyId, propertyType }: SimilarPr
         })
 
         // Fetch properties from API with property type filter
-        const response = await fetch(`/api/properties?status=active&propertyType=${mappedPropertyType}&limit=20`)
+        const response = await fetch(`/api/properties?status=active&propertyType=${mappedPropertyType}&limit=20`, { signal })
 
         if (!response.ok) {
           throw new Error('Failed to fetch properties')
@@ -79,7 +82,7 @@ export function SimilarProperties({ currentPropertyId, propertyType }: SimilarPr
           // If no properties found with the specific type, fetch any active properties
           if (filtered.length === 0) {
             console.log('No properties found with specific type, fetching all active properties')
-            const fallbackResponse = await fetch(`/api/properties?status=active&limit=9`)
+            const fallbackResponse = await fetch(`/api/properties?status=active&limit=9`, { signal })
             const fallbackData = await fallbackResponse.json()
 
             if (fallbackData.success && fallbackData.properties) {
@@ -100,15 +103,17 @@ export function SimilarProperties({ currentPropertyId, propertyType }: SimilarPr
 
           setSimilarProperties(filtered)
         }
-      } catch (error) {
+      } catch (error: any) {
+        if (error.name === 'AbortError') return
         console.error('Error fetching similar properties:', error)
         setSimilarProperties([])
       } finally {
-        setLoading(false)
+        if (!signal.aborted) setLoading(false)
       }
     }
 
     fetchSimilarProperties()
+    return () => controller.abort()
   }, [currentPropertyId, propertyType])
   
   const scrollRef = useRef<HTMLDivElement>(null)
