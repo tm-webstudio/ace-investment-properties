@@ -34,9 +34,10 @@ interface PropertyCardProps {
   currentTab?: string // Current active tab for proper redirect after edit
   matchScore?: number
   matchBreakdown?: MatchBreakdown
+  initialSaved?: boolean
 }
 
-export function PropertyCard({ property, variant = 'default', onPropertyDeleted, onApprove, onReject, onGovernmentApprove, onGovernmentReject, showGovernmentActions = false, currentTab, matchScore, matchBreakdown }: PropertyCardProps) {
+export function PropertyCard({ property, variant = 'default', onPropertyDeleted, onApprove, onReject, onGovernmentApprove, onGovernmentReject, showGovernmentActions = false, currentTab, matchScore, matchBreakdown, initialSaved }: PropertyCardProps) {
   const [isDeleting, setIsDeleting] = useState(false)
   const [deleteModalOpen, setDeleteModalOpen] = useState(false)
 
@@ -526,6 +527,7 @@ export function PropertyCard({ property, variant = 'default', onPropertyDeleted,
   const saveAction = (
     <SavePropertyButton
       propertyId={property.id}
+      initialSaved={initialSaved}
       size="small"
       variant="ghost"
       className="bg-white/90 hover:bg-white shadow-lg"

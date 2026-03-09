@@ -289,6 +289,7 @@ export default function SavedPropertiesPage() {
                     key={saved.savedPropertyId}
                     property={convertToPropertyCardFormat(saved)}
                     variant="default"
+                    initialSaved={true}
                   />
                 ))}
               </div>

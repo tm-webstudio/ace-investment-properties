@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Heart } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
@@ -8,9 +8,7 @@ import { useAuth } from '@/contexts/auth-context'
 // Simple toast implementation - replace with your preferred toast library
 const toast = {
   success: (message: string) => {
-    // You can replace this with your preferred toast notification
     console.log('✅', message)
-    // For now, we'll just show a temporary notification
     if (typeof window !== 'undefined') {
       const notification = document.createElement('div')
       notification.textContent = message
@@ -78,10 +76,12 @@ export function SavePropertyButton({
 }: SavePropertyButtonProps) {
   const [isSaved, setIsSaved] = useState(initialSaved)
   const [isLoading, setIsLoading] = useState(false)
-  const [isCheckingInitialState, setIsCheckingInitialState] = useState(false)
-  const [cachedToken, setCachedToken] = useState<string | null>(null)
-  const hasCheckedRef = useRef(false)
-  const { user, loading } = useAuth()
+  const { user } = useAuth()
+
+  // Sync with parent prop when it changes
+  useEffect(() => {
+    setIsSaved(initialSaved)
+  }, [initialSaved])
 
   // Size configurations
   const sizeConfig = {
@@ -109,63 +109,6 @@ export function SavePropertyButton({
 
   const config = sizeConfig[size]
 
-  // Check initial saved state once when user is authenticated
-  useEffect(() => {
-    if (!loading && user?.id && !initialSaved && !hasCheckedRef.current) {
-      hasCheckedRef.current = true
-      checkSavedState()
-    }
-  }, [loading, user?.id, propertyId, initialSaved])
-
-  const checkSavedState = async () => {
-    if (!user) return
-
-    setIsCheckingInitialState(true)
-    try {
-      const token = await getAccessToken()
-      if (!token) {
-        setIsCheckingInitialState(false)
-        return
-      }
-
-      const response = await fetch(`/api/properties/${propertyId}/is-saved`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      }).catch(err => {
-        // Silently fail on network errors (e.g., ad blockers, extensions)
-        console.warn('Network error checking saved state:', err)
-        return null
-      })
-
-      if (response && response.ok) {
-        const data = await response.json()
-        setIsSaved(data.isSaved)
-        onSaveChange?.(data.isSaved)
-      } else if (response && response.status === 401) {
-        // Only clear in-memory token; don't touch localStorage to avoid triggering auth state changes
-        setCachedToken(null)
-      }
-    } catch (error) {
-      // Silently handle errors - the button will default to unsaved state
-      console.warn('Error checking saved state:', error)
-    } finally {
-      setIsCheckingInitialState(false)
-    }
-  }
-
-  const getAccessToken = async () => {
-    if (cachedToken) return cachedToken
-
-    const localToken = localStorage.getItem('accessToken')
-    if (localToken) {
-      setCachedToken(localToken)
-      return localToken
-    }
-
-    return null
-  }
-
   const handleSaveToggle = async (e?: React.MouseEvent) => {
     // Prevent event bubbling if this button is inside a clickable card
     e?.preventDefault()
@@ -182,14 +125,13 @@ export function SavePropertyButton({
     }
 
     const newSavedState = !isSaved
-    
+
     // Immediate optimistic update for instant UI feedback
     setIsSaved(newSavedState)
     onSaveChange?.(newSavedState)
     setIsLoading(true)
 
-    // Get token (using cached version for speed)
-    const token = await getAccessToken()
+    const token = localStorage.getItem('accessToken')
 
     if (!token) {
       // Revert optimistic update
@@ -225,42 +167,13 @@ export function SavePropertyButton({
       const data = await response.json()
 
       if (!response.ok) {
-        // If token is invalid, try to get a fresh token and retry once
-        if (response.status === 401 && (data.error?.includes('Invalid or expired token') || data.error?.includes('Authentication required'))) {
-          console.log('Token expired, refreshing and retrying...')
-          setCachedToken(null)
+        if (response.status === 401) {
           localStorage.removeItem('accessToken')
-          
-          const newToken = await getAccessToken()
-          if (newToken) {
-            // Retry the request with fresh token
-            if (newSavedState) {
-              response = await fetch(`/api/properties/${propertyId}/save`, {
-                method: 'POST',
-                headers: {
-                  'Authorization': `Bearer ${newToken}`,
-                  'Content-Type': 'application/json'
-                }
-              })
-            } else {
-              response = await fetch(`/api/properties/${propertyId}/unsave`, {
-                method: 'DELETE',
-                headers: {
-                  'Authorization': `Bearer ${newToken}`
-                }
-              })
-            }
-            
-            const retryData = await response.json()
-            if (!response.ok) {
-              throw new Error(retryData.error || `Failed to ${newSavedState ? 'save' : 'unsave'} property`)
-            }
-          } else {
-            throw new Error('Authentication required')
-          }
-        } else {
-          throw new Error(data.error || `Failed to ${newSavedState ? 'save' : 'unsave'} property`)
+          toast.error('Please sign in again')
+          window.location.href = '/auth/signin'
+          throw new Error('Authentication required')
         }
+        throw new Error(data.error || `Failed to ${newSavedState ? 'save' : 'unsave'} property`)
       }
 
       // Show immediate success message
@@ -272,21 +185,14 @@ export function SavePropertyButton({
 
     } catch (error: any) {
       console.error('Error toggling save state:', error)
-      
+
       // Revert optimistic update on error
       setIsSaved(!newSavedState)
       onSaveChange?.(!newSavedState)
-      
-      // Handle specific error messages
-      if (error.message.includes('Invalid or expired token') || error.message.includes('Authentication required')) {
-        // Clear cached token and try to refresh
-        setCachedToken(null)
-        localStorage.removeItem('accessToken')
-        toast.error('Please sign in again')
-        window.location.href = '/auth/signin'
-      } else if (error.message.includes('investors only')) {
+
+      if (error.message.includes('investors only')) {
         toast.error('This feature is for investors only')
-      } else {
+      } else if (!error.message.includes('Authentication required')) {
         toast.error('Failed to update. Please try again.')
       }
     } finally {
@@ -296,21 +202,6 @@ export function SavePropertyButton({
 
   // Determine button size - use 'icon' for shadcn Button when our size is 'icon'
   const buttonSize = size === 'icon' ? 'icon' : 'sm'
-
-  // Show loading state for initial check
-  if (isCheckingInitialState) {
-    return (
-      <Button
-        variant={variant}
-        size={buttonSize as any}
-        className={cn(config.button, 'opacity-50 cursor-not-allowed', className)}
-        disabled
-      >
-        <Heart className={cn(config.icon, 'animate-pulse')} />
-        {showLabel && <span className={cn('ml-2', config.text)}>Loading...</span>}
-      </Button>
-    )
-  }
 
   return (
     <Button
@@ -335,8 +226,8 @@ export function SavePropertyButton({
       />
       {showLabel && (
         <span className={cn('ml-2', config.text)}>
-          {isLoading 
-            ? (isSaved ? 'Removing...' : 'Saving...') 
+          {isLoading
+            ? (isSaved ? 'Removing...' : 'Saving...')
             : (isSaved ? 'Saved' : 'Save Property')
           }
         </span>

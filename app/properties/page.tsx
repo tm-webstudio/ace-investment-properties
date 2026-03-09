@@ -15,6 +15,7 @@ import { allNavigationLocations, getLocationBySlug } from "@/lib/navigation-loca
 import { PageHeader } from "@/components/page-header"
 import { supabase } from "@/lib/supabase"
 import { extractPreferences, calculateMatchScore } from "@/lib/propertyMatching"
+import { useAuth } from "@/contexts/auth-context"
 
 interface PaginationInfo {
   page: number
@@ -44,6 +45,10 @@ function PropertiesContent() {
   // Match scoring for logged-in investors
   const [investorPrefs, setInvestorPrefs] = useState<any>(null)
   const [matchScores, setMatchScores] = useState<Record<string, { matchScore: number, matchBreakdown: any }>>({})
+
+  // Batch fetch saved property IDs (replaces per-button API calls)
+  const { user } = useAuth()
+  const [savedPropertyIds, setSavedPropertyIds] = useState<Set<string>>(new Set())
 
   const locationData = location ? getLocationBySlug(location) : null
   const displayName = locationData?.displayName || location || "All Locations"
@@ -80,6 +85,19 @@ function PropertiesContent() {
     }
     fetchPrefs()
   }, [])
+
+  // Fetch saved property IDs once when user is authenticated
+  useEffect(() => {
+    if (!user?.id) return
+    const token = localStorage.getItem('accessToken')
+    if (!token) return
+    fetch('/api/investor/saved-property-ids', {
+      headers: { 'Authorization': `Bearer ${token}` }
+    })
+      .then(r => r.ok ? r.json() : null)
+      .then(data => data && setSavedPropertyIds(new Set(data.savedIds)))
+      .catch(() => {}) // fail silently
+  }, [user?.id])
 
   useEffect(() => {
     const controller = new AbortController()
@@ -349,6 +367,7 @@ function PropertiesContent() {
                   <PropertyCard
                     key={property.id}
                     property={property}
+                    initialSaved={savedPropertyIds.has(property.id)}
                     matchScore={matchScores[property.id]?.matchScore}
                     matchBreakdown={matchScores[property.id]?.matchBreakdown}
                   />
