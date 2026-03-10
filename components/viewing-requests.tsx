@@ -631,8 +631,8 @@ export function ViewingRequests({ variant = 'dashboard', limit, onTabChange, isA
                     <p className="font-semibold text-[15px] mb-2 line-clamp-1">
                       {viewing.property?.address && viewing.property?.city
                         ? variant === 'admin'
-                          ? `${viewing.property.address.replace(/^\d+\s*/, '').replace(/^flat\s*\d+\s*/i, '').replace(/^unit\s*\d+\s*/i, '').replace(/^apartment\s*\d+\s*/i, '').trim()}, ${viewing.property.city}${viewing.property.postcode ? ` ${viewing.property.postcode.split(' ')[0]}` : ''}`
-                          : `${viewing.property.address}, ${viewing.property.city}${viewing.property.postcode ? ` ${viewing.property.postcode.split(' ')[0]}` : ''}`
+                          ? `${viewing.property.address.replace(/^\d+\s*/, '').replace(/^flat\s*\d+\s*/i, '').replace(/^unit\s*\d+\s*/i, '').replace(/^apartment\s*\d+\s*/i, '').trim()}, ${viewing.property.city}${viewing.property.postcode ? ` ${viewing.property.postcode.split(' ')[0].toUpperCase()}` : ''}`
+                          : `${viewing.property.address}, ${viewing.property.city}${viewing.property.postcode ? ` ${viewing.property.postcode.split(' ')[0].toUpperCase()}` : ''}`
                         : `${viewing.property?.property_type} in ${viewing.property?.city}`
                       }
                     </p>
@@ -905,8 +905,8 @@ export function ViewingRequests({ variant = 'dashboard', limit, onTabChange, isA
               <strong>
                 {selectedViewing?.property?.address && selectedViewing?.property?.city
                   ? (variant === 'admin' || isAdmin)
-                    ? `${selectedViewing.property.address.replace(/^\d+\s*/, '').replace(/^flat\s*\d+\s*/i, '').replace(/^unit\s*\d+\s*/i, '').replace(/^apartment\s*\d+\s*/i, '').trim()}, ${selectedViewing.property.city}${selectedViewing.property.postcode ? ` ${selectedViewing.property.postcode.split(' ')[0]}` : ''}`
-                    : `${selectedViewing.property.address}, ${selectedViewing.property.city}${selectedViewing.property.postcode ? ` ${selectedViewing.property.postcode.split(' ')[0]}` : ''}`
+                    ? `${selectedViewing.property.address.replace(/^\d+\s*/, '').replace(/^flat\s*\d+\s*/i, '').replace(/^unit\s*\d+\s*/i, '').replace(/^apartment\s*\d+\s*/i, '').trim()}, ${selectedViewing.property.city}${selectedViewing.property.postcode ? ` ${selectedViewing.property.postcode.split(' ')[0].toUpperCase()}` : ''}`
+                    : `${selectedViewing.property.address}, ${selectedViewing.property.city}${selectedViewing.property.postcode ? ` ${selectedViewing.property.postcode.split(' ')[0].toUpperCase()}` : ''}`
                   : `${selectedViewing?.property?.property_type} in ${selectedViewing?.property?.city}`
                 }
               </strong>{" "}
@@ -943,8 +943,8 @@ export function ViewingRequests({ variant = 'dashboard', limit, onTabChange, isA
               <strong>
                 {selectedViewing?.property?.address && selectedViewing?.property?.city
                   ? (variant === 'admin' || isAdmin)
-                    ? `${selectedViewing.property.address.replace(/^\d+\s*/, '').replace(/^flat\s*\d+\s*/i, '').replace(/^unit\s*\d+\s*/i, '').replace(/^apartment\s*\d+\s*/i, '').trim()}, ${selectedViewing.property.city}${selectedViewing.property.postcode ? ` ${selectedViewing.property.postcode.split(' ')[0]}` : ''}`
-                    : `${selectedViewing.property.address}, ${selectedViewing.property.city}${selectedViewing.property.postcode ? ` ${selectedViewing.property.postcode.split(' ')[0]}` : ''}`
+                    ? `${selectedViewing.property.address.replace(/^\d+\s*/, '').replace(/^flat\s*\d+\s*/i, '').replace(/^unit\s*\d+\s*/i, '').replace(/^apartment\s*\d+\s*/i, '').trim()}, ${selectedViewing.property.city}${selectedViewing.property.postcode ? ` ${selectedViewing.property.postcode.split(' ')[0].toUpperCase()}` : ''}`
+                    : `${selectedViewing.property.address}, ${selectedViewing.property.city}${selectedViewing.property.postcode ? ` ${selectedViewing.property.postcode.split(' ')[0].toUpperCase()}` : ''}`
                   : `${selectedViewing?.property?.property_type} in ${selectedViewing?.property?.city}`
                 }
               </strong>{" "}
@@ -988,8 +988,8 @@ export function ViewingRequests({ variant = 'dashboard', limit, onTabChange, isA
               <strong>
                 {selectedViewing?.property?.address && selectedViewing?.property?.city
                   ? (variant === 'admin' || isAdmin)
-                    ? `${selectedViewing.property.address.replace(/^\d+\s*/, '').replace(/^flat\s*\d+\s*/i, '').replace(/^unit\s*\d+\s*/i, '').replace(/^apartment\s*\d+\s*/i, '').trim()}, ${selectedViewing.property.city}${selectedViewing.property.postcode ? ` ${selectedViewing.property.postcode.split(' ')[0]}` : ''}`
-                    : `${selectedViewing.property.address}, ${selectedViewing.property.city}${selectedViewing.property.postcode ? ` ${selectedViewing.property.postcode.split(' ')[0]}` : ''}`
+                    ? `${selectedViewing.property.address.replace(/^\d+\s*/, '').replace(/^flat\s*\d+\s*/i, '').replace(/^unit\s*\d+\s*/i, '').replace(/^apartment\s*\d+\s*/i, '').trim()}, ${selectedViewing.property.city}${selectedViewing.property.postcode ? ` ${selectedViewing.property.postcode.split(' ')[0].toUpperCase()}` : ''}`
+                    : `${selectedViewing.property.address}, ${selectedViewing.property.city}${selectedViewing.property.postcode ? ` ${selectedViewing.property.postcode.split(' ')[0].toUpperCase()}` : ''}`
                   : `${selectedViewing?.property?.property_type} in ${selectedViewing?.property?.city}`
                 }
               </strong>{" "}
@@ -1031,8 +1031,8 @@ export function ViewingRequests({ variant = 'dashboard', limit, onTabChange, isA
               <strong>
                 {selectedViewing?.property?.address && selectedViewing?.property?.city
                   ? (variant === 'admin' || isAdmin)
-                    ? `${selectedViewing.property.address.replace(/^\d+\s*/, '').replace(/^flat\s*\d+\s*/i, '').replace(/^unit\s*\d+\s*/i, '').replace(/^apartment\s*\d+\s*/i, '').trim()}, ${selectedViewing.property.city}${selectedViewing.property.postcode ? ` ${selectedViewing.property.postcode.split(' ')[0]}` : ''}`
-                    : `${selectedViewing.property.address}, ${selectedViewing.property.city}${selectedViewing.property.postcode ? ` ${selectedViewing.property.postcode.split(' ')[0]}` : ''}`
+                    ? `${selectedViewing.property.address.replace(/^\d+\s*/, '').replace(/^flat\s*\d+\s*/i, '').replace(/^unit\s*\d+\s*/i, '').replace(/^apartment\s*\d+\s*/i, '').trim()}, ${selectedViewing.property.city}${selectedViewing.property.postcode ? ` ${selectedViewing.property.postcode.split(' ')[0].toUpperCase()}` : ''}`
+                    : `${selectedViewing.property.address}, ${selectedViewing.property.city}${selectedViewing.property.postcode ? ` ${selectedViewing.property.postcode.split(' ')[0].toUpperCase()}` : ''}`
                   : `${selectedViewing?.property?.property_type} in ${selectedViewing?.property?.city}`
                 }
               </strong>{" "}
@@ -1069,8 +1069,8 @@ export function ViewingRequests({ variant = 'dashboard', limit, onTabChange, isA
               <strong>
                 {selectedViewing?.property?.address && selectedViewing?.property?.city
                   ? (variant === 'admin' || isAdmin)
-                    ? `${selectedViewing.property.address.replace(/^\d+\s*/, '').replace(/^flat\s*\d+\s*/i, '').replace(/^unit\s*\d+\s*/i, '').replace(/^apartment\s*\d+\s*/i, '').trim()}, ${selectedViewing.property.city}${selectedViewing.property.postcode ? ` ${selectedViewing.property.postcode.split(' ')[0]}` : ''}`
-                    : `${selectedViewing.property.address}, ${selectedViewing.property.city}${selectedViewing.property.postcode ? ` ${selectedViewing.property.postcode.split(' ')[0]}` : ''}`
+                    ? `${selectedViewing.property.address.replace(/^\d+\s*/, '').replace(/^flat\s*\d+\s*/i, '').replace(/^unit\s*\d+\s*/i, '').replace(/^apartment\s*\d+\s*/i, '').trim()}, ${selectedViewing.property.city}${selectedViewing.property.postcode ? ` ${selectedViewing.property.postcode.split(' ')[0].toUpperCase()}` : ''}`
+                    : `${selectedViewing.property.address}, ${selectedViewing.property.city}${selectedViewing.property.postcode ? ` ${selectedViewing.property.postcode.split(' ')[0].toUpperCase()}` : ''}`
                   : `${selectedViewing?.property?.property_type} in ${selectedViewing?.property?.city}`
                 }
               </strong>

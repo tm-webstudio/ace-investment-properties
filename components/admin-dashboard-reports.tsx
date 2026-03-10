@@ -264,7 +264,7 @@ export function AdminDashboardReports() {
               <CardContent className="p-4">
                 <div className="mb-4">
                   <p className="font-semibold text-[15px] mb-1 line-clamp-1">
-                    {property.address.replace(/^\d+\s*/, '').replace(/^flat\s*\d+\s*/i, '').replace(/^unit\s*\d+\s*/i, '').replace(/^apartment\s*\d+\s*/i, '').trim()}, {property.city}{property.postcode ? ` ${property.postcode.split(' ')[0]}` : ''}
+                    {property.address.replace(/^\d+\s*/, '').replace(/^flat\s*\d+\s*/i, '').replace(/^unit\s*\d+\s*/i, '').replace(/^apartment\s*\d+\s*/i, '').trim()}, {property.city}{property.postcode ? ` ${property.postcode.split(' ')[0].toUpperCase()}` : ''}
                   </p>
                 </div>
 

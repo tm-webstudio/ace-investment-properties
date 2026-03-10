@@ -182,7 +182,7 @@ export function PropertyDetails({ property }: PropertyDetailsProps) {
                 <p className="text-lg font-medium">Map will be available soon</p>
                 <p className="text-sm mt-2">
                   {property.city}
-                  {property.postcode && `, ${property.postcode.split(' ')[0]}`}
+                  {property.postcode && `, ${property.postcode.split(' ')[0].toUpperCase()}`}
                 </p>
               </div>
             </div>

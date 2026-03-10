@@ -8,15 +8,22 @@ function toSentenceCase(text: string): string {
   // Words that should typically stay lowercase (unless they're the first word)
   const lowercaseWords = new Set(['and', 'of', 'the', 'in', 'on', 'at', 'to', 'a', 'an'])
 
+  // UK postcode pattern: 1-2 letters + 1-2 digits + optional digit/letter (e.g., SE26, UB7, M34, SW1A)
+  const postcodePattern = /^[A-Z]{1,2}\d{1,2}[A-Z]?$/i
+
   return text
-    .toLowerCase()
     .split(' ')
     .map((word, index) => {
-      // Always capitalize first word, or if not in lowercase set
-      if (index === 0 || !lowercaseWords.has(word)) {
-        return word.charAt(0).toUpperCase() + word.slice(1)
+      // Keep postcode-like tokens fully uppercase
+      if (postcodePattern.test(word)) {
+        return word.toUpperCase()
       }
-      return word
+      const lower = word.toLowerCase()
+      // Always capitalize first word, or if not in lowercase set
+      if (index === 0 || !lowercaseWords.has(lower)) {
+        return lower.charAt(0).toUpperCase() + lower.slice(1)
+      }
+      return lower
     })
     .join(' ')
 }
@@ -46,7 +53,16 @@ export function formatPropertyTitle(
 
   const parts: string[] = []
 
-  if (roadName) {
+  const outwardPostcode = postcode ? postcode.trim().split(' ')[0].toUpperCase() : ''
+
+  // Check if the road name is just a duplicate of city/postcode (bad data)
+  const normRoad = roadName.toLowerCase().replace(/[,\s]+/g, ' ').trim()
+  const normCity = city ? city.toLowerCase().trim() : ''
+  const isDuplicate = normRoad === normCity
+    || normRoad === `${normCity} ${outwardPostcode.toLowerCase()}`
+    || normRoad === outwardPostcode.toLowerCase()
+
+  if (roadName && !isDuplicate) {
     // Convert to sentence case
     parts.push(toSentenceCase(roadName))
   }
@@ -56,12 +72,8 @@ export function formatPropertyTitle(
     parts.push(toSentenceCase(city.trim()))
   }
 
-  if (postcode) {
-    // Extract outward postcode and convert to uppercase
-    const outwardPostcode = postcode.trim().split(' ')[0]
-    if (outwardPostcode) {
-      parts.push(outwardPostcode.toUpperCase())
-    }
+  if (outwardPostcode) {
+    parts.push(outwardPostcode)
   }
 
   return parts.join(', ')
@@ -84,9 +96,19 @@ export function formatPropertyAddress(
 ): string {
   const parts: string[] = []
 
+  const outwardPostcode = postcode ? postcode.trim().split(' ')[0].toUpperCase() : ''
+
   if (address) {
-    // Convert to sentence case
-    parts.push(toSentenceCase(address.trim()))
+    // Check if the address is just a duplicate of city/postcode (bad data)
+    const normAddr = address.toLowerCase().replace(/[,\s]+/g, ' ').trim()
+    const normCity = city ? city.toLowerCase().trim() : ''
+    const isDuplicate = normAddr === normCity
+      || normAddr === `${normCity} ${outwardPostcode.toLowerCase()}`
+      || normAddr === outwardPostcode.toLowerCase()
+
+    if (!isDuplicate) {
+      parts.push(toSentenceCase(address.trim()))
+    }
   }
 
   if (city) {
@@ -95,12 +117,18 @@ export function formatPropertyAddress(
   }
 
   // Add outward postcode (first part before the space) - always uppercase
-  if (postcode) {
-    const outwardPostcode = postcode.trim().split(' ')[0]
-    if (outwardPostcode) {
-      parts.push(outwardPostcode.toUpperCase())
-    }
+  if (outwardPostcode) {
+    parts.push(outwardPostcode)
   }
 
   return parts.join(', ')
+}
+
+/**
+ * Convenience wrapper that takes a property object and delegates to formatPropertyTitle
+ */
+export function formatPropertyTitleFromProperty(
+  property: { address?: string; city?: string; postcode?: string }
+): string {
+  return formatPropertyTitle(property.address || '', property.city, property.postcode)
 }

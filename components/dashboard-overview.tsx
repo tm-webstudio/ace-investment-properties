@@ -398,7 +398,7 @@ export function DashboardOverview({ userId, onTabChange }: DashboardOverviewProp
                     >
                       <div className="mb-4">
                         <p className="font-semibold text-[15px] mb-1 line-clamp-1">
-                          {property.address}, {property.city}{property.postcode ? ` ${property.postcode.split(' ')[0]}` : ''}
+                          {property.address}, {property.city}{property.postcode ? ` ${property.postcode.split(' ')[0].toUpperCase()}` : ''}
                         </p>
                       </div>
 

@@ -339,7 +339,7 @@ export function InvestorDashboardViewings() {
         <div className="space-y-4">
           {filteredViewings.map((viewing) => {
             const propertyTitle = viewing.property.address && viewing.property.city
-              ? `${viewing.property.address.replace(/^\d+\s*/, '').replace(/^flat\s*\d+\s*/i, '').replace(/^unit\s*\d+\s*/i, '').replace(/^apartment\s*\d+\s*/i, '').trim()}, ${viewing.property.city}${viewing.property.postcode ? ` ${viewing.property.postcode.split(' ')[0]}` : ''}`
+              ? `${viewing.property.address.replace(/^\d+\s*/, '').replace(/^flat\s*\d+\s*/i, '').replace(/^unit\s*\d+\s*/i, '').replace(/^apartment\s*\d+\s*/i, '').trim()}, ${viewing.property.city}${viewing.property.postcode ? ` ${viewing.property.postcode.split(' ')[0].toUpperCase()}` : ''}`
               : viewing.property.title || `${viewing.property.property_type} in ${viewing.property.city}`
             const timeUntil = viewing.status === 'approved' ? getTimeUntilViewing(viewing.viewing_date, viewing.viewing_time) : null
 
