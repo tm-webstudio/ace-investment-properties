@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { sendEmail } from '@/lib/email'
 import { formatPropertyTitle, formatPropertyAddress } from '@/lib/format-address'
+import NewProperty from '@/emails/admin/new-property'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -38,15 +39,49 @@ const districtToCityMap: Record<string, string> = {
 
 // --- Helper functions ---
 
+async function getStreetFromPostcode(postcode: string): Promise<string> {
+  try {
+    // Format postcode with space (e.g., "E78NH" → "E7 8NH")
+    let formatted = postcode.trim().toUpperCase()
+    if (formatted.length > 3 && !formatted.includes(' ')) {
+      formatted = formatted.slice(0, -3) + ' ' + formatted.slice(-3)
+    }
+    const headers = { 'User-Agent': 'ACE Investment Properties (property rental platform)' }
+
+    // Step 1: Forward geocode postcode to get coordinates
+    const fwdRes = await fetch(
+      `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(formatted + ', UK')}&format=json&limit=1&countrycodes=gb`,
+      { headers }
+    )
+    if (!fwdRes.ok) return ''
+    const fwdData = await fwdRes.json()
+    if (!fwdData[0]?.lat || !fwdData[0]?.lon) return ''
+
+    // Step 2: Reverse geocode coordinates to get street name
+    const revRes = await fetch(
+      `https://nominatim.openstreetmap.org/reverse?lat=${fwdData[0].lat}&lon=${fwdData[0].lon}&format=json&addressdetails=1`,
+      { headers }
+    )
+    if (!revRes.ok) return ''
+    const revData = await revRes.json()
+    return revData.address?.road ?? ''
+  } catch {
+    return ''
+  }
+}
+
 async function enrichPostcode(postcode: string) {
   const clean = postcode.replace(/\s+/g, '').toUpperCase()
   try {
-    const res = await fetch(`https://api.postcodes.io/postcodes/${clean}`)
-    if (!res.ok) {
-      console.log(`[facebook-lead] Postcode lookup failed for ${clean}: ${res.status}`)
-      return { city: '', local_authority: '', region: '', postcode_clean: clean }
+    const [postcodeRes, street] = await Promise.all([
+      fetch(`https://api.postcodes.io/postcodes/${clean}`),
+      getStreetFromPostcode(clean),
+    ])
+    if (!postcodeRes.ok) {
+      console.log(`[facebook-lead] Postcode lookup failed for ${clean}: ${postcodeRes.status}`)
+      return { city: '', local_authority: '', region: '', postcode_clean: clean, street }
     }
-    const json = await res.json()
+    const json = await postcodeRes.json()
     const result = json.result
     const adminDistrict: string = result.admin_district ?? ''
     const city = adminDistrict
@@ -57,10 +92,11 @@ async function enrichPostcode(postcode: string) {
       local_authority: adminDistrict,
       region: result.region ?? '',
       postcode_clean: result.postcode ?? clean,
+      street,
     }
   } catch (err) {
     console.error('[facebook-lead] Postcode enrichment error:', err)
-    return { city: '', local_authority: '', region: '', postcode_clean: clean }
+    return { city: '', local_authority: '', region: '', postcode_clean: clean, street: '' }
   }
 }
 
@@ -260,42 +296,27 @@ async function sendVerificationEmail(
 
 async function sendAdminNotification(
   landlord: { name: string; email: string; phone: string },
-  property: { id: string; address: string; monthly_rent: number; bedrooms: string; property_type: string },
+  property: { id: string; address: string; monthly_rent: number; bedrooms: string; bathrooms: string; property_type: string },
   enriched: { city: string; local_authority: string; postcode_clean: string }
 ) {
-  const html = `
-    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-      <h2 style="color: #1a365d;">New Facebook Landlord Lead</h2>
-      <h3>Landlord Details</h3>
-      <ul>
-        <li><strong>Name:</strong> ${landlord.name || 'N/A'}</li>
-        <li><strong>Email:</strong> ${landlord.email}</li>
-        <li><strong>Phone:</strong> ${landlord.phone || 'N/A'}</li>
-      </ul>
-      <h3>Property Details</h3>
-      <ul>
-        <li><strong>Address:</strong> ${property.address}</li>
-        <li><strong>Rent:</strong> £${property.monthly_rent / 100}/month</li>
-        <li><strong>Bedrooms:</strong> ${property.bedrooms}</li>
-        <li><strong>Type:</strong> ${property.property_type || 'N/A'}</li>
-        <li><strong>City:</strong> ${enriched.city || 'N/A'}</li>
-        <li><strong>Local Authority:</strong> ${enriched.local_authority || 'N/A'}</li>
-        <li><strong>Postcode:</strong> ${enriched.postcode_clean}</li>
-      </ul>
-      <p>
-        <a href="https://www.aceinvestmentproperties.co.uk/admin/properties/${property.id}" style="background-color: #2563eb; color: white; padding: 10px 20px; text-decoration: none; border-radius: 6px;">
-          View in Admin
-        </a>
-      </p>
-      <p style="color: #666; font-size: 14px;">Status: Draft (awaiting email verification)</p>
-    </div>
-  `
-
   const result = await sendEmail({
     to: 'tmwebstudio1@gmail.com', // TODO: revert to admin@aceinvestmentproperties.co.uk after testing
-    subject: `New Facebook Lead: ${property.address}`,
-    html,
+    subject: `New Facebook Lead – ${property.address}`,
     from: 'Ace Properties <notifications@aceinvestmentproperties.co.uk>',
+    react: NewProperty({
+      submittedByName: landlord.name || 'N/A',
+      submittedByEmail: landlord.email,
+      submittedByPhone: landlord.phone || '—',
+      dashboardLink: `${process.env.NEXT_PUBLIC_SITE_URL}/admin`,
+      propertyAddress: property.address,
+      propertyType: property.property_type || 'N/A',
+      propertyPrice: (property.monthly_rent / 100).toLocaleString(),
+      bedrooms: property.bedrooms,
+      bathrooms: property.bathrooms,
+      availability: 'vacant',
+      propertyLicence: 'none',
+      propertyImage: '',
+    }),
   })
 
   if (!result.success) {
@@ -373,12 +394,14 @@ export async function POST(request: NextRequest) {
     // Step 1: Enrich postcode (skip if empty)
     const enriched = postcode
       ? await enrichPostcode(postcode)
-      : { city: '', local_authority: '', region: '', postcode_clean: '' }
+      : { city: '', local_authority: '', region: '', postcode_clean: '', street: '' }
     console.log('[facebook-lead] Enriched postcode:', enriched)
 
     // Step 2: Build property title and address (same format as website)
-    const propertyTitle = formatPropertyTitle(streetAddress, enriched.city, enriched.postcode_clean)
-    const propertyAddress = formatPropertyAddress(streetAddress, enriched.city, enriched.postcode_clean)
+    // Use GHL street address if provided, otherwise fall back to Google geocoded street
+    const resolvedStreet = streetAddress || enriched.street
+    const propertyTitle = formatPropertyTitle(resolvedStreet, enriched.city, enriched.postcode_clean)
+    const propertyAddress = formatPropertyAddress(resolvedStreet, enriched.city, enriched.postcode_clean)
 
     // Step 3: Update GHL contact (non-critical)
     if (contactId) {
