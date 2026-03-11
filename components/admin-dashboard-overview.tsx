@@ -74,7 +74,7 @@ export function AdminDashboardOverview({ admin, onTabChange }: AdminDashboardOve
           if (pendingResponse.ok) {
             const pendingData = await pendingResponse.json()
             if (pendingData.success && pendingData.properties) {
-              totalPendingProperties = pendingData.properties.length
+              totalPendingProperties = pendingData.pagination?.total || pendingData.properties.length
 
               // Get pending properties for display (first 6)
               pendingForDisplay = pendingData.properties.slice(0, 6).map((property: any) => ({

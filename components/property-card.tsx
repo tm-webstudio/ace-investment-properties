@@ -423,6 +423,7 @@ export function PropertyCard({ property, variant = 'default', onPropertyDeleted,
               size="icon"
               variant="ghost"
               onClick={(e) => {
+                e.preventDefault()
                 e.stopPropagation()
                 onApprove?.(property.id)
               }}
@@ -434,6 +435,7 @@ export function PropertyCard({ property, variant = 'default', onPropertyDeleted,
               size="icon"
               variant="ghost"
               onClick={(e) => {
+                e.preventDefault()
                 e.stopPropagation()
                 onReject?.(property.id)
               }}

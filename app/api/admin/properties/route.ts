@@ -88,6 +88,10 @@ export async function GET(request: NextRequest) {
         let landlordEmail = ''
         let landlordPhone = ''
 
+        if (!property.landlord_id) {
+          landlordName = property.contact_name || 'Unknown'
+        }
+
         if (property.landlord_id) {
           try {
             // Get landlord user info
@@ -105,7 +109,7 @@ export async function GET(request: NextRequest) {
               .single()
 
             if (landlordProfile) {
-              landlordName = landlordProfile.full_name || 'Unknown'
+              landlordName = landlordProfile.full_name || property.contact_name || 'Unknown'
               landlordPhone = landlordProfile.phone || ''
             }
           } catch (landlordError) {
