@@ -19,8 +19,9 @@ export function Navigation() {
     { key: 'midlands',             name: 'Midlands',               subtext: 'Birmingham, Leicester & more',           locations: navigationLocations.midlands },
     { key: 'northWest',            name: 'North West',             subtext: 'Manchester, Liverpool & beyond',         locations: navigationLocations.northWest },
     { key: 'northEastYorkshire',   name: 'North East & Yorkshire', subtext: 'Newcastle, Leeds & surrounding areas',   locations: navigationLocations.northEastYorkshire },
-    { key: 'southEast',            name: 'South East',             subtext: 'Kent, Surrey & the Home Counties',       locations: navigationLocations.southEast },
+    { key: 'southEast',            name: 'South East',             subtext: 'Kent, Essex & the Home Counties',        locations: navigationLocations.southEast },
     { key: 'southWest',            name: 'South West',             subtext: 'Bristol, Devon & Cornwall',              locations: navigationLocations.southWest },
+    { key: 'eastOfEngland',        name: 'East of England',        subtext: 'Cambridge, Norfolk & Hertfordshire',     locations: navigationLocations.eastOfEngland },
   ]
   const { user, loading, signOut } = useAuth()
   const megaMenuTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
@@ -130,6 +131,7 @@ export function Navigation() {
           onMouseLeave={closeMegaMenu}
         >
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 2xl:max-w-8xl py-8">
+            {/* Row 1: 4 columns */}
             <div className="grid grid-cols-4 gap-y-12">
 
               {/* London */}
@@ -212,11 +214,16 @@ export function Navigation() {
                 </div>
               </div>
 
+            </div>
+
+            {/* Row 2: 3 columns */}
+            <div className="grid grid-cols-4 gap-y-12 mt-12">
+
               {/* South East */}
               <div className="space-y-3 pr-6">
                 <div>
                   <div className="font-semibold text-base text-primary">South East</div>
-                  <div className="text-xs text-gray-400 mt-0.5">Kent, Surrey &amp; the Home Counties</div>
+                  <div className="text-xs text-gray-400 mt-0.5">Kent, Essex &amp; the Home Counties</div>
                 </div>
                 <div className="space-y-1 max-h-96 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
                   {navigationLocations.southEast.map(loc => (
@@ -240,6 +247,26 @@ export function Navigation() {
                 </div>
                 <div className="space-y-1 max-h-96 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
                   {navigationLocations.southWest.map(loc => (
+                    <Link
+                      key={loc.slug}
+                      href={`/properties?location=${loc.slug}`}
+                      className="block text-xs hover:text-primary hover:bg-primary/10 transition-colors py-1 px-2 rounded"
+                      onClick={() => setIsMegaMenuOpen(false)}
+                    >
+                      {loc.displayName}
+                    </Link>
+                  ))}
+                </div>
+              </div>
+
+              {/* East of England */}
+              <div className="space-y-3 px-6 border-l border-gray-200">
+                <div>
+                  <div className="font-semibold text-base text-primary">East of England</div>
+                  <div className="text-xs text-gray-400 mt-0.5">Cambridge, Norfolk &amp; Hertfordshire</div>
+                </div>
+                <div className="space-y-1 max-h-96 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+                  {navigationLocations.eastOfEngland.map(loc => (
                     <Link
                       key={loc.slug}
                       href={`/properties?location=${loc.slug}`}

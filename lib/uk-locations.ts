@@ -16,7 +16,7 @@ export interface Location {
   localAuthorities: string[]
 }
 
-// Main UK Regions (6 options) organized geographically
+// Main UK Regions (7 options) organized geographically
 export const ukRegions: Record<string, string[]> = {
   "London": [
     "Central London",
@@ -26,6 +26,14 @@ export const ukRegions: Record<string, string[]> = {
     "South East London",
     "South West London",
     "West London"
+  ],
+  "Midlands": [
+    "Birmingham",
+    "West Midlands",
+    "Staffordshire & Shropshire",
+    "Warwickshire & Coventry",
+    "East Midlands - Leicester, Nottingham & Derby Areas",
+    "East Midlands - Lincolnshire & Northamptonshire"
   ],
   "North West": [
     "Greater Manchester",
@@ -42,32 +50,28 @@ export const ukRegions: Record<string, string[]> = {
     "South Yorkshire",
     "North & East Yorkshire"
   ],
-  "Midlands": [
-    "West Midlands (Metropolitan)",
-    "Staffordshire & Shropshire",
-    "Warwickshire & Coventry",
-    "East Midlands - Leicester, Nottingham & Derby Areas",
-    "East Midlands - Lincolnshire & Northamptonshire"
-  ],
   "South East": [
-    "Berkshire & Thames Valley",
-    "Kent & Medway",
+    "Kent",
+    "Essex",
     "Surrey",
     "Sussex (East & West)",
     "Hampshire & Isle of Wight",
+    "Berkshire & Thames Valley",
     "Oxfordshire",
     "Buckinghamshire & Milton Keynes"
   ],
-  "South West & East of England": [
+  "South West": [
     "Bristol & Somerset",
     "Devon & Cornwall",
     "Dorset & Wiltshire",
     "Gloucestershire",
+    "Isles of Scilly"
+  ],
+  "East of England": [
     "Cambridgeshire & Peterborough",
     "Norfolk & Suffolk",
-    "Essex & Hertfordshire",
-    "Bedfordshire & Luton",
-    "Isles of Scilly"
+    "Hertfordshire",
+    "Bedfordshire & Luton"
   ]
 }
 
@@ -210,8 +214,10 @@ export const localAuthorities: Record<string, string[]> = {
   ],
 
   // ========== MIDLANDS (57 authorities) ==========
-  "West Midlands (Metropolitan)": [
-    "Birmingham",
+  "Birmingham": [
+    "Birmingham"
+  ],
+  "West Midlands": [
     "Coventry",
     "Dudley",
     "Sandwell",
@@ -304,7 +310,7 @@ export const localAuthorities: Record<string, string[]> = {
     "Windsor and Maidenhead",
     "Wokingham"
   ],
-  "Kent & Medway": [
+  "Kent": [
     "Ashford",
     "Canterbury",
     "Dartford",
@@ -319,6 +325,23 @@ export const localAuthorities: Record<string, string[]> = {
     "Thanet",
     "Tonbridge and Malling",
     "Tunbridge Wells"
+  ],
+  "Essex": [
+    "Basildon",
+    "Braintree",
+    "Brentwood",
+    "Castle Point",
+    "Chelmsford",
+    "Colchester",
+    "Epping Forest",
+    "Essex County Council",
+    "Harlow",
+    "Maldon",
+    "Rochford",
+    "Southend-on-Sea",
+    "Tendring",
+    "Thurrock",
+    "Uttlesford"
   ],
   "Surrey": [
     "Elmbridge",
@@ -381,7 +404,7 @@ export const localAuthorities: Record<string, string[]> = {
     "Milton Keynes"
   ],
 
-  // ========== SOUTH WEST & EAST OF ENGLAND (76 authorities) ==========
+  // ========== SOUTH WEST (28 authorities) ==========
   "Bristol & Somerset": [
     "Bath and North East Somerset",
     "Bristol",
@@ -443,6 +466,47 @@ export const localAuthorities: Record<string, string[]> = {
     "Suffolk County Council",
     "West Suffolk"
   ],
+  // ========== EAST OF ENGLAND ==========
+  "Hertfordshire": [
+    "Broxbourne",
+    "Dacorum",
+    "East Hertfordshire",
+    "Hertfordshire County Council",
+    "Hertsmere",
+    "North Hertfordshire",
+    "St Albans",
+    "Stevenage",
+    "Three Rivers",
+    "Watford",
+    "Welwyn Hatfield"
+  ],
+  "Bedfordshire & Luton": [
+    "Bedford",
+    "Central Bedfordshire",
+    "Luton"
+  ],
+  "Isles of Scilly": [
+    "Isles of Scilly"
+  ],
+
+  // ========== BACKWARD-COMPATIBLE ALIASES ==========
+  // Keep old keys so existing investor preferences still resolve
+  "Kent & Medway": [
+    "Ashford",
+    "Canterbury",
+    "Dartford",
+    "Dover",
+    "Folkestone and Hythe",
+    "Gravesham",
+    "Kent County Council",
+    "Maidstone",
+    "Medway",
+    "Sevenoaks",
+    "Swale",
+    "Thanet",
+    "Tonbridge and Malling",
+    "Tunbridge Wells"
+  ],
   "Essex & Hertfordshire": [
     "Basildon",
     "Braintree",
@@ -471,13 +535,14 @@ export const localAuthorities: Record<string, string[]> = {
     "Watford",
     "Welwyn Hatfield"
   ],
-  "Bedfordshire & Luton": [
-    "Bedford",
-    "Central Bedfordshire",
-    "Luton"
-  ],
-  "Isles of Scilly": [
-    "Isles of Scilly"
+  "West Midlands (Metropolitan)": [
+    "Birmingham",
+    "Coventry",
+    "Dudley",
+    "Sandwell",
+    "Solihull",
+    "Walsall",
+    "Wolverhampton"
   ]
 }
 
@@ -517,7 +582,8 @@ export function getAllRegions(): string[] {
     "North East & Yorkshire",
     "North West",
     "Midlands",
-    "South West & East of England",
-    "South East"
+    "South East",
+    "South West",
+    "East of England"
   ]
 }

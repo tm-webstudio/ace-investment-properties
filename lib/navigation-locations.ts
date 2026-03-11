@@ -80,7 +80,8 @@ console.log('Navigation Locations Generated:', {
     northEastYorkshire: allLocations.filter(loc => loc.region === "North East & Yorkshire").length,
     midlands: allLocations.filter(loc => loc.region === "Midlands").length,
     southEast: allLocations.filter(loc => loc.region === "South East").length,
-    southWest: allLocations.filter(loc => loc.region === "South West & East of England").length,
+    southWest: allLocations.filter(loc => loc.region === "South West").length,
+    eastOfEngland: allLocations.filter(loc => loc.region === "East of England").length,
   },
   sampleLocation: allLocations[0]
 })
@@ -91,7 +92,8 @@ export const navigationLocations = {
   northEastYorkshire: allLocations.filter(loc => loc.region === "North East & Yorkshire"),
   midlands: allLocations.filter(loc => loc.region === "Midlands"),
   southEast: allLocations.filter(loc => loc.region === "South East"),
-  southWest: allLocations.filter(loc => loc.region === "South West & East of England"),
+  southWest: allLocations.filter(loc => loc.region === "South West"),
+  eastOfEngland: allLocations.filter(loc => loc.region === "East of England"),
 }
 
 /**
