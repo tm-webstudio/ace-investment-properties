@@ -410,7 +410,7 @@ export function AdminDashboardInvestors() {
                   <div>
                     <p className="text-[11px] uppercase tracking-wide text-gray-500 font-medium mb-1">Bedrooms</p>
                     <p className="text-sm font-medium text-gray-900">
-                      {investorPreferences.preference_data.bedrooms.min} - {investorPreferences.preference_data.bedrooms.max} beds
+                      {Math.min(investorPreferences.preference_data.bedrooms.min, investorPreferences.preference_data.bedrooms.max)} - {Math.max(investorPreferences.preference_data.bedrooms.min, investorPreferences.preference_data.bedrooms.max)} beds
                     </p>
                   </div>
                 )}

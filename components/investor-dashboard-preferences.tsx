@@ -121,9 +121,9 @@ export function InvestorDashboardPreferences({ preferences: initialPreferences }
             <div>
               <span className="text-gray-900">Bedrooms: </span>
               <span className="text-gray-600">
-                {prefData.bedrooms?.min === prefData.bedrooms?.max
+                {Math.min(prefData.bedrooms?.min || 1, prefData.bedrooms?.max || 4) === Math.max(prefData.bedrooms?.min || 1, prefData.bedrooms?.max || 4)
                   ? `${prefData.bedrooms?.min || 1} bedroom${prefData.bedrooms?.min !== 1 ? 's' : ''}`
-                  : `${prefData.bedrooms?.min || 1}-${prefData.bedrooms?.max || 4} bedrooms`
+                  : `${Math.min(prefData.bedrooms?.min || 1, prefData.bedrooms?.max || 4)}-${Math.max(prefData.bedrooms?.min || 1, prefData.bedrooms?.max || 4)} bedrooms`
                 }
               </span>
             </div>

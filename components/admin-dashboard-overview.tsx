@@ -550,7 +550,7 @@ export function AdminDashboardOverview({ admin, onTabChange }: AdminDashboardOve
       {/* Pending Properties for Approval */}
       <Card className="mb-5 sm:mb-8">
         <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle className="text-[15px] sm:text-lg">Pending Property Approvals</CardTitle>
+          <CardTitle>Pending Property Approvals</CardTitle>
           <Button
             variant="outline"
             size="sm"
@@ -684,7 +684,7 @@ export function AdminDashboardOverview({ admin, onTabChange }: AdminDashboardOve
         {/* Landlord Documents */}
         <Card className="max-h-[600px] overflow-hidden flex flex-col">
           <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="text-[15px] sm:text-lg">Landlord Documents</CardTitle>
+            <CardTitle>Landlord Documents</CardTitle>
             <Button
               variant="outline"
               size="sm"
@@ -879,7 +879,7 @@ export function AdminDashboardOverview({ admin, onTabChange }: AdminDashboardOve
                                 </p>
                               )}
                               {investor.preference_data?.bedrooms && (
-                                <p>Beds: {investor.preference_data.bedrooms.min}-{investor.preference_data.bedrooms.max}</p>
+                                <p>Beds: {Math.min(investor.preference_data.bedrooms.min, investor.preference_data.bedrooms.max)}-{Math.max(investor.preference_data.bedrooms.min, investor.preference_data.bedrooms.max)}</p>
                               )}
                             </div>
 

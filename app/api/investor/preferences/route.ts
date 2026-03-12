@@ -218,6 +218,31 @@ export async function POST(request: NextRequest) {
       }, { status: 400 })
     }
 
+    // Validate budget
+    const budget = preference_data.budget
+    if (budget) {
+      if (budget.min < 100) {
+        return NextResponse.json({ error: 'Minimum budget must be at least £100' }, { status: 400 })
+      }
+      if (budget.max < 100) {
+        return NextResponse.json({ error: 'Maximum budget must be at least £100' }, { status: 400 })
+      }
+      if (budget.max <= budget.min) {
+        return NextResponse.json({ error: 'Maximum budget must be greater than minimum budget' }, { status: 400 })
+      }
+    }
+
+    // Validate bedrooms
+    const bedrooms = preference_data.bedrooms
+    if (bedrooms && bedrooms.min > bedrooms.max) {
+      return NextResponse.json({ error: 'Minimum bedrooms cannot be greater than maximum' }, { status: 400 })
+    }
+
+    // Validate locations
+    if (!preference_data.locations || !Array.isArray(preference_data.locations) || preference_data.locations.length === 0) {
+      return NextResponse.json({ error: 'At least one location is required' }, { status: 400 })
+    }
+
     // Validate and normalize location data
     if (preference_data.locations && Array.isArray(preference_data.locations)) {
       preference_data.locations = preference_data.locations.map((loc: any) => {

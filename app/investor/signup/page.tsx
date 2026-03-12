@@ -209,6 +209,17 @@ export default function InvestorSignup() {
       setError("Please select at least one property type")
       return false
     }
+    if (step2Data.bedroomsMin > step2Data.bedroomsMax) {
+      setStep2Data(prev => ({ ...prev, bedroomsMin: prev.bedroomsMax, bedroomsMax: prev.bedroomsMin }))
+    }
+    if (step2Data.budgetMin < 100) {
+      setError("Minimum budget must be at least £100")
+      return false
+    }
+    if (step2Data.budgetMax < 100) {
+      setError("Maximum budget must be at least £100")
+      return false
+    }
     if (step2Data.budgetMin >= step2Data.budgetMax) {
       setError("Maximum budget must be greater than minimum budget")
       return false
@@ -216,10 +227,7 @@ export default function InvestorSignup() {
     return true
   }
 
-  const validateStep3 = (allowSkip = false): boolean => {
-    if (allowSkip) {
-      return true // Allow skipping Step 3
-    }
+  const validateStep3 = (): boolean => {
     if (step3Data.locations.length === 0) {
       setError("Please add at least one location")
       return false
@@ -470,52 +478,25 @@ export default function InvestorSignup() {
             Back
           </Button>
 
-          {currentStep === 3 ? (
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                onClick={() => {
-                  setError("")
-                  if (validateStep3(true)) {
-                    setCurrentStep(4)
-                  }
-                }}
-                disabled={isLoading}
-                className="flex items-center gap-2"
-              >
-                Skip for now
-                <ArrowRight className="h-4 w-4" />
-              </Button>
-              <Button
-                onClick={handleNext}
-                disabled={isLoading}
-                className="flex items-center gap-2"
-              >
+          <Button
+            onClick={handleNext}
+            disabled={isLoading}
+            className="flex items-center gap-2"
+          >
+            {isLoading ? (
+              <>
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                Creating Account...
+              </>
+            ) : currentStep === 4 ? (
+              "Create Account"
+            ) : (
+              <>
                 Next
                 <ArrowRight className="h-4 w-4" />
-              </Button>
-            </div>
-          ) : (
-            <Button
-              onClick={handleNext}
-              disabled={isLoading}
-              className="flex items-center gap-2"
-            >
-              {isLoading ? (
-                <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                  Creating Account...
-                </>
-              ) : currentStep === 4 ? (
-                "Create Account"
-              ) : (
-                <>
-                  Next
-                  <ArrowRight className="h-4 w-4" />
-                </>
-              )}
-            </Button>
-          )}
+              </>
+            )}
+          </Button>
         </div>
 
         {/* Alternative Actions */}

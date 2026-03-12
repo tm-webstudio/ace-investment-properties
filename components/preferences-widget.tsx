@@ -75,9 +75,9 @@ export function PreferencesWidget({ preferences, onPreferencesUpdate }: Preferen
         <div className="flex items-center gap-2">
           <CheckCircle className="h-4 w-4 text-green-500 flex-shrink-0" />
           <span className="text-sm text-gray-700">
-            {preferences.preference_data.bedrooms.min === preferences.preference_data.bedrooms.max 
+            {Math.min(preferences.preference_data.bedrooms.min, preferences.preference_data.bedrooms.max) === Math.max(preferences.preference_data.bedrooms.min, preferences.preference_data.bedrooms.max)
               ? `${preferences.preference_data.bedrooms.min} bedroom${preferences.preference_data.bedrooms.min !== 1 ? 's' : ''}`
-              : `${preferences.preference_data.bedrooms.min}-${preferences.preference_data.bedrooms.max} bedrooms`
+              : `${Math.min(preferences.preference_data.bedrooms.min, preferences.preference_data.bedrooms.max)}-${Math.max(preferences.preference_data.bedrooms.min, preferences.preference_data.bedrooms.max)} bedrooms`
             }
           </span>
         </div>

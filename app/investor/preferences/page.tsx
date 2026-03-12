@@ -171,6 +171,33 @@ export default function EditPreferences() {
     setError("")
     setSuccess("")
 
+    // Client-side validation
+    if (step2Data.bedroomsMin > step2Data.bedroomsMax) {
+      setError("Minimum bedrooms cannot be greater than maximum bedrooms")
+      setIsSaving(false)
+      return
+    }
+    if (step2Data.budgetMin < 100) {
+      setError("Minimum budget must be at least £100")
+      setIsSaving(false)
+      return
+    }
+    if (step2Data.budgetMax < 100) {
+      setError("Maximum budget must be at least £100")
+      setIsSaving(false)
+      return
+    }
+    if (step2Data.budgetMax <= step2Data.budgetMin) {
+      setError("Maximum budget must be greater than minimum budget")
+      setIsSaving(false)
+      return
+    }
+    if (step3Data.locations.length === 0) {
+      setError("Please add at least one location")
+      setIsSaving(false)
+      return
+    }
+
     try {
       const { data: { session } } = await supabase.auth.getSession()
       if (!session?.access_token) {

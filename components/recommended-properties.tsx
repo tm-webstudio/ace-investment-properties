@@ -227,9 +227,9 @@ export function RecommendedProperties({ className, preferences }: RecommendedPro
                 <div>
                   <span className="text-gray-900">Bedrooms: </span>
                   <span className="text-gray-600">
-                    {preferences.preference_data.bedrooms.min === preferences.preference_data.bedrooms.max
+                    {Math.min(preferences.preference_data.bedrooms.min, preferences.preference_data.bedrooms.max) === Math.max(preferences.preference_data.bedrooms.min, preferences.preference_data.bedrooms.max)
                       ? `${preferences.preference_data.bedrooms.min} bedroom${preferences.preference_data.bedrooms.min !== 1 ? 's' : ''}`
-                      : `${preferences.preference_data.bedrooms.min}-${preferences.preference_data.bedrooms.max} bedrooms`
+                      : `${Math.min(preferences.preference_data.bedrooms.min, preferences.preference_data.bedrooms.max)}-${Math.max(preferences.preference_data.bedrooms.min, preferences.preference_data.bedrooms.max)} bedrooms`
                     }
                   </span>
                 </div>
@@ -308,9 +308,9 @@ export function RecommendedProperties({ className, preferences }: RecommendedPro
                 <div>
                   <span className="text-gray-900">Bedrooms: </span>
                   <span className="text-gray-600">
-                    {preferences.preference_data.bedrooms.min === preferences.preference_data.bedrooms.max
+                    {Math.min(preferences.preference_data.bedrooms.min, preferences.preference_data.bedrooms.max) === Math.max(preferences.preference_data.bedrooms.min, preferences.preference_data.bedrooms.max)
                       ? `${preferences.preference_data.bedrooms.min} bedroom${preferences.preference_data.bedrooms.min !== 1 ? 's' : ''}`
-                      : `${preferences.preference_data.bedrooms.min}-${preferences.preference_data.bedrooms.max} bedrooms`
+                      : `${Math.min(preferences.preference_data.bedrooms.min, preferences.preference_data.bedrooms.max)}-${Math.max(preferences.preference_data.bedrooms.min, preferences.preference_data.bedrooms.max)} bedrooms`
                     }
                   </span>
                 </div>
@@ -389,9 +389,9 @@ export function RecommendedProperties({ className, preferences }: RecommendedPro
                 <div>
                   <span className="text-gray-900">Bedrooms: </span>
                   <span className="text-gray-600">
-                    {preferences.preference_data.bedrooms.min === preferences.preference_data.bedrooms.max
+                    {Math.min(preferences.preference_data.bedrooms.min, preferences.preference_data.bedrooms.max) === Math.max(preferences.preference_data.bedrooms.min, preferences.preference_data.bedrooms.max)
                       ? `${preferences.preference_data.bedrooms.min} bedroom${preferences.preference_data.bedrooms.min !== 1 ? 's' : ''}`
-                      : `${preferences.preference_data.bedrooms.min}-${preferences.preference_data.bedrooms.max} bedrooms`
+                      : `${Math.min(preferences.preference_data.bedrooms.min, preferences.preference_data.bedrooms.max)}-${Math.max(preferences.preference_data.bedrooms.min, preferences.preference_data.bedrooms.max)} bedrooms`
                     }
                   </span>
                 </div>
@@ -475,9 +475,9 @@ export function RecommendedProperties({ className, preferences }: RecommendedPro
               <div>
                 <span className="text-gray-900">Bedrooms: </span>
                 <span className="text-gray-600">
-                  {preferences.preference_data.bedrooms.min === preferences.preference_data.bedrooms.max
+                  {Math.min(preferences.preference_data.bedrooms.min, preferences.preference_data.bedrooms.max) === Math.max(preferences.preference_data.bedrooms.min, preferences.preference_data.bedrooms.max)
                     ? `${preferences.preference_data.bedrooms.min} bedroom${preferences.preference_data.bedrooms.min !== 1 ? 's' : ''}`
-                    : `${preferences.preference_data.bedrooms.min}-${preferences.preference_data.bedrooms.max} bedrooms`
+                    : `${Math.min(preferences.preference_data.bedrooms.min, preferences.preference_data.bedrooms.max)}-${Math.max(preferences.preference_data.bedrooms.min, preferences.preference_data.bedrooms.max)} bedrooms`
                   }
                 </span>
               </div>

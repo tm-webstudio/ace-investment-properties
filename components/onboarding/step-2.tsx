@@ -129,7 +129,14 @@ export function OnboardingStep2({ data, onChange }: OnboardingStep2Props) {
             </Label>
             <Select
               value={data.bedroomsMin.toString()}
-              onValueChange={(value) => onChange({ bedroomsMin: parseInt(value) })}
+              onValueChange={(value) => {
+                const newMin = parseInt(value)
+                const updates: Partial<Step2Data> = { bedroomsMin: newMin }
+                if (newMin > data.bedroomsMax) {
+                  updates.bedroomsMax = newMin
+                }
+                onChange(updates)
+              }}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Min bedrooms" />
@@ -207,10 +214,10 @@ export function OnboardingStep2({ data, onChange }: OnboardingStep2Props) {
             <Input
               id="budget_min"
               type="number"
-              min="0"
+              min="100"
               step="50"
               value={data.budgetMin}
-              onChange={(e) => onChange({ budgetMin: parseInt(e.target.value) || 0 })}
+              onChange={(e) => onChange({ budgetMin: parseInt(e.target.value) || 100 })}
               placeholder="500"
             />
           </div>
@@ -222,10 +229,10 @@ export function OnboardingStep2({ data, onChange }: OnboardingStep2Props) {
             <Input
               id="budget_max"
               type="number"
-              min={data.budgetMin}
+              min={Math.max(data.budgetMin, 100)}
               step="50"
               value={data.budgetMax}
-              onChange={(e) => onChange({ budgetMax: parseInt(e.target.value) || 0 })}
+              onChange={(e) => onChange({ budgetMax: parseInt(e.target.value) || 100 })}
               placeholder="2000"
             />
           </div>

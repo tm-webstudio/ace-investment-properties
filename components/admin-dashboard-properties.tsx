@@ -437,7 +437,7 @@ export function AdminDashboardProperties({ currentTab = 'properties' }: AdminDas
                             )}
                             {investor.preference_data?.bedrooms && (
                               <p className="text-[10px] text-gray-600 mb-1.5">
-                                {investor.preference_data.bedrooms.min}-{investor.preference_data.bedrooms.max} bedrooms
+                                {Math.min(investor.preference_data.bedrooms.min, investor.preference_data.bedrooms.max)}-{Math.max(investor.preference_data.bedrooms.min, investor.preference_data.bedrooms.max)} bedrooms
                               </p>
                             )}
                             {investor.match_breakdown && (
