@@ -44,7 +44,7 @@ export async function GET(
       photos: property.photos || [],
       images: property.photos || [], // Add images alias
       amenities: property.amenities || [],
-      title: `${property.property_type} in ${property.city}`,
+      title: [property.property_type, property.city || property.postcode].filter(Boolean).join(' in ') || 'Property',
       landlordName: property.landlord?.full_name || property.contact_name || 'N/A',
       landlordPhone: property.landlord?.phone || property.contact_phone || '',
       landlordEmail: property.contact_email || '',

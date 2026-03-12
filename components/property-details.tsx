@@ -2,6 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import { PropertyTitle } from "@/components/property-title"
+import { formatPropertyTitle } from "@/lib/format-address"
 import { Bed, Bath, MapPin, Info } from "lucide-react"
 import { format } from "date-fns"
 import type { Property } from "@/lib/sample-data"
@@ -34,11 +35,15 @@ export function PropertyDetails({ property }: PropertyDetailsProps) {
       <div className="space-y-3">
         <div>
           <h1 className="font-sans text-xl md:text-2xl font-semibold text-foreground">
-            <PropertyTitle
-              address={property.address}
-              city={property.city}
-              postcode={property.postcode}
-            />
+            {formatPropertyTitle(property.address || '', property.city, property.postcode) ? (
+              <PropertyTitle
+                address={property.address}
+                city={property.city}
+                postcode={property.postcode}
+              />
+            ) : (
+              property.title || 'Property'
+            )}
           </h1>
           <div className="text-lg md:text-xl font-semibold text-accent mt-1">
             £{property.price.toLocaleString()} pcm

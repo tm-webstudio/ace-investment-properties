@@ -58,8 +58,15 @@ export function PropertyCard({ property, variant = 'default', onPropertyDeleted,
       city={property.city}
       postcode={property.postcode}
     />
+  ) : property.address ? (
+    <PropertyTitle
+      address={property.address}
+      postcode={property.postcode}
+    />
   ) : (
-    property.title || `${property.property_type || property.propertyType} in ${property.city || 'Unknown'}`
+    property.title
+    || [property.property_type || property.propertyType, property.city || property.postcode].filter(Boolean).join(' in ')
+    || 'Property'
   )
 
   // Helper function to get licence display name
