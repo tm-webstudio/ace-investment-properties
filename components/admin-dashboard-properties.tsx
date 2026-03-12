@@ -56,6 +56,10 @@ export function AdminDashboardProperties({ currentTab = 'properties' }: AdminDas
   const [selectedLandlord, setSelectedLandlord] = useState<any>(null)
   const [matchedInvestors, setMatchedInvestors] = useState<any[]>([])
   const [matchedInvestorsLoading, setMatchedInvestorsLoading] = useState(false)
+  const [approvalModalOpen, setApprovalModalOpen] = useState(false)
+  const [approvalAction, setApprovalAction] = useState<'approve' | 'reject'>('approve')
+  const [approvalPropertyId, setApprovalPropertyId] = useState<string | null>(null)
+  const [approvalLoading, setApprovalLoading] = useState(false)
   const investorScrollRef = useRef<HTMLDivElement>(null)
   const [canScrollLeftInvestors, setCanScrollLeftInvestors] = useState(false)
   const [canScrollRightInvestors, setCanScrollRightInvestors] = useState(false)
@@ -107,6 +111,53 @@ export function AdminDashboardProperties({ currentTab = 'properties' }: AdminDas
       setError(err.message || 'Failed to load properties')
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleApproveClick = (propertyId: string) => {
+    setApprovalPropertyId(propertyId)
+    setApprovalAction('approve')
+    setApprovalModalOpen(true)
+  }
+
+  const handleRejectClick = (propertyId: string) => {
+    setApprovalPropertyId(propertyId)
+    setApprovalAction('reject')
+    setApprovalModalOpen(true)
+  }
+
+  const confirmApproval = async () => {
+    if (!approvalPropertyId) return
+    setApprovalLoading(true)
+
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session?.access_token) return
+
+      const response = await fetch('/api/admin/properties/approve', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`
+        },
+        body: JSON.stringify({
+          propertyId: approvalPropertyId,
+          action: approvalAction
+        })
+      })
+
+      const data = await response.json()
+
+      if (data.success) {
+        setApprovalModalOpen(false)
+        fetchProperties()
+      } else {
+        console.error(`Failed to ${approvalAction} property:`, data.error)
+      }
+    } catch (err) {
+      console.error(`Error ${approvalAction}ing property:`, err)
+    } finally {
+      setApprovalLoading(false)
     }
   }
 
@@ -317,8 +368,8 @@ export function AdminDashboardProperties({ currentTab = 'properties' }: AdminDas
                 <PropertyCard
                   property={property as any}
                   variant="admin"
-                  onApprove={fetchProperties}
-                  onReject={fetchProperties}
+                  onApprove={handleApproveClick}
+                  onReject={handleRejectClick}
                   onPropertyDeleted={fetchProperties}
                   showGovernmentActions={property.status === 'draft'}
                   currentTab={currentTab}
@@ -498,6 +549,33 @@ export function AdminDashboardProperties({ currentTab = 'properties' }: AdminDas
               </div>
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Approve/Reject Confirmation Modal */}
+      <Dialog open={approvalModalOpen} onOpenChange={setApprovalModalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{approvalAction === 'approve' ? 'Approve Property' : 'Reject Property'}</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to {approvalAction} this property?
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setApprovalModalOpen(false)} disabled={approvalLoading}>
+              Cancel
+            </Button>
+            <Button
+              onClick={confirmApproval}
+              disabled={approvalLoading}
+              className={approvalAction === 'approve' ? 'bg-accent hover:bg-accent/90 text-accent-foreground' : 'bg-destructive hover:bg-destructive/90 text-destructive-foreground'}
+            >
+              {approvalLoading ? (
+                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+              ) : null}
+              {approvalAction === 'approve' ? 'Approve' : 'Reject'}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </>
