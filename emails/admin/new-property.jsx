@@ -16,7 +16,7 @@ export default function NewProperty({
   submittedByEmail = 'jane@example.com',
   submittedByPhone = '+44 7700 900002',
   dashboardLink = `${process.env.NEXT_PUBLIC_SITE_URL}/admin`,
-  propertyAddress = '123 Nash Road, London, E1 1AA',
+  propertyAddress = 'Nash Road, London, E1',
   propertyType = 'Apartment',
   propertyPrice = '1,200',
   bedrooms = 2,

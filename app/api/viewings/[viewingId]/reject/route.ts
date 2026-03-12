@@ -3,7 +3,7 @@ import { supabase } from '@/lib/supabase'
 import { requireAuth } from '@/lib/middleware'
 import { sendEmail } from '@/lib/email'
 import ViewingRejected from '@/emails/investor/viewing-rejected'
-import { formatPropertyAddress } from '@/lib/emailHelpers'
+import { formatPropertyAddress, formatPropertyTitle } from '@/lib/emailHelpers'
 
 // Validate environment variables
 if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
@@ -127,9 +127,9 @@ export async function PUT(
       if (viewing.user_email && propertyDetails) {
         await sendEmail({
           to: viewing.user_email,
-          subject: `Viewing Request Update - ${propertyDetails.title || 'Property'}`,
+          subject: `Viewing Request Update - ${formatPropertyTitle(propertyDetails)}`,
           react: ViewingRejected({
-            propertyTitle: propertyDetails.title || 'Property',
+            propertyTitle: formatPropertyTitle(propertyDetails),
             propertyAddress: formatPropertyAddress(propertyDetails),
             rejectionReason: rejectionReason || '',
             browseLink: requesterProfile?.user_type === 'investor'

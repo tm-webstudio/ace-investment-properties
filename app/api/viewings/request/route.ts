@@ -4,7 +4,7 @@ import { requireAuth } from '@/lib/middleware'
 import { sendEmail } from '@/lib/email'
 import ViewingRequest from '@/emails/landlord/viewing-request'
 import NewViewing from '@/emails/admin/new-viewing'
-import { formatDate, formatTime, getUserDisplayName, formatPropertyAddress } from '@/lib/emailHelpers'
+import { formatDate, formatTime, getUserDisplayName, formatPropertyAddress, formatPropertyTitle } from '@/lib/emailHelpers'
 import * as React from 'react'
 
 // Validate environment variables
@@ -228,14 +228,10 @@ export async function POST(request: NextRequest) {
       if (landlordProfile?.email && propertyDetails) {
         await sendEmail({
           to: landlordProfile.email,
-          subject: `New Viewing Request - ${propertyDetails.title || 'Your Property'}`,
+          subject: `New Viewing Request - ${formatPropertyTitle(propertyDetails)}`,
           react: ViewingRequest({
-            propertyTitle: propertyDetails.title || 'Property',
+            propertyTitle: formatPropertyTitle(propertyDetails),
             propertyAddress: formatPropertyAddress(propertyDetails),
-            viewerName: body.userName,
-            viewerEmail: body.userEmail,
-            viewerPhone: body.userPhone,
-            viewerType: userProfile?.user_type === 'investor' ? 'Investor' : 'Tenant',
             viewingDate: body.viewingDate,
             viewingTime: body.viewingTime,
             message: body.message || '',
@@ -262,7 +258,7 @@ export async function POST(request: NextRequest) {
             investorName: body.userName,
             investorEmail: body.userEmail,
             investorPhone: body.userPhone,
-            propertyTitle: propertyDetails.title || 'Property',
+            propertyTitle: formatPropertyTitle(propertyDetails),
             propertyAddress: formatPropertyAddress(propertyDetails),
             propertyType: propertyDetails.property_type || 'property',
             bedrooms: propertyDetails.bedrooms || 0,

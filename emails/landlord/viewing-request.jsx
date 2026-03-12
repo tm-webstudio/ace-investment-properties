@@ -13,8 +13,8 @@ import EmailBox from '../components/email-box';
 import PropertyCard from '../components/property-card';
 
 export default function ViewingRequest({
-  propertyTitle = 'Modern 2 Bedroom Apartment',
-  propertyAddress = '123 Nash Road, London, E1 1AA',
+  propertyTitle = 'Nash Road, London, E1',
+  propertyAddress = '123 Nash Road, London, E1',
   propertyType = 'apartment',
   bedrooms = 2,
   bathrooms = 1,
@@ -23,10 +23,6 @@ export default function ViewingRequest({
   propertyLicence = 'none',
   condition = 'good',
   propertyImage = '',
-  viewerName = 'Jane Doe',
-  viewerEmail = 'jane@example.com',
-  viewerPhone = '+44 7700 900001',
-  viewerType = 'Investor',
   viewingDate = '2026-01-15',
   viewingTime = '14:00',
   message = 'I am interested in viewing this property. Please let me know if this time works for you.',
@@ -55,51 +51,34 @@ export default function ViewingRequest({
         propertyImage={propertyImage}
       />
 
-      {/* Requester Info - White Box with Border */}
+      {/* Viewing Details */}
       <EmailBox variant="outline">
         <Heading as="h3" style={infoHeading}>
-          Requester Information
+          Viewing Details
         </Heading>
         <table style={infoTable}>
           <tbody>
             <tr>
-              <td style={infoLabel}>Name:</td>
-              <td style={infoValue}>{viewerName}</td>
-            </tr>
-            <tr>
-              <td style={infoLabel}>Email:</td>
-              <td style={infoValue}>{viewerEmail}</td>
-            </tr>
-            <tr>
-              <td style={infoLabel}>Phone:</td>
-              <td style={infoValue}>{viewerPhone}</td>
-            </tr>
-            <tr>
-              <td style={infoLabel}>Type:</td>
-              <td>
-                <span style={badge}>{viewerType}</span>
+              <td style={infoLabel}>Date:</td>
+              <td style={infoValue}>
+                {new Date(viewingDate).toLocaleDateString('en-GB', {
+                  weekday: 'long',
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric',
+                })}
               </td>
+            </tr>
+            <tr>
+              <td style={infoLabel}>Time:</td>
+              <td style={infoValue}>{viewingTime}</td>
+            </tr>
+            <tr>
+              <td style={infoLabel}>Address:</td>
+              <td style={infoValue}>{propertyAddress}</td>
             </tr>
           </tbody>
         </table>
-      </EmailBox>
-
-      {/* Viewing Details */}
-      <Section style={detailsSection}>
-        <Text style={detailsText}>
-          <EmailIcon name="calendar" color="#10b981" size={18} />
-          <strong>Requested Date:</strong>{' '}
-          {new Date(viewingDate).toLocaleDateString('en-GB', {
-            weekday: 'long',
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric',
-          })}
-        </Text>
-        <Text style={detailsText}>
-          <EmailIcon name="clock" color="#10b981" size={18} />
-          <strong>Requested Time:</strong> {viewingTime}
-        </Text>
         {message && (
           <>
             <Text style={detailsText}>
@@ -108,7 +87,7 @@ export default function ViewingRequest({
             <Text style={messageText}>"{message}"</Text>
           </>
         )}
-      </Section>
+      </EmailBox>
 
       {/* Action Buttons */}
       <Section style={buttonSection}>
@@ -174,19 +153,6 @@ const infoValue = {
   color: '#1f2937',
   fontSize: '14px',
   padding: '4px 0',
-};
-
-const badge = {
-  backgroundColor: '#10b981',
-  color: '#ffffff',
-  padding: '4px 12px',
-  borderRadius: '0',
-  fontSize: '12px',
-  fontWeight: '600',
-};
-
-const detailsSection = {
-  marginBottom: '24px',
 };
 
 const detailsText = {

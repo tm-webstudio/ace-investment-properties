@@ -12,8 +12,8 @@ import EmailBox from '../components/email-box';
 import PropertyCard from '../components/property-card';
 
 export default function PropertyApproved({
-  propertyTitle = 'Modern 2 Bedroom Apartment',
-  propertyAddress = '123 Nash Road, London, E1 1AA',
+  propertyTitle = 'Nash Road, London, E1',
+  propertyAddress = '123 Nash Road, London, E1',
   propertyType = 'apartment',
   bedrooms = 2,
   bathrooms = 1,

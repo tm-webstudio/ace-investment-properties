@@ -3,7 +3,7 @@ import { supabase } from '@/lib/supabase'
 import { requireAuth } from '@/lib/middleware'
 import { sendEmail } from '@/lib/email'
 import ViewingConfirmation from '@/emails/investor/viewing-confirmation'
-import { formatDate, formatTime, getUserDisplayName, formatPropertyAddress } from '@/lib/emailHelpers'
+import { formatDate, formatTime, getUserDisplayName, formatPropertyAddress, formatPropertyTitle } from '@/lib/emailHelpers'
 
 // Validate environment variables
 if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
@@ -133,15 +133,13 @@ export async function PUT(
 
         await sendEmail({
           to: viewing.user_email,
-          subject: `Viewing Confirmed - ${propertyDetails.title || 'Your Viewing'}`,
+          subject: `Viewing Confirmed - ${formatPropertyTitle(propertyDetails)}`,
           react: ViewingConfirmation({
-            propertyTitle: propertyDetails.title || 'Property',
+            propertyTitle: formatPropertyTitle(propertyDetails),
             propertyAddress: formatPropertyAddress(propertyDetails),
             propertyImage: propertyImage,
             viewingDate: viewing.viewing_date,
             viewingTime: viewing.viewing_time,
-            landlordName: getUserDisplayName(landlordProfile),
-            landlordPhone: landlordProfile?.phone || '',
             dashboardLink: requesterProfile?.user_type === 'investor'
               ? `${process.env.NEXT_PUBLIC_SITE_URL}/investor/viewings`
               : `${process.env.NEXT_PUBLIC_SITE_URL}/dashboard/viewings`

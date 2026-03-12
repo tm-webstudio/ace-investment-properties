@@ -12,8 +12,8 @@ import EmailBox from '../components/email-box';
 import PropertyCard from '../components/property-card';
 
 export default function ViewingReminder({
-  propertyTitle = 'Modern 2 Bedroom Apartment',
-  propertyAddress = '123 Nash Road, London, E1 1AA',
+  propertyTitle = 'Nash Road, London, E1',
+  propertyAddress = '123 Nash Road, London, E1',
   propertyType = 'apartment',
   bedrooms = 2,
   bathrooms = 1,
@@ -24,8 +24,6 @@ export default function ViewingReminder({
   propertyImage = '',
   viewingDate = '2026-01-15',
   viewingTime = '14:00',
-  landlordName = 'John Smith',
-  landlordPhone = '+44 7700 900000',
   directionsLink = '',
   dashboardLink = `${process.env.NEXT_PUBLIC_SITE_URL}/investor/dashboard`,
 }) {
@@ -76,12 +74,8 @@ export default function ViewingReminder({
               <td style={infoValue}>{viewingTime}</td>
             </tr>
             <tr>
-              <td style={infoLabel}>Landlord:</td>
-              <td style={infoValue}>{landlordName}</td>
-            </tr>
-            <tr>
-              <td style={infoLabel}>Contact:</td>
-              <td style={infoValue}>{landlordPhone}</td>
+              <td style={infoLabel}>Address:</td>
+              <td style={infoValue}>{propertyAddress}</td>
             </tr>
           </tbody>
         </table>

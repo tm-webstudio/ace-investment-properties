@@ -15,7 +15,7 @@ export default function NewPropertyMatch({
   propertyType = 'Apartment',
   bedrooms = 2,
   bathrooms = 1,
-  propertyAddress = '123 Nash Road, London, E1 1AA',
+  propertyAddress = 'Nash Road, London, E1',
   propertyImage = '',
   propertyPrice = '1,200',
   availability = 'vacant',

@@ -13,8 +13,8 @@ import EmailBox from '../components/email-box';
 import PropertyCard from '../components/property-card';
 
 export default function ViewingConfirmation({
-  propertyTitle = 'Modern 2 Bedroom Apartment',
-  propertyAddress = '123 Nash Road, London, E1 1AA',
+  propertyTitle = 'Nash Road, London, E1',
+  propertyAddress = '123 Nash Road, London, E1',
   propertyType = 'apartment',
   bedrooms = 2,
   bathrooms = 1,
@@ -25,8 +25,6 @@ export default function ViewingConfirmation({
   propertyImage = '',
   viewingDate = '2026-01-15',
   viewingTime = '14:00',
-  landlordName = 'John Smith',
-  landlordPhone = '+44 7700 900000',
   dashboardLink = `${process.env.NEXT_PUBLIC_SITE_URL}/investor/dashboard`,
 }) {
   const calendarLink = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=Property+Viewing:+${encodeURIComponent(propertyTitle)}&dates=${viewingDate.replace(/-/g, '')}T${viewingTime.replace(':', '')}00/${viewingDate.replace(/-/g, '')}T${viewingTime.replace(':', '')}00&details=${encodeURIComponent(propertyAddress)}&location=${encodeURIComponent(propertyAddress)}`;
@@ -77,12 +75,8 @@ export default function ViewingConfirmation({
               <td style={infoValue}>{viewingTime}</td>
             </tr>
             <tr>
-              <td style={infoLabel}>Landlord:</td>
-              <td style={infoValue}>{landlordName}</td>
-            </tr>
-            <tr>
-              <td style={infoLabel}>Contact:</td>
-              <td style={infoValue}>{landlordPhone}</td>
+              <td style={infoLabel}>Address:</td>
+              <td style={infoValue}>{propertyAddress}</td>
             </tr>
           </tbody>
         </table>

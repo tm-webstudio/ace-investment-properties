@@ -3,7 +3,7 @@ import { createClient } from '@supabase/supabase-js'
 import { sendEmail } from '@/lib/email'
 import ViewingRequest from '@/emails/landlord/viewing-request'
 import ViewingConfirmation from '@/emails/investor/viewing-confirmation'
-import { formatPropertyAddress } from '@/lib/emailHelpers'
+import { formatPropertyAddress, formatPropertyTitle } from '@/lib/emailHelpers'
 import * as React from 'react'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
@@ -351,7 +351,7 @@ export async function POST(request: NextRequest) {
       const propertyImage = Array.isArray(property.photos) && property.photos.length > 0
         ? property.photos[0]
         : ''
-      const propertyTitle = `${property.property_type || 'Property'} - ${property.address || ''}`
+      const propertyTitle = formatPropertyTitle(property)
 
       // Send landlord notification (ViewingRequest template)
       if (landlordEmail) {
@@ -369,10 +369,6 @@ export async function POST(request: NextRequest) {
             propertyLicence: property.property_licence || 'none',
             condition: property.property_condition || 'good',
             propertyImage,
-            viewerName: investorProfile.full_name || 'Investor',
-            viewerEmail: investorEmail,
-            viewerPhone: investorProfile.phone || '',
-            viewerType: 'Investor',
             viewingDate,
             viewingTime,
             message: message || '',
@@ -400,8 +396,6 @@ export async function POST(request: NextRequest) {
             propertyImage,
             viewingDate,
             viewingTime,
-            landlordName: landlordProfile?.full_name || 'Landlord',
-            landlordPhone: landlordProfile?.phone || '',
             dashboardLink: `${process.env.NEXT_PUBLIC_SITE_URL}/investor/dashboard`,
           })
         })
