@@ -378,6 +378,7 @@ export function AdminDashboardProperties({ currentTab = 'properties' }: AdminDas
                 <PendingMetaStrip
                   landlordName={property.landlordName}
                   submittedDate={property.created_at}
+                  source={property.source}
                   onClick={() => openLandlordModal(property)}
                 />
               </div>

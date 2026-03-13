@@ -148,7 +148,8 @@ export async function GET(request: NextRequest) {
           property_licence: property.property_licence,
           property_condition: property.property_condition,
           latitude: property.latitude,
-          longitude: property.longitude
+          longitude: property.longitude,
+          source: property.source
         }
       })
     )

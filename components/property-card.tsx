@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { PropertyTitle } from "@/components/property-title"
-import { Bed, Bath, MoreVertical, Edit, Eye, Trash2, CheckCircle, XCircle, Camera, Check, X, Shield } from "lucide-react"
+import { Bed, Bath, MoreVertical, Edit, Eye, Trash2, CheckCircle, XCircle, Camera, Check, X, Shield, Facebook } from "lucide-react"
 import { SavePropertyButton } from "./save-property-button"
 import { format } from "date-fns"
 import { supabase } from "@/lib/supabase"
@@ -144,6 +144,7 @@ export function PropertyCard({ property, variant = 'default', onPropertyDeleted,
   }
   // Check if property is awaiting approval (only show for non-admin variants)
   const isAwaitingApproval = property.status === 'draft'
+  const isFacebookLead = property.source === 'facebook'
   // Check if property is rejected
   const isRejected = property.status === 'rejected'
   const shouldShowGovernmentActions = showGovernmentActions
@@ -178,8 +179,15 @@ export function PropertyCard({ property, variant = 'default', onPropertyDeleted,
         {/* Awaiting Approval Watermark */}
         {isAwaitingApproval && (
           <div className="absolute inset-0 flex items-center justify-center z-[7] pointer-events-none translate-y-2 sm:translate-y-3">
-            <div className="bg-yellow-500/95 text-white px-5 py-2 rounded-none shadow-xl border border-yellow-600 shadow-yellow-900/30">
-              <p className="font-extrabold text-sm tracking-tight">Awaiting Approval</p>
+            <div className="flex items-stretch gap-1.5">
+              {isFacebookLead && variant === 'admin' && (
+                <div className="bg-[#1877F2]/95 text-white px-2.5 rounded-none shadow-xl border border-[#1565C0] shadow-blue-900/30 flex items-center">
+                  <Facebook className="h-4 w-4 fill-white stroke-none" />
+                </div>
+              )}
+              <div className="bg-yellow-500/95 text-white px-5 py-2 rounded-none shadow-xl border border-yellow-600 shadow-yellow-900/30">
+                <p className="font-extrabold text-sm tracking-tight">Awaiting Approval</p>
+              </div>
             </div>
           </div>
         )}
@@ -187,8 +195,15 @@ export function PropertyCard({ property, variant = 'default', onPropertyDeleted,
         {/* Rejected Watermark */}
         {isRejected && (
           <div className="absolute inset-0 flex items-center justify-center z-[7] pointer-events-none translate-y-2 sm:translate-y-3">
-            <div className="bg-red-700/95 text-white px-5 py-2 rounded-none shadow-xl border border-red-800 shadow-red-900/40">
-              <p className="font-extrabold text-sm tracking-tight">Rejected</p>
+            <div className="flex items-stretch gap-1.5">
+              {isFacebookLead && variant === 'admin' && (
+                <div className="bg-[#1877F2]/95 text-white px-2.5 rounded-none shadow-xl border border-[#1565C0] shadow-blue-900/30 flex items-center">
+                  <Facebook className="h-4 w-4 fill-white stroke-none" />
+                </div>
+              )}
+              <div className="bg-red-700/95 text-white px-5 py-2 rounded-none shadow-xl border border-red-800 shadow-red-900/40">
+                <p className="font-extrabold text-sm tracking-tight">Rejected</p>
+              </div>
             </div>
           </div>
         )}

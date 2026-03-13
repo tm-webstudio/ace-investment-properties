@@ -640,6 +640,7 @@ export function AdminDashboardOverview({ admin, onTabChange }: AdminDashboardOve
                     <PendingMetaStrip
                       landlordName={property._pendingInfo.landlordName}
                       submittedDate={property._pendingInfo.submittedDate}
+                      source={property.source}
                       onClick={() => openLandlordModal(property)}
                     />
                   </div>
