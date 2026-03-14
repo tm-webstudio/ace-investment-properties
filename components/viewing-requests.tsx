@@ -30,7 +30,8 @@ import {
   PoundSterling,
   Search,
   CalendarIcon,
-  Loader2
+  Loader2,
+  Plus
 } from "lucide-react"
 import Link from "next/link"
 import { supabase } from "@/lib/supabase"
@@ -115,6 +116,22 @@ export function ViewingRequests({ variant = 'dashboard', limit, onTabChange, isA
   const [availableSlots, setAvailableSlots] = useState<{time: string, available: boolean}[]>([])
   const [loadingSlots, setLoadingSlots] = useState(false)
   const [allowedDays, setAllowedDays] = useState<number[]>([1, 2, 3, 4, 5, 6])
+
+  // Create viewing modal state (admin only)
+  const [createModalOpen, setCreateModalOpen] = useState(false)
+  const [createLoading, setCreateLoading] = useState(false)
+  const [createError, setCreateError] = useState('')
+  const [createSuccess, setCreateSuccess] = useState(false)
+  const [createPropertyId, setCreatePropertyId] = useState('')
+  const [createInvestorId, setCreateInvestorId] = useState('')
+  const [createDate, setCreateDate] = useState<Date | null>(null)
+  const [createTime, setCreateTime] = useState('')
+  const [createMessage, setCreateMessage] = useState('')
+  const [propertyOptions, setPropertyOptions] = useState<{id: string, address: string, city: string, postcode: string}[]>([])
+  const [investorOptions, setInvestorOptions] = useState<{id: string, full_name: string, company_name: string, email: string}[]>([])
+  const [propertySearch, setPropertySearch] = useState('')
+  const [investorSearch, setInvestorSearch] = useState('')
+  const [loadingOptions, setLoadingOptions] = useState(false)
 
   const fetchViewings = async () => {
     try {
@@ -413,6 +430,106 @@ export function ViewingRequests({ variant = 'dashboard', limit, onTabChange, isA
     }
   }
 
+  // Admin: fetch property and investor options for create modal
+  const fetchCreateOptions = async () => {
+    setLoadingOptions(true)
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session?.access_token) return
+
+      const res = await fetch('/api/admin/viewings?action=create-options', {
+        headers: { 'Authorization': `Bearer ${session.access_token}` }
+      })
+
+      const data = await res.json()
+
+      if (data.success) {
+        setPropertyOptions((data.properties || []).map((p: any) => ({
+          id: p.id,
+          address: p.address || '',
+          city: p.city || '',
+          postcode: p.postcode || ''
+        })))
+
+        setInvestorOptions((data.investors || []).map((u: any) => ({
+          id: u.id,
+          full_name: u.full_name || '',
+          company_name: u.company_name || '',
+          email: u.email || ''
+        })))
+      }
+    } catch (error) {
+      console.error('Error fetching create options:', error)
+    } finally {
+      setLoadingOptions(false)
+    }
+  }
+
+  const openCreateModal = () => {
+    setCreateError('')
+    setCreateSuccess(false)
+    setCreatePropertyId('')
+    setCreateInvestorId('')
+    setCreateDate(null)
+    setCreateTime('')
+    setCreateMessage('')
+    setPropertySearch('')
+    setInvestorSearch('')
+    setCreateModalOpen(true)
+    fetchCreateOptions()
+  }
+
+  const handleCreateViewing = async () => {
+    if (!createPropertyId || !createInvestorId || !createDate || !createTime) {
+      setCreateError('Please fill in all required fields')
+      return
+    }
+
+    setCreateLoading(true)
+    setCreateError('')
+
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session?.access_token) {
+        setCreateError('Not authenticated')
+        return
+      }
+
+      const response = await fetch('/api/admin/viewings', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          propertyId: createPropertyId,
+          investorId: createInvestorId,
+          viewingDate: format(createDate, 'yyyy-MM-dd'),
+          viewingTime: createTime,
+          message: createMessage.trim() || undefined
+        })
+      })
+
+      const result = await response.json()
+
+      if (result.success) {
+        setCreateSuccess(true)
+        setTimeout(() => {
+          setCreateModalOpen(false)
+          setCreateSuccess(false)
+          fetchViewings()
+        }, 1500)
+      } else {
+        setCreateError(result.error || 'Failed to create viewing')
+      }
+    } catch (error) {
+      console.error('Error creating viewing:', error)
+      setCreateError('Failed to create viewing')
+    } finally {
+      setCreateLoading(false)
+    }
+  }
+
   const confirmCancel = async () => {
     if (!selectedViewing) return
 
@@ -651,18 +768,19 @@ export function ViewingRequests({ variant = 'dashboard', limit, onTabChange, isA
                     <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
                       <Button
                         size="icon"
+                        variant="ghost"
                         onClick={() => handleApprove(viewing)}
-                        className="bg-accent hover:bg-accent/90 text-accent-foreground h-8 w-8"
+                        className="bg-green-600/90 hover:bg-green-700 shadow-lg border border-green-500/50 transition-all duration-200 hover:shadow-xl h-8 w-8 rounded-none"
                       >
-                        <Check className="h-4 w-4" />
+                        <Check className="h-4 w-4 text-white" />
                       </Button>
                       <Button
                         size="icon"
-                        variant="destructive"
+                        variant="ghost"
                         onClick={() => handleReject(viewing)}
-                        className="h-8 w-8"
+                        className="bg-red-600/90 hover:bg-red-700 shadow-lg border border-red-500/50 transition-all duration-200 hover:shadow-xl h-8 w-8 rounded-none"
                       >
-                        <X className="h-4 w-4" />
+                        <X className="h-4 w-4 text-white" />
                       </Button>
                     </div>
                   )}
@@ -1195,6 +1313,291 @@ export function ViewingRequests({ variant = 'dashboard', limit, onTabChange, isA
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Create Viewing Modal (admin only) */}
+      <Dialog open={createModalOpen} onOpenChange={setCreateModalOpen}>
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Create Viewing</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            {createSuccess ? (
+              <div className="p-4 bg-green-50 border border-green-200 rounded-md text-center">
+                <Check className="h-8 w-8 text-green-600 mx-auto mb-2" />
+                <p className="text-sm text-green-700 font-medium">Viewing created successfully!</p>
+              </div>
+            ) : (
+              <>
+                {/* Property Selector */}
+                <div>
+                  <Label className="mb-1.5 block">Property *</Label>
+                  {loadingOptions ? (
+                    <div className="flex items-center gap-2 p-2 text-sm text-gray-500">
+                      <Loader2 className="h-4 w-4 animate-spin" /> Loading properties...
+                    </div>
+                  ) : (
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          role="combobox"
+                          className="w-full justify-between font-normal"
+                        >
+                          <span className="truncate">
+                            {createPropertyId
+                              ? (() => {
+                                  const p = propertyOptions.find(p => p.id === createPropertyId)
+                                  return p ? `${p.address}, ${p.city} ${p.postcode}` : 'Select a property'
+                                })()
+                              : 'Select a property'}
+                          </span>
+                          <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0" align="start">
+                        <div className="flex items-center border-b px-3">
+                          <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />
+                          <input
+                            className="flex h-10 w-full bg-transparent py-3 text-sm outline-none placeholder:text-muted-foreground"
+                            placeholder="Search properties..."
+                            value={propertySearch}
+                            onChange={(e) => setPropertySearch(e.target.value)}
+                          />
+                        </div>
+                        <div className="max-h-60 overflow-y-auto p-1">
+                          {propertyOptions
+                            .filter(p => {
+                              if (!propertySearch) return true
+                              const s = propertySearch.toLowerCase()
+                              return p.address.toLowerCase().includes(s) ||
+                                p.city.toLowerCase().includes(s) ||
+                                p.postcode.toLowerCase().includes(s)
+                            })
+                            .map(p => (
+                              <button
+                                key={p.id}
+                                className={cn(
+                                  "relative flex w-full cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground",
+                                  createPropertyId === p.id && "bg-accent"
+                                )}
+                                onClick={() => {
+                                  setCreatePropertyId(p.id)
+                                  setPropertySearch('')
+                                }}
+                              >
+                                {createPropertyId === p.id && (
+                                  <Check className="mr-2 h-4 w-4 shrink-0" />
+                                )}
+                                <span className={createPropertyId === p.id ? '' : 'ml-6'}>
+                                  {p.address}, {p.city} {p.postcode}
+                                </span>
+                              </button>
+                            ))}
+                        </div>
+                      </PopoverContent>
+                    </Popover>
+                  )}
+                </div>
+
+                {/* Investor Selector */}
+                <div>
+                  <Label className="mb-1.5 block">Investor *</Label>
+                  {loadingOptions ? (
+                    <div className="flex items-center gap-2 p-2 text-sm text-gray-500">
+                      <Loader2 className="h-4 w-4 animate-spin" /> Loading investors...
+                    </div>
+                  ) : (
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          role="combobox"
+                          className="w-full justify-between font-normal"
+                        >
+                          <span className="truncate">
+                            {createInvestorId
+                              ? (() => {
+                                  const i = investorOptions.find(i => i.id === createInvestorId)
+                                  return i
+                                    ? `${i.company_name ? `${i.company_name} — ` : ''}${i.full_name} (${i.email})`
+                                    : 'Select an investor'
+                                })()
+                              : 'Select an investor'}
+                          </span>
+                          <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0" align="start">
+                        <div className="flex items-center border-b px-3">
+                          <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />
+                          <input
+                            className="flex h-10 w-full bg-transparent py-3 text-sm outline-none placeholder:text-muted-foreground"
+                            placeholder="Search investors..."
+                            value={investorSearch}
+                            onChange={(e) => setInvestorSearch(e.target.value)}
+                          />
+                        </div>
+                        <div className="max-h-60 overflow-y-auto p-1">
+                          {investorOptions
+                            .filter(i => {
+                              if (!investorSearch) return true
+                              const s = investorSearch.toLowerCase()
+                              return i.full_name.toLowerCase().includes(s) ||
+                                i.company_name?.toLowerCase().includes(s) ||
+                                i.email.toLowerCase().includes(s)
+                            })
+                            .map(i => (
+                              <button
+                                key={i.id}
+                                className={cn(
+                                  "relative flex w-full cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground",
+                                  createInvestorId === i.id && "bg-accent"
+                                )}
+                                onClick={() => {
+                                  setCreateInvestorId(i.id)
+                                  setInvestorSearch('')
+                                }}
+                              >
+                                {createInvestorId === i.id && (
+                                  <Check className="mr-2 h-4 w-4 shrink-0" />
+                                )}
+                                <span className={createInvestorId === i.id ? '' : 'ml-6'}>
+                                  {i.company_name ? `${i.company_name} — ` : ''}{i.full_name} ({i.email})
+                                </span>
+                              </button>
+                            ))}
+                        </div>
+                      </PopoverContent>
+                    </Popover>
+                  )}
+                </div>
+
+                {/* Date Picker */}
+                <div>
+                  <Label className="mb-1.5 block">Viewing Date *</Label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className={cn(
+                          "w-full justify-start text-left font-normal",
+                          !createDate && "text-muted-foreground"
+                        )}
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {createDate ? format(createDate, "PPP") : <span>Pick a date</span>}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0">
+                      <CalendarComponent
+                        mode="single"
+                        selected={createDate || undefined}
+                        onSelect={(date) => {
+                          if (date) {
+                            setCreateDate(date)
+                            setCreateTime('')
+                          }
+                        }}
+                        disabled={(date) =>
+                          isBefore(date, addDays(new Date(), 1)) ||
+                          isAfter(date, addDays(new Date(), 60))
+                        }
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+
+                {/* Time Picker */}
+                {createDate && (
+                  <div>
+                    <Label>Viewing Time *</Label>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <Select
+                          value={createTime?.split(':')[0] || ''}
+                          onValueChange={(hour) => {
+                            const minute = createTime?.split(':')[1] || '00'
+                            setCreateTime(`${hour}:${minute}`)
+                          }}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Hour" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {Array.from({ length: 10 }, (_, i) => i + 9).map((hour) => (
+                              <SelectItem key={hour} value={hour.toString().padStart(2, '0')}>
+                                {hour > 12 ? hour - 12 : hour} {hour >= 12 ? 'PM' : 'AM'}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div>
+                        <Select
+                          value={createTime?.split(':')[1] || ''}
+                          onValueChange={(minute) => {
+                            const hour = createTime?.split(':')[0] || '09'
+                            setCreateTime(`${hour}:${minute}`)
+                          }}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Minute" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {['00', '15', '30', '45'].map((minute) => (
+                              <SelectItem key={minute} value={minute}>
+                                :{minute}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Optional Message */}
+                <div>
+                  <Label className="mb-1.5 block">Message (optional)</Label>
+                  <Textarea
+                    placeholder="Add a note about this viewing..."
+                    value={createMessage}
+                    onChange={(e) => setCreateMessage(e.target.value)}
+                    rows={3}
+                  />
+                </div>
+
+                <p className="text-sm text-blue-600 bg-blue-50 p-3 rounded">
+                  Admin-created viewings are automatically approved. Both the investor and landlord will be notified by email.
+                </p>
+
+                {createError && (
+                  <div className="p-4 bg-red-50 border border-red-200 rounded-md">
+                    <p className="text-sm text-red-700">{createError}</p>
+                  </div>
+                )}
+
+                <div className="flex gap-3 justify-end">
+                  <Button variant="outline" onClick={() => setCreateModalOpen(false)}>
+                    Cancel
+                  </Button>
+                  <Button
+                    onClick={handleCreateViewing}
+                    disabled={createLoading || !createPropertyId || !createInvestorId || !createDate || !createTime}
+                  >
+                    {createLoading ? (
+                      <><Loader2 className="h-4 w-4 animate-spin mr-2" /> Creating...</>
+                    ) : (
+                      'Create Viewing'
+                    )}
+                  </Button>
+                </div>
+              </>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </>
   )
 
@@ -1259,6 +1662,13 @@ export function ViewingRequests({ variant = 'dashboard', limit, onTabChange, isA
                   <SelectItem value="cancelled">Cancelled</SelectItem>
                 </SelectContent>
               </Select>
+              <Button
+                onClick={openCreateModal}
+                className="h-9 sm:h-10 py-2 px-3 bg-primary hover:bg-primary/90 text-primary-foreground"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Create Viewing
+              </Button>
             </div>
           </CardContent>
         </Card>

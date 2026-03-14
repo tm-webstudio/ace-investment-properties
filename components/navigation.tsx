@@ -314,6 +314,16 @@ export function Navigation() {
           </Link>
           <div className="mx-6 border-b border-gray-200" />
 
+          {/* For Landlords */}
+          <Link
+            href="/landlord"
+            className="flex items-center justify-between px-6 py-5"
+            onClick={() => setIsOpen(false)}
+          >
+            <span className="text-base font-medium text-gray-900">For Landlords</span>
+          </Link>
+          <div className="mx-6 border-b border-gray-200" />
+
           {/* Auth section */}
           <div className="px-6 py-6 flex flex-col gap-2">
             {user ? (

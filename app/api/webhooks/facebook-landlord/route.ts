@@ -296,19 +296,20 @@ async function sendVerificationEmail(
 
 async function sendAdminNotification(
   landlord: { name: string; email: string; phone: string },
-  property: { id: string; address: string; monthly_rent: number; bedrooms: string; bathrooms: string; property_type: string },
+  property: { id: string; ref_number: string; address: string; monthly_rent: number; bedrooms: string; bathrooms: string; property_type: string },
   enriched: { city: string; local_authority: string; postcode_clean: string }
 ) {
   const result = await sendEmail({
     to: 'tmwebstudio1@gmail.com', // TODO: revert to admin@aceinvestmentproperties.co.uk after testing
-    subject: `New Facebook Lead – ${property.address}`,
+    subject: `New Property Submitted – Property #${property.ref_number || '?'}`,
     from: 'Ace Properties <notifications@aceinvestmentproperties.co.uk>',
     react: NewProperty({
       submittedByName: landlord.name || 'N/A',
       submittedByEmail: landlord.email,
       submittedByPhone: landlord.phone || '—',
       dashboardLink: `${process.env.NEXT_PUBLIC_SITE_URL}/admin`,
-      propertyAddress: property.address,
+      propertyAddress: formatPropertyTitle(property.address, enriched.city, enriched.postcode_clean),
+      source: 'facebook',
       propertyType: property.property_type || 'N/A',
       propertyPrice: (property.monthly_rent / 100).toLocaleString(),
       bedrooms: property.bedrooms,

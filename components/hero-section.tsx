@@ -5,21 +5,21 @@ import Link from "next/link"
 
 export function HeroSection() {
   return (
-    <section className="relative bg-primary text-primary-foreground min-h-[500px] lg:py-40 2xl:py-52 flex items-end lg:items-center">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full pb-8 lg:pb-0">
-        <div className="text-left space-y-6 max-w-xl">
+    <section className="relative bg-primary text-primary-foreground min-h-[500px] py-16 lg:pt-20 lg:pb-60 2xl:pt-28 2xl:pb-76 flex items-start">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
+        <div className="text-center space-y-4 max-w-xl mx-auto">
           {/* Hero Content */}
-          <div className="space-y-4">
-            <h1 className="font-serif text-3xl md:text-5xl lg:text-5xl font-medium leading-tight mb-3">
-              Find The Best Property Deals On The Market
+          <div>
+            <h1 className="font-serif text-3xl md:text-5xl lg:text-5xl font-medium leading-tight mb-2">
+              Find The Best Rental Property Deals In The UK
             </h1>
-            <p className="text-base md:text-lg text-primary-foreground/90 max-w-md leading-relaxed">
+            <p className="text-base md:text-lg text-primary-foreground/90 max-w-lg mx-auto leading-relaxed">
               Discover high-yield investment properties handpicked for serious investors
             </p>
           </div>
 
           {/* CTA Buttons */}
-          <div className="flex flex-col sm:flex-row gap-4 justify-start items-start pt-0">
+          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center pt-0">
             <Link href="/investor/signup">
               <Button
                 size="lg"

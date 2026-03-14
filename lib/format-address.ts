@@ -29,6 +29,32 @@ function toSentenceCase(text: string): string {
 }
 
 /**
+ * Strip trailing city and/or outward postcode from an address string.
+ * Handles cases where the address field already contains "Road, City, PC"
+ * to avoid duplication like "Road, City, PC, City, PC".
+ */
+function stripTrailingSuffixes(addr: string, city?: string, outwardPostcode?: string): string {
+  if (!addr) return addr
+
+  // Split on comma, trim each segment
+  const segments = addr.split(',').map(s => s.trim())
+  const normCity = city ? city.toLowerCase().trim() : ''
+  const normPC = outwardPostcode ? outwardPostcode.toLowerCase() : ''
+
+  // Remove trailing segments that match outward postcode or city (in reverse order)
+  while (segments.length > 1) {
+    const last = segments[segments.length - 1].toLowerCase().trim()
+    if ((normPC && last === normPC) || (normCity && last === normCity)) {
+      segments.pop()
+    } else {
+      break
+    }
+  }
+
+  return segments.join(', ')
+}
+
+/**
  * Format property title - standard format: "road name, area, outward postcode"
  * Removes street numbers and apartment/flat designations for a clean title
  * Always formats in sentence case except postcode (which is uppercase)
@@ -54,6 +80,9 @@ export function formatPropertyTitle(
   const parts: string[] = []
 
   const outwardPostcode = postcode ? postcode.trim().split(' ')[0].toUpperCase() : ''
+
+  // Strip trailing city/postcode if address already contains them
+  roadName = stripTrailingSuffixes(roadName, city, outwardPostcode)
 
   // Check if the road name is just a duplicate of city/postcode (bad data)
   const normRoad = roadName.toLowerCase().replace(/[,\s]+/g, ' ').trim()
@@ -99,15 +128,18 @@ export function formatPropertyAddress(
   const outwardPostcode = postcode ? postcode.trim().split(' ')[0].toUpperCase() : ''
 
   if (address) {
+    // Strip trailing city/postcode if address already contains them
+    const cleanAddr = stripTrailingSuffixes(address.trim(), city, outwardPostcode)
+
     // Check if the address is just a duplicate of city/postcode (bad data)
-    const normAddr = address.toLowerCase().replace(/[,\s]+/g, ' ').trim()
+    const normAddr = cleanAddr.toLowerCase().replace(/[,\s]+/g, ' ').trim()
     const normCity = city ? city.toLowerCase().trim() : ''
     const isDuplicate = normAddr === normCity
       || normAddr === `${normCity} ${outwardPostcode.toLowerCase()}`
       || normAddr === outwardPostcode.toLowerCase()
 
     if (!isDuplicate) {
-      parts.push(toSentenceCase(address.trim()))
+      parts.push(toSentenceCase(cleanAddr))
     }
   }
 

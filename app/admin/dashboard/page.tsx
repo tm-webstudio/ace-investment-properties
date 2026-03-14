@@ -164,7 +164,7 @@ function AdminDashboardContent() {
             <div className="space-y-4">
               <div>
                 <h2 className="font-serif text-lg md:text-xl font-medium text-gray-900">Properties</h2>
-                <p className="text-sm md:text-base text-gray-600 mt-1">
+                <p className="text-sm text-gray-600 mt-1">
                   Review and manage all property listings on the platform
                 </p>
               </div>
@@ -175,7 +175,7 @@ function AdminDashboardContent() {
             <div className="space-y-4">
               <div>
                 <h2 className="font-serif text-lg md:text-xl font-medium text-gray-900">Landlords</h2>
-                <p className="text-sm md:text-base text-gray-600 mt-1">
+                <p className="text-sm text-gray-600 mt-1">
                   Manage landlord accounts and their property listings
                 </p>
               </div>
@@ -186,7 +186,7 @@ function AdminDashboardContent() {
             <div className="space-y-4">
               <div>
                 <h2 className="font-serif text-lg md:text-xl font-medium text-gray-900">Investors</h2>
-                <p className="text-sm md:text-base text-gray-600 mt-1">
+                <p className="text-sm text-gray-600 mt-1">
                   Manage investor accounts and their preferences
                 </p>
               </div>
@@ -197,7 +197,7 @@ function AdminDashboardContent() {
             <div className="space-y-4">
               <div>
                 <h2 className="font-serif text-lg md:text-xl font-medium text-gray-900">Viewings</h2>
-                <p className="text-sm md:text-base text-gray-600 mt-1">
+                <p className="text-sm text-gray-600 mt-1">
                   Monitor and manage all property viewing requests
                 </p>
               </div>
@@ -208,7 +208,7 @@ function AdminDashboardContent() {
             <div className="space-y-4">
               <div>
                 <h2 className="font-serif text-lg md:text-xl font-medium text-gray-900">Documents</h2>
-                <p className="text-sm md:text-base text-gray-600 mt-1">
+                <p className="text-sm text-gray-600 mt-1">
                   Review and manage property documents submitted by landlords
                 </p>
               </div>

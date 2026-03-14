@@ -42,7 +42,7 @@ export default function NewInvestor({
   };
 
   return (
-    <EmailLayout preview={`New investor registered: ${investorName}`}>
+    <EmailLayout preview={`Investor: ${investorName}`}>
       <EmailHeader
         iconName="user"
         iconColor="#10b981"

@@ -1,0 +1,70 @@
+name: Supabase Full Backup
+
+on:
+  schedule:
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set date variable
+        run: echo "DATE=$(date +%Y-%m-%d)" >> $GITHUB_ENV
+
+      - name: Install postgresql-client
+        run: sudo apt-get install -y postgresql-client
+
+      - name: Database backup
+        run: pg_dump "$SUPABASE_DB_URL" > backup-${{ env.DATE }}.sql
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+
+      - name: Export auth users
+        env:
+          SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: |
+          PAGE=1
+          PER_PAGE=50
+          ALL_USERS="[]"
+
+          while true; do
+            RESPONSE=$(curl -s \
+              -H "apikey: $SUPABASE_SERVICE_ROLE_KEY" \
+              -H "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY" \
+              "https://${SUPABASE_PROJECT_REF}.supabase.co/auth/v1/admin/users?page=${PAGE}&per_page=${PER_PAGE}")
+
+            USERS=$(echo "$RESPONSE" | jq -r '.users')
+            COUNT=$(echo "$USERS" | jq 'length')
+
+            if [ "$COUNT" -eq 0 ] || [ "$USERS" = "null" ]; then
+              break
+            fi
+
+            ALL_USERS=$(echo "$ALL_USERS" "$USERS" | jq -s '.[0] + .[1]')
+            echo "Fetched page $PAGE ($COUNT users)"
+
+            if [ "$COUNT" -lt "$PER_PAGE" ]; then
+              break
+            fi
+
+            PAGE=$((PAGE + 1))
+          done
+
+          TOTAL=$(echo "$ALL_USERS" | jq 'length')
+          echo "Total users exported: $TOTAL"
+          echo "$ALL_USERS" | jq '.' > auth-users-${{ env.DATE }}.json
+
+      - name: Upload backup artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: full-backup-${{ env.DATE }}
+          path: |
+            backup-${{ env.DATE }}.sql
+            auth-users-${{ env.DATE }}.json
+          retention-days: 30

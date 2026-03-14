@@ -25,9 +25,11 @@ export default function NewProperty({
   propertyLicence = 'hmo',
   condition = 'excellent',
   propertyImage = '',
+  source,
 }) {
+  const previewPrefix = source === 'facebook' ? '[Facebook] ' : '';
   return (
-    <EmailLayout preview={`New property submitted: ${propertyAddress}`}>
+    <EmailLayout preview={`${previewPrefix}Property: ${propertyAddress}`}>
       <EmailHeader
         iconName="home"
         iconColor="#1a1a2e"
