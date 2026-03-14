@@ -54,9 +54,7 @@ export function FeaturedProperties({
     const fetchProperties = async () => {
       try {
         setLoading(true)
-        const response = await fetch(`/api/properties/featured?city=${encodeURIComponent(city)}`, {
-          cache: 'no-store' // Disable caching to get fresh data
-        })
+        const response = await fetch(`/api/properties/featured?city=${encodeURIComponent(city)}`)
         const data = await response.json()
 
         if (data.success) {

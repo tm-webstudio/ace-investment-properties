@@ -79,6 +79,8 @@ export function PropertyGallery({ images, title, propertyId }: PropertyGalleryPr
                     alt={`${title} - Image ${index + 1}`}
                     fill
                     className="object-cover"
+                    sizes="100vw"
+                    priority={index === 0}
                   />
                 </div>
               ))}
@@ -113,7 +115,7 @@ export function PropertyGallery({ images, title, propertyId }: PropertyGalleryPr
           <>
             {/* Main Image */}
             <div className="col-span-3 relative group cursor-pointer" onClick={() => setIsLightboxOpen(true)}>
-              <Image src={images[0] || "/placeholder.svg"} alt={title} fill className="object-cover" />
+              <Image src={images[0] || "/placeholder.svg"} alt={title} fill className="object-cover" sizes="75vw" priority />
               <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
             </div>
 
@@ -140,6 +142,7 @@ export function PropertyGallery({ images, title, propertyId }: PropertyGalleryPr
                       alt={hasImage ? `${title} - Image ${imageIndex + 1}` : "No image available"}
                       fill
                       className={`object-cover ${!hasImage ? 'opacity-30' : ''}`}
+                      sizes="25vw"
                     />
                     {!hasImage && (
                       <div className="absolute inset-0 bg-gray-100 flex items-center justify-center">
@@ -212,6 +215,7 @@ export function PropertyGallery({ images, title, propertyId }: PropertyGalleryPr
                   alt={`${title} - Image ${currentImage + 1}`}
                   fill
                   className="object-contain"
+                  sizes="90vw"
                 />
 
                 {/* Navigation Buttons */}
@@ -257,6 +261,7 @@ export function PropertyGallery({ images, title, propertyId }: PropertyGalleryPr
                           alt={`Thumbnail ${index + 1}`}
                           fill
                           className="object-cover"
+                          sizes="64px"
                         />
                       </button>
                     ))}

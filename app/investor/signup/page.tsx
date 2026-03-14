@@ -104,7 +104,7 @@ export default function InvestorSignup() {
     }, 30000)
 
     return () => clearInterval(interval)
-  }, [step1Data, step2Data, step3Data, step4Data])
+  }, [])
 
   // Load draft on mount
   useEffect(() => {

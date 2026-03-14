@@ -166,6 +166,7 @@ export function PropertyCard({ property, variant = 'default', onPropertyDeleted,
             width={400}
             height={250}
             className="w-full h-56 object-cover group-hover:scale-105 transition-transform duration-300"
+            sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 25vw"
           />
         ) : (
           <div className="w-full h-56 bg-slate-100 flex items-center justify-center">

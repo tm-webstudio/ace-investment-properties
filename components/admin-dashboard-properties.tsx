@@ -90,8 +90,7 @@ export function AdminDashboardProperties({ currentTab = 'properties' }: AdminDas
       const response = await fetch(`/api/admin/properties?${params.toString()}`, {
         headers: {
           'Authorization': `Bearer ${session.access_token}`
-        },
-        cache: 'no-store'
+        }
       })
 
       const data = await response.json()
