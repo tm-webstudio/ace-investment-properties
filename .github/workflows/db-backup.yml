@@ -24,7 +24,7 @@ jobs:
           sudo apt-get install -y postgresql-client-17
 
       - name: Database backup
-        run: pg_dump "$SUPABASE_DB_URL" > backup-${{ env.DATE }}.sql
+        run: /usr/lib/postgresql/17/bin/pg_dump "$SUPABASE_DB_URL" > backup-${{ env.DATE }}.sql
         env:
           SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
 
