@@ -180,13 +180,13 @@ export function PropertyCard({ property, variant = 'default', onPropertyDeleted,
         {/* Awaiting Approval Watermark */}
         {isAwaitingApproval && (
           <div className="absolute inset-0 flex items-center justify-center z-[7] pointer-events-none translate-y-2 sm:translate-y-3">
-            <div className="flex items-stretch gap-1.5">
+            <div className="flex items-stretch gap-0">
               {isFacebookLead && variant === 'admin' && (
-                <div className="bg-[#1877F2]/95 text-white px-2.5 rounded-none shadow-xl border border-[#1565C0] shadow-blue-900/30 flex items-center">
+                <div className="bg-[#1877F2]/95 text-white px-[11.2px] rounded-none shadow-xl border border-[#1565C0] border-r-0 shadow-blue-900/30 flex items-center">
                   <Facebook className="h-4 w-4 fill-white stroke-none" />
                 </div>
               )}
-              <div className="bg-yellow-500/95 text-white px-5 py-2 rounded-none shadow-xl border border-yellow-600 shadow-yellow-900/30">
+              <div className="bg-yellow-500/95 text-white px-5 py-2 rounded-none shadow-xl border border-yellow-600 shadow-yellow-900/30" style={isFacebookLead && variant === 'admin' ? { borderLeftColor: 'transparent' } : undefined}>
                 <p className="font-extrabold text-sm tracking-tight">Awaiting Approval</p>
               </div>
             </div>

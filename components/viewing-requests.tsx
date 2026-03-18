@@ -1605,7 +1605,7 @@ export function ViewingRequests({ variant = 'dashboard', limit, onTabChange, isA
     return (
       <Card className="max-h-[600px] overflow-hidden flex flex-col">
         <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>Viewing Requests</CardTitle>
+          <CardTitle className="text-[15px] sm:text-base">Viewing Requests</CardTitle>
           {onTabChange ? (
             <Button
               variant="outline"
