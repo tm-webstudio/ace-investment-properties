@@ -258,16 +258,12 @@ export async function POST(request: NextRequest) {
         }
 
         // Validate required fields
-        if (!loc.city || loc.localAuthorities.length === 0) {
-          throw new Error('Invalid location: city and localAuthorities required')
+        if (!loc.city) {
+          throw new Error('Invalid location: city required')
         }
 
         // Filter out empty strings
         loc.localAuthorities = loc.localAuthorities.filter((auth: string) => auth && auth.trim())
-
-        if (loc.localAuthorities.length === 0) {
-          throw new Error('Invalid location: at least one local authority required')
-        }
 
         return loc
       })

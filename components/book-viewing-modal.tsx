@@ -35,7 +35,7 @@ interface BookViewingModalProps {
   propertyData: PropertyData
 }
 
-type ModalState = 'AUTH_CHECK' | 'LOGIN' | 'SIGNUP' | 'BOOKING_FORM' | 'SUCCESS' | 'ERROR'
+type ModalState = 'AUTH_CHECK' | 'LOGIN' | 'SIGNUP' | 'BOOKING_FORM' | 'VAPI_PENDING' | 'SUCCESS' | 'ERROR'
 
 interface BookingFormData {
   viewingDate: Date | null
@@ -354,7 +354,7 @@ export function BookViewingModal({ isOpen, onClose, propertyId, propertyData }: 
         return
       }
 
-      const response = await fetch('/api/viewings/request', {
+      const response = await fetch('/api/book-viewing', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -362,8 +362,7 @@ export function BookViewingModal({ isOpen, onClose, propertyId, propertyData }: 
         },
         body: JSON.stringify({
           propertyId,
-          viewingDate: format(bookingForm.viewingDate, 'yyyy-MM-dd'),
-          viewingTime: bookingForm.viewingTime,
+          requestedDate: format(bookingForm.viewingDate, 'yyyy-MM-dd'),
           userName: bookingForm.userName,
           userEmail: bookingForm.userEmail,
           userPhone: bookingForm.userPhone,
@@ -386,7 +385,7 @@ export function BookViewingModal({ isOpen, onClose, propertyId, propertyData }: 
           time: bookingForm.viewingTime,
           email: bookingForm.userEmail
         })
-        setModalState('SUCCESS')
+        setModalState('VAPI_PENDING')
       } else {
         setError(result.error || 'Failed to submit viewing request')
         if (response.status === 409) {
@@ -913,6 +912,36 @@ export function BookViewingModal({ isOpen, onClose, propertyId, propertyData }: 
                 </Button>
               </div>
             </form>
+          </>
+        )}
+
+        {/* VAPI_PENDING State */}
+        {modalState === 'VAPI_PENDING' && successData && (
+          <>
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2 text-green-600">
+                <CheckCircle className="h-5 w-5" />
+                Viewing Request Submitted!
+              </DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <p className="text-gray-600">
+                We're checking availability and will email you once your viewing is confirmed.
+              </p>
+
+              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                <div className="space-y-1 text-sm text-green-800">
+                  <p><strong>Requested Viewing:</strong></p>
+                  <p>{successData.date}</p>
+                  <p>{propertyData.address}</p>
+                  <p>Confirmation will be sent to: <strong>{successData.email}</strong></p>
+                </div>
+              </div>
+
+              <Button onClick={handleClose} className="w-full">
+                Close
+              </Button>
+            </div>
           </>
         )}
 

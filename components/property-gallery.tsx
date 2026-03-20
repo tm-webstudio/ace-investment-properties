@@ -167,12 +167,26 @@ export function PropertyGallery({ images, title, propertyId }: PropertyGalleryPr
             </div>
           </>
         ) : (
-          <div className="col-span-4 relative bg-slate-100 flex items-center justify-center">
-            <div className="text-center text-muted-foreground">
-              <Camera className="h-20 w-20 mx-auto mb-3 opacity-30" />
-              <p className="text-base opacity-60">No photos yet</p>
+          <>
+            {/* Main placeholder */}
+            <div className="col-span-3 relative bg-slate-100 flex items-center justify-center">
+              <div className="text-center text-muted-foreground">
+                <Camera className="h-20 w-20 mx-auto mb-3 opacity-30" />
+                <p className="text-base opacity-60">No photos yet</p>
+              </div>
             </div>
-          </div>
+
+            {/* Thumbnail placeholders */}
+            <div className="flex flex-col gap-4">
+              {Array.from({ length: 2 }, (_, index) => (
+                <div key={index} className="relative flex-1 bg-slate-100 flex items-center justify-center">
+                  <div className="text-center text-muted-foreground">
+                    <Camera className="h-8 w-8 mx-auto mb-1 opacity-20" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
         )}
       </div>
 
