@@ -127,6 +127,10 @@ export async function POST(request: NextRequest) {
           landlordEmail = landlordUser?.user?.email || ''
           landlordName = landlordProfile?.full_name || ''
           landlordPhone = landlordProfile?.phone || ''
+        } else {
+          landlordName = updatedProperty.contact_name || ''
+          landlordEmail = updatedProperty.contact_email || ''
+          landlordPhone = updatedProperty.contact_phone || ''
         }
 
         // Fetch matched investors
