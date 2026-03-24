@@ -117,6 +117,14 @@ export async function POST(request: NextRequest) {
     let webhookError: string | null = null
     if (action === 'approve' && process.env.N8N_WEBHOOK_URL) {
       try {
+        // Debug: log the property record to verify contact fields are present
+        console.log('Webhook - updatedProperty landlord_id:', updatedProperty.landlord_id)
+        console.log('Webhook - updatedProperty contact fields:', {
+          contact_name: updatedProperty.contact_name,
+          contact_email: updatedProperty.contact_email,
+          contact_phone: updatedProperty.contact_phone,
+        })
+
         // Fetch landlord info
         let landlordName = '', landlordEmail = '', landlordPhone = ''
         if (updatedProperty.landlord_id) {
@@ -135,6 +143,8 @@ export async function POST(request: NextRequest) {
 
         // Fetch matched investors
         const matchedInvestors = await getInvestorMatches(propertyId)
+
+        console.log('Webhook - sending landlord info:', { landlordName, landlordEmail, landlordPhone })
 
         const webhookRes = await fetch(process.env.N8N_WEBHOOK_URL!, {
           method: 'POST',
