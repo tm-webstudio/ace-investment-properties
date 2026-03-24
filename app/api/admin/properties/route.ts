@@ -81,78 +81,96 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // Fetch landlord info separately for each property
-    const formattedProperties = await Promise.all(
-      (properties || []).map(async (property) => {
-        let landlordName = 'Unknown'
-        let landlordEmail = ''
-        let landlordPhone = ''
+    // Batch-fetch landlord info (single query instead of N+1)
+    const landlordIds = [...new Set(
+      (properties || []).map(p => p.landlord_id).filter(Boolean)
+    )]
 
-        if (!property.landlord_id) {
-          landlordName = property.contact_name || 'Unknown'
+    const profileMap = new Map<string, { full_name: string; phone: string; email: string }>()
+
+    if (landlordIds.length > 0) {
+      // Fetch all profiles in one query
+      const { data: profiles } = await supabase
+        .from('user_profiles')
+        .select('id, full_name, phone, email')
+        .in('id', landlordIds)
+
+      if (profiles) {
+        for (const p of profiles) {
+          profileMap.set(p.id, { full_name: p.full_name || '', phone: p.phone || '', email: p.email || '' })
         }
+      }
 
-        if (property.landlord_id) {
-          try {
-            // Get landlord user info
-            const { data: landlordUser } = await supabase.auth.admin.getUserById(property.landlord_id)
-
-            if (landlordUser?.user) {
-              landlordEmail = landlordUser.user.email || ''
+      // Fetch auth emails for landlords missing email in user_profiles
+      const missingEmailIds = landlordIds.filter(id => !profileMap.get(id)?.email)
+      if (missingEmailIds.length > 0) {
+        const emailResults = await Promise.all(
+          missingEmailIds.map(id => supabase.auth.admin.getUserById(id))
+        )
+        for (const result of emailResults) {
+          const user = result.data?.user
+          if (user) {
+            const existing = profileMap.get(user.id)
+            if (existing) {
+              existing.email = user.email || ''
+            } else {
+              profileMap.set(user.id, { full_name: '', phone: '', email: user.email || '' })
             }
-
-            // Get landlord profile
-            const { data: landlordProfile } = await supabase
-              .from('user_profiles')
-              .select('full_name, phone')
-              .eq('id', property.landlord_id)
-              .single()
-
-            if (landlordProfile) {
-              landlordName = landlordProfile.full_name || property.contact_name || 'Unknown'
-              landlordPhone = landlordProfile.phone || ''
-            }
-          } catch (landlordError) {
-            console.error('Error fetching landlord info for property:', property.id, landlordError)
-            // Continue with default values
           }
         }
+      }
+    }
 
-        const monthlyRent = property.monthly_rent ? property.monthly_rent / 100 : 0
+    const formattedProperties = (properties || []).map((property) => {
+      let landlordName = 'Unknown'
+      let landlordEmail = ''
+      let landlordPhone = ''
 
-        return {
-          id: property.id,
-          property_type: property.property_type,
-          bedrooms: property.bedrooms,
-          bathrooms: property.bathrooms,
-          monthly_rent: monthlyRent,
-          price: monthlyRent,
-          available_date: property.available_date,
-          description: property.description,
-          amenities: property.amenities || [],
-          address: property.address,
-          city: property.city,
-          localAuthority: property.local_authority,
-          postcode: property.postcode,
-          photos: property.photos || [],
-          images: property.photos || [],
-          status: property.status,
-          published_at: property.published_at,
-          created_at: property.created_at,
-          updated_at: property.updated_at,
-          availability: property.availability,
-          landlord_id: property.landlord_id,
-          landlordName,
-          landlordEmail,
-          landlordPhone,
-          property_licence: property.property_licence,
-          property_condition: property.property_condition,
-          latitude: property.latitude,
-          longitude: property.longitude,
-          source: property.source
-        }
-      })
-    )
+      if (property.landlord_id && profileMap.has(property.landlord_id)) {
+        const profile = profileMap.get(property.landlord_id)!
+        landlordName = profile.full_name || property.contact_name || 'Unknown'
+        landlordEmail = profile.email || ''
+        landlordPhone = profile.phone || ''
+      } else {
+        landlordName = property.contact_name || 'Unknown'
+        landlordEmail = property.contact_email || ''
+        landlordPhone = property.contact_phone || ''
+      }
+
+      const monthlyRent = property.monthly_rent ? property.monthly_rent / 100 : 0
+
+      return {
+        id: property.id,
+        property_type: property.property_type,
+        bedrooms: property.bedrooms,
+        bathrooms: property.bathrooms,
+        monthly_rent: monthlyRent,
+        price: monthlyRent,
+        available_date: property.available_date,
+        description: property.description,
+        amenities: property.amenities || [],
+        address: property.address,
+        city: property.city,
+        localAuthority: property.local_authority,
+        postcode: property.postcode,
+        photos: property.photos || [],
+        images: property.photos || [],
+        status: property.status,
+        published_at: property.published_at,
+        created_at: property.created_at,
+        updated_at: property.updated_at,
+        availability: property.availability,
+        landlord_id: property.landlord_id,
+        landlordName,
+        landlordEmail,
+        landlordPhone,
+        property_licence: property.property_licence,
+        property_condition: property.property_condition,
+        latitude: property.latitude,
+        longitude: property.longitude,
+        source: property.source
+      }
+    })
 
     return NextResponse.json({
       success: true,
