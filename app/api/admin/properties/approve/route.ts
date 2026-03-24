@@ -117,46 +117,47 @@ export async function POST(request: NextRequest) {
     let webhookError: string | null = null
     if (action === 'approve' && process.env.N8N_WEBHOOK_URL) {
       try {
-        // Debug: log the property record to verify contact fields are present
-        console.log('Webhook - updatedProperty landlord_id:', updatedProperty.landlord_id)
-        console.log('Webhook - updatedProperty contact fields:', {
-          contact_name: updatedProperty.contact_name,
-          contact_email: updatedProperty.contact_email,
-          contact_phone: updatedProperty.contact_phone,
-        })
+        // Fetch the full property record (update response may not include all columns)
+        const { data: fullProperty } = await supabaseAdmin
+          .from('properties')
+          .select('*')
+          .eq('id', propertyId)
+          .single()
+
+        const property = fullProperty || updatedProperty
 
         // Fetch landlord info
         let landlordName = '', landlordEmail = '', landlordPhone = ''
-        if (updatedProperty.landlord_id) {
+        if (property.landlord_id) {
           const [{ data: landlordUser }, { data: landlordProfile }] = await Promise.all([
-            supabaseAdmin!.auth.admin.getUserById(updatedProperty.landlord_id),
-            supabaseAdmin!.from('user_profiles').select('full_name, phone').eq('id', updatedProperty.landlord_id).single()
+            supabaseAdmin!.auth.admin.getUserById(property.landlord_id),
+            supabaseAdmin!.from('user_profiles').select('full_name, phone').eq('id', property.landlord_id).single()
           ])
           landlordEmail = landlordUser?.user?.email || ''
           landlordName = landlordProfile?.full_name || ''
           landlordPhone = landlordProfile?.phone || ''
         } else {
-          landlordName = updatedProperty.contact_name || ''
-          landlordEmail = updatedProperty.contact_email || ''
-          landlordPhone = updatedProperty.contact_phone || ''
+          landlordName = property.contact_name || ''
+          landlordEmail = property.contact_email || ''
+          landlordPhone = property.contact_phone || ''
         }
 
         // Fetch matched investors
         const matchedInvestors = await getInvestorMatches(propertyId)
 
-        console.log('Webhook - sending landlord info:', { landlordName, landlordEmail, landlordPhone })
+        console.log('Webhook - sending:', { landlordName, landlordEmail, landlordPhone, landlord_id: property.landlord_id })
 
         const webhookRes = await fetch(process.env.N8N_WEBHOOK_URL!, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            property_id: updatedProperty.id,
-            property_url: `https://www.aceinvestmentproperties.co.uk/properties/${updatedProperty.id}`,
-            address: updatedProperty.address,
-            postcode: updatedProperty.postcode,
-            bedrooms: updatedProperty.bedrooms,
-            monthly_rent: updatedProperty.monthly_rent,
-            property_type: updatedProperty.property_type,
+            property_id: property.id,
+            property_url: `https://www.aceinvestmentproperties.co.uk/properties/${property.id}`,
+            address: property.address,
+            postcode: property.postcode,
+            bedrooms: property.bedrooms,
+            monthly_rent: property.monthly_rent,
+            property_type: property.property_type,
             landlord_name: landlordName,
             landlord_phone: landlordPhone,
             landlord_email: landlordEmail,
