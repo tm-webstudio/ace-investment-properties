@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { getInvestorMatches } from '@/lib/propertyMatching'
+import { normalizePhoneToE164 } from '@/lib/phoneUtils'
 
 
 // Create admin client for database operations
@@ -161,7 +162,10 @@ export async function POST(request: NextRequest) {
             landlord_name: landlordName,
             landlord_phone: landlordPhone,
             landlord_email: landlordEmail,
-            matched_investors: matchedInvestors,
+            matched_investors: matchedInvestors.map((inv: any) => ({
+              ...inv,
+              phone: normalizePhoneToE164(inv.phone || ''),
+            })),
           }),
         })
         if (!webhookRes.ok) {

@@ -7,6 +7,8 @@ import { signUpWithEmail } from '@/lib/authHelpers'
 import { sendLandlordSignupToGHL, sendInvestorSignupToGHL } from '@/lib/ghl'
 import { sendEmail } from '@/lib/email'
 import NewInvestor from '@/emails/admin/new-investor'
+import { getMatchedProperties } from '@/lib/propertyMatching'
+import { normalizePhoneToE164 } from '@/lib/phoneUtils'
 
 // Create admin client for database operations
 const supabaseAdmin = process.env.SUPABASE_SERVICE_ROLE_KEY
@@ -216,22 +218,62 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Count matching properties for investors with preferences
-    let matchedProperties = 0
-    if (user_type === 'investor' && preferences && supabaseAdmin) {
+    // Get matched properties for investors and fire webhook
+    let matchedPropertyCount = 0
+    if (user_type === 'investor' && preferences) {
       try {
-        // This is a simplified matching algorithm
-        // In a real app, you'd implement more sophisticated matching
-        const { data: properties } = await supabaseAdmin
-          .from('properties')
-          .select('*')
-          .eq('status', 'active')
+        const matchResult = await getMatchedProperties(authData.user.id, { minScore: 60, limit: 200 })
+        matchedPropertyCount = matchResult.total
 
-        if (properties) {
-          matchedProperties = properties.length // Simplified count
+        // Sort by listed_date descending (most recent first)
+        const sortedProperties = matchResult.properties.sort(
+          (a: any, b: any) => new Date(b.published_at || 0).getTime() - new Date(a.published_at || 0).getTime()
+        )
+
+        // Fire n8n investor-approved webhook (non-blocking)
+        if (process.env.N8N_INVESTOR_WEBHOOK_URL) {
+          const propertiesManagingLabels: Record<number, string> = {
+            0: '0 - Just starting', 1: '1-5', 6: '6-20', 21: '21-50', 51: '51+'
+          }
+
+          fetch(process.env.N8N_INVESTOR_WEBHOOK_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              investor_id: authData.user.id,
+              full_name: full_name,
+              email: email,
+              phone: normalizePhoneToE164(phone_number || ''),
+              company_name: company_name || null,
+              investor_type: 'investor',
+              operator_type: preferences.operator_type || '',
+              properties_managing: propertiesManagingLabels[preferences.properties_managing] || String(preferences.properties_managing || 0),
+              preference_data: preferences.preference_data,
+              matched_properties: sortedProperties.map((p: any) => ({
+                property_id: p.id,
+                property_url: `https://www.aceinvestmentproperties.co.uk/properties/${p.id}`,
+                address: p.address,
+                postcode: p.postcode,
+                bedrooms: p.bedrooms,
+                monthly_rent: p.monthly_rent,
+                property_type: p.property_type,
+                listed_date: p.published_at,
+                match_score: p.matchScore,
+                match_breakdown: p.matchBreakdown,
+              })),
+            }),
+          })
+            .then(res => {
+              if (res.ok) {
+                console.log('Investor webhook fired successfully for:', authData.user!.id)
+              } else {
+                console.error('Investor webhook error:', res.status, 'for:', authData.user!.id)
+              }
+            })
+            .catch(err => console.error('Investor webhook failed for:', authData.user!.id, err))
         }
       } catch (matchError) {
-        console.error('Error counting matched properties:', matchError)
+        console.error('Error matching properties for investor:', matchError)
         // Don't fail signup if matching fails
       }
     }
@@ -246,7 +288,7 @@ export async function POST(request: NextRequest) {
         email: authData.user.email,
         user_type: user_type
       },
-      matchedProperties: user_type === 'investor' ? matchedProperties : undefined
+      matchedProperties: user_type === 'investor' ? matchedPropertyCount : undefined
     })
 
   } catch (error: any) {
