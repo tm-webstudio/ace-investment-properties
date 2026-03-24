@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, useRef } from "react"
-import { Building, Filter, Search, Loader2, ChevronLeft, ChevronRight } from "lucide-react"
+import { Building, Filter, Search, Loader2, ChevronLeft, ChevronRight, AlertTriangle } from "lucide-react"
 import { PropertyCard } from "./property-card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -57,9 +57,10 @@ export function AdminDashboardProperties({ currentTab = 'properties' }: AdminDas
   const [matchedInvestors, setMatchedInvestors] = useState<any[]>([])
   const [matchedInvestorsLoading, setMatchedInvestorsLoading] = useState(false)
   const [approvalModalOpen, setApprovalModalOpen] = useState(false)
-  const [approvalAction, setApprovalAction] = useState<'approve' | 'reject'>('approve')
+  const [approvalAction, setApprovalAction] = useState<'approve' | 'reject' | 'unapprove'>('approve')
   const [approvalPropertyId, setApprovalPropertyId] = useState<string | null>(null)
   const [approvalLoading, setApprovalLoading] = useState(false)
+  const [webhookError, setWebhookError] = useState<string | null>(null)
   const investorScrollRef = useRef<HTMLDivElement>(null)
   const [canScrollLeftInvestors, setCanScrollLeftInvestors] = useState(false)
   const [canScrollRightInvestors, setCanScrollRightInvestors] = useState(false)
@@ -125,6 +126,12 @@ export function AdminDashboardProperties({ currentTab = 'properties' }: AdminDas
     setApprovalModalOpen(true)
   }
 
+  const handleUnapproveClick = (propertyId: string) => {
+    setApprovalPropertyId(propertyId)
+    setApprovalAction('unapprove')
+    setApprovalModalOpen(true)
+  }
+
   const confirmApproval = async () => {
     if (!approvalPropertyId) return
     setApprovalLoading(true)
@@ -148,8 +155,13 @@ export function AdminDashboardProperties({ currentTab = 'properties' }: AdminDas
       const data = await response.json()
 
       if (data.success) {
-        setApprovalModalOpen(false)
         fetchProperties()
+        if (data.webhookError) {
+          setWebhookError(data.webhookError)
+        } else {
+          setApprovalModalOpen(false)
+          setWebhookError(null)
+        }
       } else {
         console.error(`Failed to ${approvalAction} property:`, data.error)
       }
@@ -369,6 +381,7 @@ export function AdminDashboardProperties({ currentTab = 'properties' }: AdminDas
                   variant="admin"
                   onApprove={handleApproveClick}
                   onReject={handleRejectClick}
+                  onUnapprove={handleUnapproveClick}
                   onPropertyDeleted={fetchProperties}
                   showGovernmentActions={property.status === 'draft'}
                   currentTab={currentTab}
@@ -553,28 +566,72 @@ export function AdminDashboardProperties({ currentTab = 'properties' }: AdminDas
       </Dialog>
 
       {/* Approve/Reject Confirmation Modal */}
-      <Dialog open={approvalModalOpen} onOpenChange={setApprovalModalOpen}>
+      <Dialog open={approvalModalOpen} onOpenChange={(open) => {
+        setApprovalModalOpen(open)
+        if (!open) setWebhookError(null)
+      }}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{approvalAction === 'approve' ? 'Approve Property' : 'Reject Property'}</DialogTitle>
-            <DialogDescription>
-              Are you sure you want to {approvalAction} this property?
+            <DialogTitle>{webhookError ? 'Automation Warning' : approvalAction === 'approve' ? 'Approve Property' : approvalAction === 'unapprove' ? 'Unapprove Property' : 'Reject Property'}</DialogTitle>
+            <DialogDescription asChild>
+              <div>
+                {webhookError ? (
+                  <div className="flex items-start gap-3 rounded-md border border-amber-200 bg-amber-50 p-3 mt-1">
+                    <AlertTriangle className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
+                    <div>
+                      <p className="font-medium text-amber-800">Property was approved, but the automation webhook failed.</p>
+                      <p className="text-sm text-amber-700 mt-1">{webhookError}</p>
+                      <p className="text-sm text-amber-700 mt-1">The property is live — but the n8n workflow was not triggered. You may need to trigger it manually.</p>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <p className="mb-2">Are you sure you want to {approvalAction} this property?</p>
+                    {approvalAction === 'approve' ? (
+                      <ul className="text-sm text-muted-foreground list-disc list-inside space-y-1 mt-2">
+                        <li>Property will be published and visible to investors</li>
+                        <li>Matched investors will be notified via the daily email digest</li>
+                        <li>Property details and matches will be sent to the automation workflow</li>
+                      </ul>
+                    ) : approvalAction === 'unapprove' ? (
+                      <ul className="text-sm text-muted-foreground list-disc list-inside space-y-1 mt-2">
+                        <li>Property will be moved back to draft status</li>
+                        <li>It will no longer be visible to investors</li>
+                        <li>It will appear in the pending approval queue again</li>
+                      </ul>
+                    ) : (
+                      <ul className="text-sm text-muted-foreground list-disc list-inside space-y-1 mt-2">
+                        <li>Property will be marked as rejected</li>
+                        <li>The landlord will not be notified automatically</li>
+                      </ul>
+                    )}
+                  </>
+                )}
+              </div>
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setApprovalModalOpen(false)} disabled={approvalLoading}>
-              Cancel
-            </Button>
-            <Button
-              onClick={confirmApproval}
-              disabled={approvalLoading}
-              className={approvalAction === 'approve' ? 'bg-accent hover:bg-accent/90 text-accent-foreground' : 'bg-destructive hover:bg-destructive/90 text-destructive-foreground'}
-            >
-              {approvalLoading ? (
-                <Loader2 className="h-4 w-4 animate-spin mr-2" />
-              ) : null}
-              {approvalAction === 'approve' ? 'Approve' : 'Reject'}
-            </Button>
+            {webhookError ? (
+              <Button onClick={() => { setApprovalModalOpen(false); setWebhookError(null) }}>
+                Dismiss
+              </Button>
+            ) : (
+              <>
+                <Button variant="outline" onClick={() => setApprovalModalOpen(false)} disabled={approvalLoading}>
+                  Cancel
+                </Button>
+                <Button
+                  onClick={confirmApproval}
+                  disabled={approvalLoading}
+                  className={approvalAction === 'approve' ? 'bg-accent hover:bg-accent/90 text-accent-foreground' : approvalAction === 'unapprove' ? 'bg-amber-600 hover:bg-amber-700 text-white' : 'bg-destructive hover:bg-destructive/90 text-destructive-foreground'}
+                >
+                  {approvalLoading ? (
+                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  ) : null}
+                  {approvalAction === 'approve' ? 'Approve' : approvalAction === 'unapprove' ? 'Unapprove' : 'Reject'}
+                </Button>
+              </>
+            )}
           </DialogFooter>
         </DialogContent>
       </Dialog>

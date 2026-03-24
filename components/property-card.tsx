@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { PropertyTitle } from "@/components/property-title"
-import { Bed, Bath, MoreVertical, Edit, Eye, Trash2, CheckCircle, XCircle, Camera, Check, X, Shield, Facebook } from "lucide-react"
+import { Bed, Bath, MoreVertical, Edit, Eye, Trash2, CheckCircle, XCircle, Camera, Check, X, Shield, Facebook, Undo2 } from "lucide-react"
 import { SavePropertyButton } from "./save-property-button"
 import { format } from "date-fns"
 import { supabase } from "@/lib/supabase"
@@ -28,6 +28,7 @@ interface PropertyCardProps {
   onPropertyDeleted?: () => void // Callback for when property is deleted
   onApprove?: (propertyId: string) => void // Callback for admin approval
   onReject?: (propertyId: string) => void // Callback for admin rejection
+  onUnapprove?: (propertyId: string) => void // Callback for unapproving an active property
   onGovernmentApprove?: (propertyId: string) => void // Optional callback for govt-specific approval
   onGovernmentReject?: (propertyId: string) => void // Optional callback for govt-specific rejection
   showGovernmentActions?: boolean // Force showing government buttons even if no flag on property
@@ -37,7 +38,7 @@ interface PropertyCardProps {
   initialSaved?: boolean
 }
 
-export function PropertyCard({ property, variant = 'default', onPropertyDeleted, onApprove, onReject, onGovernmentApprove, onGovernmentReject, showGovernmentActions = false, currentTab, matchScore, matchBreakdown, initialSaved }: PropertyCardProps) {
+export function PropertyCard({ property, variant = 'default', onPropertyDeleted, onApprove, onReject, onUnapprove, onGovernmentApprove, onGovernmentReject, showGovernmentActions = false, currentTab, matchScore, matchBreakdown, initialSaved }: PropertyCardProps) {
   const [isDeleting, setIsDeleting] = useState(false)
   const [deleteModalOpen, setDeleteModalOpen] = useState(false)
 
@@ -497,6 +498,18 @@ export function PropertyCard({ property, variant = 'default', onPropertyDeleted,
                 Edit Property
               </Link>
             </DropdownMenuItem>
+            {property.status === 'active' && onUnapprove && (
+              <DropdownMenuItem
+                className="text-amber-600 cursor-pointer transition-colors duration-150 focus:text-amber-700 focus:bg-amber-50"
+                onClick={(e) => {
+                  e.preventDefault()
+                  onUnapprove(property.id)
+                }}
+              >
+                <Undo2 className="mr-2 h-4 w-4 text-current" />
+                Unapprove Property
+              </DropdownMenuItem>
+            )}
             <DropdownMenuItem
               className="text-red-600 cursor-pointer transition-colors duration-150 focus:text-red-700 focus:bg-red-50"
               onClick={(e) => {

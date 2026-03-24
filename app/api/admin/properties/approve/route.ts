@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { getInvestorMatches } from '@/lib/propertyMatching'
 
 
 // Create admin client for database operations
@@ -75,22 +76,24 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    if (action !== 'approve' && action !== 'reject') {
+    if (action !== 'approve' && action !== 'reject' && action !== 'unapprove') {
       return NextResponse.json(
-        { error: 'Action must be approve or reject' },
+        { error: 'Action must be approve, reject, or unapprove' },
         { status: 400 }
       )
     }
 
     // Update property status
-    const newStatus = action === 'approve' ? 'active' : 'rejected'
+    const newStatus = action === 'approve' ? 'active' : action === 'unapprove' ? 'draft' : 'rejected'
     const updateData: any = {
       status: newStatus
     }
 
-    // Set published_at timestamp when approving
+    // Set published_at timestamp when approving, clear it when unapproving
     if (action === 'approve') {
       updateData.published_at = new Date().toISOString()
+    } else if (action === 'unapprove') {
+      updateData.published_at = null
     }
 
     const { data: updatedProperty, error: updateError } = await supabaseAdmin
@@ -110,10 +113,59 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Fire n8n webhook for approved properties
+    let webhookError: string | null = null
+    if (action === 'approve' && process.env.N8N_WEBHOOK_URL) {
+      try {
+        // Fetch landlord info
+        let landlordName = '', landlordEmail = '', landlordPhone = ''
+        if (updatedProperty.landlord_id) {
+          const [{ data: landlordUser }, { data: landlordProfile }] = await Promise.all([
+            supabaseAdmin!.auth.admin.getUserById(updatedProperty.landlord_id),
+            supabaseAdmin!.from('user_profiles').select('full_name, phone').eq('id', updatedProperty.landlord_id).single()
+          ])
+          landlordEmail = landlordUser?.user?.email || ''
+          landlordName = landlordProfile?.full_name || ''
+          landlordPhone = landlordProfile?.phone || ''
+        }
+
+        // Fetch matched investors
+        const matchedInvestors = await getInvestorMatches(propertyId)
+
+        const webhookRes = await fetch(process.env.N8N_WEBHOOK_URL!, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            property_id: updatedProperty.id,
+            property_url: `https://www.aceinvestmentproperties.co.uk/properties/${updatedProperty.id}`,
+            address: updatedProperty.address,
+            postcode: updatedProperty.postcode,
+            bedrooms: updatedProperty.bedrooms,
+            monthly_rent: updatedProperty.monthly_rent,
+            property_type: updatedProperty.property_type,
+            landlord_name: landlordName,
+            landlord_phone: landlordPhone,
+            landlord_email: landlordEmail,
+            matched_investors: matchedInvestors,
+          }),
+        })
+        if (!webhookRes.ok) {
+          webhookError = `Webhook returned ${webhookRes.status}`
+          console.error('n8n webhook error for property:', propertyId, webhookError)
+        } else {
+          console.log('n8n webhook fired successfully for property:', propertyId)
+        }
+      } catch (err) {
+        webhookError = err instanceof Error ? err.message : 'Unknown webhook error'
+        console.error('n8n webhook failed for property:', propertyId, err)
+      }
+    }
+
     return NextResponse.json({
       success: true,
       property: updatedProperty,
-      message: `Property ${action}d successfully`
+      message: `Property ${action}d successfully`,
+      webhookError,
     })
 
   } catch (error) {
