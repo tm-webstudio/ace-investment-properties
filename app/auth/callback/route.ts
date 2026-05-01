@@ -42,6 +42,25 @@ export async function GET(request: NextRequest) {
       console.log('[CALLBACK] User type:', data.user.user_metadata?.user_type)
       const userType = data.user.user_metadata?.user_type || 'investor'
       const dashboardUrl = new URL(`/${userType}/dashboard?verified=true`, requestUrl.origin)
+
+      // Mark email as verified in user_profiles. Clicking a Supabase-issued
+      // link delivered to their inbox proves email ownership.
+      if (supabaseAdmin) {
+        try {
+          const { error: verifyError } = await supabaseAdmin
+            .from('user_profiles')
+            .update({ email_verified: true, updated_at: new Date().toISOString() })
+            .eq('id', data.user.id)
+          if (verifyError) {
+            console.error('[CALLBACK] Failed to mark email_verified:', verifyError)
+          } else {
+            console.log('[CALLBACK] ✅ user_profiles.email_verified set to true for:', data.user.id)
+          }
+        } catch (verifyError) {
+          console.error('[CALLBACK] Exception marking email_verified:', verifyError)
+        }
+      }
+
       const accessToken = data.session?.access_token
       const refreshToken = data.session?.refresh_token
       const siteUrl = process.env.SITE_URL || process.env.NEXT_PUBLIC_SITE_URL || requestUrl.origin

@@ -14,6 +14,7 @@ import { OnboardingStep3 } from "@/components/onboarding/step-3"
 import { InvestorSignupStep4 } from "@/components/investor-signup/step-4"
 import { FormProgressBar } from "@/components/form-progress-bar"
 import { PageHeader } from "@/components/page-header"
+import { supabase } from "@/lib/supabase"
 
 interface Step1Data {
   operatorType: "sa_operator" | "supported_living" | "social_housing" | "other"
@@ -346,11 +347,19 @@ export default function InvestorSignup() {
             currency: 'GBP'
           })
         }
-        if (data.matchedProperties !== undefined) {
-          router.push(`/auth/signin?message=Account created successfully! We found ${data.matchedProperties} properties matching your criteria. Please check your email for verification.`)
-        } else {
-          router.push('/auth/signin?message=Account created successfully! Please check your email for verification.')
+
+        const { error: signInError } = await supabase.auth.signInWithPassword({
+          email: step4Data.email,
+          password: step4Data.password,
+        })
+
+        if (signInError) {
+          console.error('Auto sign-in after signup failed:', signInError)
+          router.push('/auth/signin?message=Account created successfully! Please sign in to continue.')
+          return
         }
+
+        router.push('/investor/dashboard')
       } else {
         setError(data.error?.message || 'Failed to create account')
       }

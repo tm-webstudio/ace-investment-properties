@@ -61,7 +61,8 @@ export async function POST(request: NextRequest) {
       password,
       firstName: first_name,
       lastName: last_name,
-      userType: user_type === 'investor' ? 'Investor' : 'Landlord'
+      userType: user_type === 'investor' ? 'Investor' : 'Landlord',
+      skipEmailConfirmation: user_type === 'investor'
     })
 
     if (authError) {
@@ -95,7 +96,8 @@ export async function POST(request: NextRequest) {
         full_name: full_name,
         company_name: company_name || null,
         phone: phone_number,
-        user_type: user_type
+        user_type: user_type,
+        email_verified: false
       })
       .select('ref_number')
       .single()
@@ -283,7 +285,9 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: 'Account created successfully! Please check your email for verification.',
+      message: user_type === 'investor'
+        ? 'Account created successfully!'
+        : 'Account created successfully! Please check your email for verification.',
       user: {
         id: authData.user.id,
         email: authData.user.email,
